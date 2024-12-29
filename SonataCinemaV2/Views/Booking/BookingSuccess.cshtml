@@ -1,0 +1,46 @@
+﻿@{
+    ViewBag.Title = "Đặt Vé Thành Công";
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+
+<div class="booking-success">
+    <div class="success-content">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h1>Đặt Vé Thành Công!</h1>
+        <p class="message">Cảm ơn bạn đã đặt vé tại Sonata Cinema</p>
+        <div class="ticket-info">
+            <div class="ticket-detail">
+                <i class="fas fa-film"></i>
+                <span>@ViewBag.MovieName</span>
+            </div>
+            <div class="ticket-detail">
+                <i class="fas fa-calendar-alt"></i>
+                <span>@ViewBag.ShowDate</span>
+            </div>
+            <div class="ticket-detail">
+                <i class="fas fa-clock"></i>
+                <span>@ViewBag.ShowTime</span>
+            </div>
+            <div class="ticket-detail">
+                <i class="fas fa-couch"></i>
+                <span>@ViewBag.SeatNumbers</span>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <a href="@Url.Action("Index", "Home")" class="btn-home">
+                <i class="fas fa-home"></i>
+                Về Trang Chủ
+            </a>
+            <a href="@Url.Action("ProfilePage", "Profile")" class="btn-tickets">
+                <i class="fas fa-ticket-alt"></i>
+                Xem Vé Của Tôi
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    
+</style>

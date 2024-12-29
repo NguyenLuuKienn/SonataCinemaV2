@@ -1,0 +1,68 @@
+﻿@model IEnumerable<SonataCinemaV2.Models.Phim>
+
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="category-header">
+        <div class="section-header">
+            <span class="main-title">Phim</span>
+            <div class="category-links">
+                <a href="#" class="sub-link" data-filter="all">Tất cả</a>
+                <a href="#" class="sub-link" data-filter="Đang chiếu">Đang Chiếu</a>
+                <a href="#" class="sub-link" data-filter="Sắp chiếu">Sắp Chiếu</a>
+                <a href="#" class="sub-link" data-filter="Mới">Mới</a>
+            </div>
+        </div>
+        <div class="filter-options">
+            <select class="form-select">
+                <option hidden selected>Sắp xếp theo</option>
+                <option value="newest">Mới nhất</option>
+                <option value="rating">Đánh giá cao</option>
+                <option value="name">Tên A-Z</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Movies Grid -->
+    <div class="movies-grid">
+        @foreach (var item in Model)
+        {
+                <div class="movie-card" data-status="@item.TrangThai" data-id="@item.ID_Phim" data-rating="@item.DanhGia">
+                    <div class="movie-poster">
+                        <img src="~/Content/img/@item.Poster" alt="@item.TenPhim">
+                            <div class="movie-overlay">
+                                <div class="movie-actions">
+                                    <a href="@Url.Action("DetailsPage", "Details", new { id = item.ID_Phim})" class="btn-details">
+                                        <i class="fas fa-info-circle"></i> Chi tiết
+                                    </a>
+                                    <a href="@Url.Action("BookingTicket", "Booking")" class="btn-booking">
+                                        Đặt vé
+                                    </a>
+                                    <button class="btn-trailer">
+                                        <i class="fas fa-play"></i> Xem trailer
+                                    </button>
+                                </div>
+                            </div>
+                    </div>
+                    <div class="movie-info">
+                        <h3 class="movie-title">@item.TenPhim</h3>
+                        <div class="movie-meta">
+                            <span class="duration">
+                                <i class="far fa-clock"></i> @item.ThoiLuong phút
+                            </span>
+                            <span class="rating">
+                                <i class="fas fa-star"></i> @item.DanhGia
+                            </span>
+                        </div>
+                    </div>
+                </div>
+        }
+    </div>
+
+    <!-- Load More Button -->
+    <div class="text-center mt-4 mb-4">
+        <button class="btn-load-more" id="viewMoreBtn" onclick="showMoreMovies()">
+            <span>Xem thêm</span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+    </div>
+</div>

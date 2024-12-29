@@ -1,0 +1,134 @@
+﻿@model SonataCinemaV2.Models.Phim
+@{
+    ViewBag.Title = "Chi tiết phim";
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+
+<div class="movie-detail-container">
+    <!-- Banner Section -->
+    <div class="movie-banner" style="background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('/Content/img/@Model.Banner')">
+        <div class="container">
+            <div class="banner-content">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <div class="movie-poster">
+                            <img src="~/Content/img/@Model.Poster" alt="@Model.TenPhim">
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="movie-info">
+                            <h1>@Model.TenPhim</h1>
+                            <div class="meta-info">
+                                <span class="rating">
+                                    <i class="fas fa-star"></i>
+                                    @Model.DanhGia
+                                </span>
+                                <span class="duration">
+                                    <i class="far fa-clock"></i>
+                                    @Model.ThoiLuong phút
+                                </span>
+                                <div class="genres">
+                                    @foreach (var genre in Model.TheLoai.Split(','))
+                                    {
+                                        <a href="@Url.Action("filterCategory", "Details", new { theloai = genre.Trim() })" class="genre-badge">
+                                            @genre.Trim()
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                @if (!string.IsNullOrEmpty(Model.Trailer))
+                                {
+                                    <button class="btn-trailer" onclick="playTrailer('@Model.Trailer')">
+                                        <i class="fas fa-play"></i> Xem Trailer
+                                    </button>
+                                }
+                                <button class="btn-booking" onclick="location.href='@Url.Action("BookingTicket", "Booking")'">
+                                    <i class="fas fa-ticket-alt"></i> Đặt Vé
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="content-section">
+        <div class="container mt-5">
+            <div class="row g-4">
+                <!-- Cột bên trái cho Chi tiết phim -->
+                <div class="col-lg-8">
+                    <div class="movie-details-card">
+                        <h3>Chi tiết phim</h3>
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <span class="label">Đạo diễn:</span>
+                                <span class="value"></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Diễn viên:</span>
+                                <span class="value"></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Nhà sản xuất:</span>
+                                <span class="value"></span>
+                            </div>
+                        </div>
+
+                        <h3 class="mt-4">Nội dung phim</h3>
+                        <p class="movie-description">@Model.MoTa</p>
+                    </div>
+                </div>
+
+                <!-- Cột bên phải cho Có thể bạn thích -->
+                <div class="col-lg-4">
+                    <div class="recommendations-card">
+                        <h3>Có thể bạn thích</h3>
+                        <div class="recommended-movies">
+                            @foreach (var movie in Model.RandomMovie)
+                            {
+                                <div class="recommended-movie">
+                                    <a href="@Url.Action("DetailsPage", "Details", new { id = movie.ID_Phim })">
+                                        <div class="rec-movie-poster">
+                                            <img src="~/Content/img/@movie.Poster" alt="@movie.TenPhim">
+                                        </div>
+                                        <div class="rec-movie-info">
+                                            <h5>@movie.TenPhim</h5>
+                                            <span class="rec-rating">
+                                                <i class="fas fa-star"></i> @movie.DanhGia
+                                            </span>
+                                        </div>
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trailer Modal -->
+<div class="trailer-modal" id="trailerModal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div class="video-container">
+            <iframe id="trailerFrame"
+                    width="100%"
+                    height="500"
+                    src=""
+                    title="Movie Trailer"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+            </iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+
+</script>

@@ -1,0 +1,79 @@
+﻿@model SonataCinemaV2.ViewModel.UserLogin
+
+@{
+    ViewBag.Title = "Đăng Nhập";
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+
+<div class="login-page-container">
+    <div class="login-form-content">
+        <h2 class="text-center">Đăng Nhập</h2>
+
+        @using (Html.BeginForm("DangNhap", "Account", FormMethod.Post, new { @id = "loginForm" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Hidden("ReturnUrl", (string)ViewBag.ReturnUrl)
+            @Html.ValidationSummary(true, "")
+
+            <div class="custom-form-group">
+                <label for="Email" class="custom-control-label">Nhập Email</label>
+                <input type="text" name="Email" class="custom-form-control" placeholder="Nhập Email" value="@Model.Email" />
+                @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="custom-form-group">
+                <label for="Password" class="custom-control-label">Mật Khẩu</label>
+                <input type="password" name="Password" class="custom-form-control" placeholder="Nhập mật khẩu" value="@Model.Password" />
+                @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="custom-form-group text-center">
+                <button type="submit" class="custom-btn button-62">Đăng Nhập</button>
+            </div>
+
+            <div class="text-center">
+                <a href="/Account/ForgotPassword" class="custom-link">Quên mật khẩu?</a>
+            </div>
+
+            <div class="text-center">
+                <p>Bạn chưa có tài khoản? <a href="@Url.Action("DangKy", "KhachHang")" class="button-62">Đăng Ký</a></p>
+            </div>
+        }
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $("#loginForm").submit(function (event) {
+            event.preventDefault(); // Ngăn không cho form gửi đi mặc định
+
+            $.ajax({
+                url: $(this).attr("action"),
+                type: "POST",
+                data: $(this).serialize(),
+                success: function (response) {
+                    // Kiểm tra xem có lỗi trong ModelState không
+                    var errorMessages = $(response).find('.text-danger');
+                    if (errorMessages.length > 0) {
+                        // Hiển thị các thông báo lỗi
+                        $("#login-page-container").html(response);
+                    } else {
+                        // Nếu không có lỗi, chuyển hướng đến URL trả về từ controller
+                        if (response.redirectUrl) {
+                            window.location.href = response.redirectUrl;
+                        }
+                    }
+                },
+                error: function () {
+                    alert("Đã có lỗi xảy ra!");
+                }
+            });
+        });
+    });
+</script>
+

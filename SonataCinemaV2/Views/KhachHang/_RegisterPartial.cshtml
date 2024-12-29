@@ -1,0 +1,64 @@
+﻿@model SonataCinemaV2.ViewModel.Register
+
+<div class="registration-container">
+    <div class="registration-card">
+        <div class="registration-header text-center">
+            <h2 style="color:#000">Đăng Ký Tài Khoản</h2>
+        </div>
+        <div class="registration-body">
+            @using (Html.BeginForm("DangKy", "KhachHang", FormMethod.Post, FormMethod.Post, new { @id = "registerForm" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-group-custom">
+                    <label for="TenKhachHang" class="control-label-custom">Họ và Tên</label>
+                    <input type="text" name="TenKhachHang" class="form-control-custom" placeholder="Nhập họ và tên" value="@Model.TenKhachHang" />
+                    @Html.ValidationMessageFor(model => model.TenKhachHang, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group-custom">
+                    <label for="Email" class="control-label-custom">Email</label>
+                    <input type="email" name="Email" class="form-control-custom" placeholder="Nhập email" value="@Model.Email" />
+                    @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group-custom">
+                    <label for="SoDienThoai" class="control-label-custom">Số Điện Thoại</label>
+                    <input type="tel" name="SoDienThoai" class="form-control-custom" placeholder="Nhập số điện thoại" value="@Model.SoDienThoai" />
+                    @Html.ValidationMessageFor(model => model.SoDienThoai, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group-custom">
+                    <label>Giới Tính</label><br />
+                    <input type="radio" name="GioiTinh" value="Nam" @(Model.GioiTinh == "Nam" ? "checked" : "") /> Nam
+                    <input type="radio" name="GioiTinh" value="Nữ" @(Model.GioiTinh == "Nữ" ? "checked" : "") /> Nữ
+                    @Html.ValidationMessageFor(model => model.GioiTinh, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group-custom">
+                    <label for="NgaySinh" class="control-label-custom">Ngày Sinh</label>
+                    <input type="date" name="NgaySinh" class="form-control-custom" value="@Model.NgaySinh.ToString("dd-MM-yyyy")" min="1970-01-01" />
+                    @Html.ValidationMessageFor(model => model.NgaySinh, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group-custom">
+                    <label for="MatKhau" class="control-label-custom">Mật Khẩu</label>
+                    <input type="password" name="MatKhau" class="form-control-custom" placeholder="Nhập mật khẩu" />
+                    @Html.ValidationMessageFor(model => model.MatKhau, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group-custom">
+                    <label for="NhapLaiMatKhau" class="control-label-custom">Nhập Lại Mật Khẩu</label>
+                    <input type="password" name="NhapLaiMatKhau" class="form-control-custom" placeholder="Nhập lại mật khẩu" />
+                    @Html.ValidationMessageFor(model => model.NhapLaiMatKhau, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group-custom text-center">
+                    <button type="submit" class="button-62 ">Hoàn Thành</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+

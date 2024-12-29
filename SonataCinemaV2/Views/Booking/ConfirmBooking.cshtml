@@ -1,0 +1,227 @@
+﻿@model SonataCinemaV2.ViewModel.ConfirmViewModel
+
+@{
+    ViewBag.Title = "Xác Nhận Đặt Vé";
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+
+<div class="container py-5">
+    <div class="booking-confirmation">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h2 class="confirmation-title">Xác Nhận Đặt Vé</h2>
+            <p class="text-muted">Vui lòng kiểm tra lại thông tin trước khi thanh toán</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="confirmation-content">
+            <div class="row">
+                <!-- Movie Information -->
+                <div class="col-lg-8">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h4 class="card-titlee mb-4">Thông Tin Đặt Vé</h4>
+
+                            <div class="movie-info">
+                                <div class="info-item">
+                                    <i class="fas fa-film"></i>
+                                    <div class="info-content">
+                                        <label>Tên Phim</label>
+                                        <p>@Model.TenPhim</p>
+                                    </div>
+                                </div>
+
+                                <div class="info-item">
+                                    <i class="fas fa-door-open"></i>
+                                    <div class="info-content">
+                                        <label>Phòng Chiếu</label>
+                                        <p>@Model.TenPhong</p>
+                                    </div>
+                                </div>
+
+                                <div class="info-item">
+                                    <i class="far fa-calendar-alt"></i>
+                                    <div class="info-content">
+                                        <label>Ngày Chiếu</label>
+                                        <p>@Model.Ngay</p>
+                                    </div>
+                                </div>
+
+                                <div class="info-item">
+                                    <i class="far fa-clock"></i>
+                                    <div class="info-content">
+                                        <label>Giờ Chiếu</label>
+                                        <p>@Model.GioChieu</p>
+                                    </div>
+                                </div>
+
+                                <div class="info-item">
+                                    <i class="fas fa-chair"></i>
+                                    <div class="info-content">
+                                        <label>Ghế Đã Chọn</label>
+                                        <p>@string.Join(", ", Model.ChonGhe.Select(g => g.TenGhe))</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Summary -->
+                <div class="col-lg-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h4 class="card-titlee mb-4">Tổng Thanh Toán</h4>
+
+                            <div class="payment-summary">
+                                <div class="summary-item">
+                                    <span>Số lượng vé</span>
+                                    <span>@Model.ChonGhe.Count</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Giá vé</span>
+                                    <span>@((Model.TongTien / Model.ChonGhe.Count).ToString("N0")) VNĐ</span>
+                                </div>
+                                <hr>
+                                <div class="summary-item total">
+                                    <span>Tổng cộng</span>
+                                    <span class="total-amount">@Model.TongTien.ToString("N0") VNĐ</span>
+                                </div>
+                            </div>
+
+                            @using (Html.BeginForm("ConfirmPayment", "Booking", FormMethod.Post, new { id = "paymentForm" }))
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden" name="IDLichChieu" value="@Model.IDLichChieu" />
+                                <input type="hidden" name="IDKhachHang" value="@Model.IDKhachHang" />
+                                <input type="hidden" name="TongTien" value="@Model.TongTien" />
+                                <input type="hidden" name="TenPhim" value="@Model.TenPhim" />
+                                <input type="hidden" name="TenPhong" value="@Model.TenPhong" />
+                                <input type="hidden" name="Ngay" value="@Model.Ngay" />
+                                <input type="hidden" name="GioChieu" value="@Model.GioChieu" />
+
+                                for (int i = 0; i < Model.ChonGhe.Count; i++)
+                                {
+                                    <input type="hidden" name="ChonGhe[@i].IDGhe" value="@Model.ChonGhe[i].IDGhe" />
+                                    <input type="hidden" name="ChonGhe[@i].TenGhe" value="@Model.ChonGhe[i].TenGhe" />
+                                }
+
+                                <div class="action-buttons">
+                                    <button type="submit" class="btn btn-primary btn-block mb-3" onclick="console.log('Submitting with IDLichChieu:', @Model.IDLichChieu)">
+                                        <i class="fas fa-check-circle"></i> Xác Nhận Thanh Toán
+                                    </button>
+                                    <a href="@Url.Action("BookingTicket")" class="btn btn-outline-secondary btn-block">
+                                        <i class="fas fa-arrow-left"></i> Quay Lại
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .booking-confirmation {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .confirmation-title {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 10px;
+        border: none;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+
+        .info-item i {
+            font-size: 1.2rem;
+            color: #3498db;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+        }
+
+    .info-content label {
+        display: block;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .info-content p {
+        margin: 0;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    .payment-summary .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .payment-summary .total {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .total-amount {
+        color: #e74c3c;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        border: none;
+        padding: 0.8rem;
+    }
+
+    .btn-outline-secondary {
+        border-color: #95a5a6;
+        color: #95a5a6;
+    }
+
+        .btn-outline-secondary:hover {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+    .action-buttons {
+        margin-top: 2rem;
+    }
+
+        .action-buttons .btn i {
+            margin-right: 0.5rem;
+        }
+</style>
+
+<script>
+        $(document).ready(function () {
+            // Log để kiểm tra dữ liệu
+            console.log("IDLichChieu from Model:", @Model.IDLichChieu);
+
+            // Xử lý submit form
+            $('form').on('submit', function (e) {
+                e.preventDefault();
+
+                // Log dữ liệu form trước khi gửi
+                var formData = $(this).serializeArray();
+                console.log("Form Data:", formData);
+
+                // Submit form
+                this.submit();
+            });
+        });
+</script>

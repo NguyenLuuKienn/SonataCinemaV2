@@ -1,0 +1,166 @@
+﻿@model SonataCinemaV2.ViewModel.BookingViewModel
+@{
+    ViewBag.Title = "Đặt Vé Xem Phim";
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+
+<div class="booking-container">
+    <div class="booking-wrapper">
+        <!-- Left Column - Booking Form -->
+        <div class="booking-form-section">
+            <form method="post" action="/Booking/ConfirmBooking">
+                <div id="booking-form">
+                    <h2 class="section-title">Đặt Vé Xem Phim</h2>
+
+                    <!-- Movie Selection -->
+                    <div class="form-group">
+                        <label class="form-label" for="movie">
+                            <i class="fas fa-film"></i>
+                            Chọn Phim
+                        </label>
+                        <select class="form-control custom-select" id="movieSelect">
+                            <option value="" hidden>Chọn Phim</option>
+                            @foreach (var phim in Model.Phims)
+                            {
+                                <option value="@phim">@phim</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Date Selection -->
+                    <div class="form-group">
+                        <label class="form-label" for="date">
+                            <i class="far fa-calendar-alt"></i>
+                            Chọn Ngày
+                        </label>
+                        <select class="form-control custom-select" id="dateSelect" disabled>
+                            <option value="" hidden>Chọn Ngày</option>
+                        </select>
+                    </div>
+
+                    <!-- Time Selection -->
+                    <div class="form-group">
+                        <label class="form-label" for="time">
+                            <i class="far fa-clock"></i>
+                            Chọn Giờ
+                        </label>
+                        <select class="form-control custom-select" id="timeSelect" disabled>
+                            <option value="" hidden>Chọn Giờ</option>
+                        </select>
+                    </div>
+
+                    <!-- Room Selection -->
+                    <div class="form-group">
+                        <label class="form-label" for="room">
+                            <i class="fas fa-door-open"></i>
+                            Chọn Phòng
+                        </label>
+                        <select class="form-control custom-select" id="roomSelect" disabled>
+                            <option value="" hidden>Chọn Phòng</option>
+                        </select>
+                    </div>
+
+                    <!-- Hidden inputs -->
+                    <input type="hidden" id="IDLichChieu" name="IDLichChieu" value="0" />
+                    <input type="hidden" id="maKH" name="maKH" value="@Session["MaKhachHang"] @Session["MaNhanVien"]" />
+                    <input type="hidden" id="maGhe" name="maGhe" />
+
+                    <button class="btn btn-primary btn-block next-btn" id="next-step" type="button" disabled>
+                        <i class="fas fa-arrow-right"></i> Tiếp Tục
+                    </button>
+                </div>
+                <div id="lichChieuContainer" style="display:none;"></div>
+                <!-- Seat Selection Section -->
+                <div id="seatSelectionContainer" class="seat-selection-section" style="display: none;">
+                    <h3 class="section-title">Chọn Chỗ Ngồi</h3>
+                    <div class="screen-container">
+                        <div class="screen">Màn Chiếu</div>
+                    </div>
+                    <div class="seats-container" id="seat-selection"></div>
+
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="seat-icon empty"></div>
+                            <span>Ghế trống</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="seat-icon selected"></div>
+                            <span>Ghế đã chọn</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="seat-icon occupied"></div>
+                            <span>Ghế đã đặt</span>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" id="back">
+                            <i class="fas fa-arrow-left"></i> Quay Lại
+                        </button>
+                        <button id="confirm-booking" class="btn btn-success" type="submit" disabled>
+                            <i class="fas fa-check"></i> Xác Nhận Đặt Vé
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Right Column - Ticket Info -->
+        <div class="ticket-info-section">
+            <div class="ticket-card">
+                <h3 class="card-titlee">
+                    <i class="fas fa-ticket-alt"></i>
+                    Thông Tin Vé
+                </h3>
+                <div class="ticket-details">
+                    <div class="info-item">
+                        <i class="fas fa-film"></i>
+                        <div class="info-content">
+                            <label>Phim:</label>
+                            <span id="selected-movie">-</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="far fa-calendar-alt"></i>
+                        <div class="info-content">
+                            <label>Ngày:</label>
+                            <span id="selected-date">-</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-door-open"></i>
+                        <div class="info-content">
+                            <label>Phòng:</label>
+                            <span id="selected-room">-</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="far fa-clock"></i>
+                        <div class="info-content">
+                            <label>Giờ:</label>
+                            <span id="selected-time">-</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-ticket-alt"></i>
+                        <div class="info-content">
+                            <label>Số Lượng:</label>
+                            <span id="ticket-count">0</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-chair"></i>
+                        <div class="info-content">
+                            <label>Ghế:</label>
+                            <span id="selected-seats">-</span>
+                        </div>
+                    </div>
+                    <div class="total-price">
+                        <label>Tổng Tiền:</label>
+                        <span id="total-price">0 VNĐ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

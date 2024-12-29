@@ -1,0 +1,10 @@
+﻿@model IEnumerable<SonataCinemaV2.ViewModel.RoomViewModel>
+
+@foreach (var room in Model)
+{
+    <option value="@room.IDPhong" data-lichchieuId="@room.IDLichChieu">
+        @room.TenPhong
+    </option>
+}
+
+

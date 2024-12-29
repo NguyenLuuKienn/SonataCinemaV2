@@ -1,0 +1,205 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonata Cinema</title>
+    <link rel="shortcut icon" href="~/Content/img/Picturelogo.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Aldrich&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Oswald:wght@200..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+
+
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Content/src/cinema.css">
+    <link rel="stylesheet" href="~/Content/src/button.css">
+    <link href="~/Content/src/details.css" rel="stylesheet" />
+    <link href="~/Content/src/FormDK.css" rel="stylesheet" />
+    <link href="~/Content/src/FormDN.css" rel="stylesheet" />
+    <link href="~/Content/src/booking.css" rel="stylesheet" />
+    <link href="~/Content/src/QuickBooking.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <title>@ViewBag.Title</title>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-header">
+        <div class="container-fluid">
+            <!-- Logo -->
+            <a class="navbar-brand" href="@Url.Action("Index", "Home")">
+                <img src="~/Content/img/Picturelogo.png" alt="Sonata Cinema" width="120">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- Menu Items -->
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="@Url.Action("Index", "Home")" id="navbarDropdownHome" role="button" aria-expanded="false">
+                            Trang chủ
+                        </a>
+                        @if (Session["Admin"] != null && (bool)Session["Admin"])
+                        {
+
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownHome">
+                                <li><a class="dropdown-item" href="@Url.Action("IndexAdmin", "Admin")">Dashboard Admin</a></li>
+                            </ul>
+                        }
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownFilm" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Phim
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownFilm">
+                            <li><a class="dropdown-item" href="@Url.Action("DangChieu", "Home")">Phim đang chiếu</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("SapChieu", "Home")">Phim sắp chiếu</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownGenre" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Thể loại
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownGenre">
+                            <li><a class="dropdown-item" href="#">Hành động</a></li>
+                            <li><a class="dropdown-item" href="#">Hài</a></li>
+                            <li><a class="dropdown-item" href="#">Kinh dị</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("BookingTicket", "Booking")">Mua vé</a>
+                    </li>
+                    <li class="nav-item dropdown" style="display:flex; align-content:space-around; justify-content:center; align-items:center;">
+
+                        @if (User.Identity.IsAuthenticated)
+                        {
+
+                            <a class="nav-link" href="#">Chào @User.Identity.Name</a>
+                            <img class="avatar-dropdown" src="~/Content/img/logo.jpg" style="border-radius:50%; cursor: pointer" />
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownGenre">
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("ProfilePage", "Profile")">Edit Profile</a>
+                                    <a class="dropdown-item" href="@Url.Action("DangXuat", "Account")">Đăng xuất</a>
+                                </li>
+                            </ul>
+                        }
+                        else
+                        {
+                            <button id="btnShowLogin" class="nav-link" style="background: none; border: none;cursor: pointer;">
+                                Đăng Nhập
+                            </button>
+                            @*<a class="nav-link" href="@Url.Action("DangNhap", "Account")">Đăng Nhập</a>*@
+                        }
+                    </li>
+
+
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="blur-overlay" id="blurOverlay" style="display: none;"></div>
+    <div class="modal-login" id="modalLogin" style="display: none;">
+        <div id="loginPartialContainer">
+            @Html.Action("LoginPartial", "Account")
+        </div>
+        <div class="text-center">
+            <p>
+                Bạn chưa có tài khoản?
+                <button id="btnSwitchToRegister" class="nav-link button-62">Đăng Ký</button>
+            </p>
+        </div>
+    </div>
+
+    <div class="modal-register" id="modalRegister" style="display: none;">
+        @Html.Action("RegisterPartial", "KhachHang")
+    </div>
+
+
+    @*<div class="modal-login" id="modalLogin">
+            @Html.Action("LoginPartial", "Account")
+        </div>
+        <div class="modal-register" id="modalRegister" style="display: none;">
+            @Html.Action("RegisterPartial", "KhachHang")
+        </div>*@
+
+
+
+
+    <div>
+        @RenderBody()
+    </div>
+
+
+
+    <!-- Footer -->
+    <footer class="footer-content bg-dark text-light mt-4">
+        <div class="container py-sm-1">
+            <div class="row">
+                <div class="col-md-4 text-center text-md-start">
+                    <h5>Liên Hệ</h5>
+                    <p>Địa chỉ: 123 Đường Này, Ngõ Nọ, Chỗ Kia</p>
+                    <p>Email: nguyenluukien@gmail.com</p>
+                    <p>Điện thoại: +84 947 483 487</p>
+                </div>
+                <div class="col-md-4 text-center text-md-start">
+                    <h5>Thông Tin</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light">Giới thiệu</a></li>
+                        <li><a href="#" class="text-light">Chính sách bảo mật</a></li>
+                        <li><a href="#" class="text-light">Điều khoản dịch vụ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-center text-md-start">
+                    <h5>Theo Dõi Chúng Tôi</h5>
+                    <a href="#" class="text-light me-2"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-light me-2"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-light me-2"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-light"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <p>&copy; 2024 Sonata Cinema - Website số 1 Việt Nam</p>
+            </div>
+        </div>
+    </footer>
+
+
+
+
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <script src="~/Content/src/cinema.js"></script>
+    <script src="~/Content/src/Ticket.js"></script>
+    <script src="~/Content/src/Booking.js"></script>
+    @*<script src="~/Content/src/FormDN.js"></script>*@
+    <!--js details-->
+    <script src="~/Content/src/vendor/jquery/jquery.min.js"></script>
+    <script src="~/Content/src/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/Content/src/details-js/counter.js"></script>
+    <script src="~/Content/src/details-js/custom.js"></script>
+    <script src="~/Content/src/details-js/isotope.min.js"></script>
+    <script src="~/Content/src/details-js/owl-carousel.js"></script>
+    <script src="~/Content/src/detail.js"></script>
+    <script src="~/Content/src/QuickBooking.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,148 @@
+﻿
+@{
+    ViewBag.Title = "IndexAdmin";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<!-- Sidebar -->
+<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark sidebar" id="sidebar">
+    <a href="@Url.Action("Index", "Home")" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+        <svg class="bi me-2" width="40" height="32">
+            <use xlink:href="#bootstrap"></use>
+        </svg>
+        <span class="fs-4">Sonata Cinema</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item">
+            <a href="#" class="nav-link active" aria-current="page" onclick="showContent('home')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#home"></use>
+                </svg>
+                Trang chủ
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white" onclick="showContent('manage-movies')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#speedometer2"></use>
+                </svg>
+                Quản lý Phim
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white" id="manage-employees" onclick="showContent('manage-employees')">
+                <svg class="bi me-2" width="16" height="16"><use xlink:href="#people-circle"></use></svg>
+                Quản lý Nhân viên
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white" onclick="showContent('manage-rooms')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#grid"></use>
+                </svg>
+                Quản lý Phòng Chiếu
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white" onclick="showContent('manage-customers')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#people-circle"></use>
+                </svg>
+                Quản lý Khách Hàng
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white" onclick="showContent('manage-showtimes')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#calendar"></use>
+                </svg>
+                Quản lý Lịch Chiếu
+            </a>
+        </li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="~/Content/img/logo.jpg" alt="" class="rounded-circle me-2" width="32" height="32">
+            <strong style="font-size: 18px;">@Session["AdminName"]</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+            <li><a class="dropdown-item" href="#">Cài Đặt</a></li>
+            <li><a class="dropdown-item" href="#">Profile</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="@Url.Action("DangXuat", "Admin")">Đăng Xuất</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+    <!-- Search and action buttons -->
+    <div class="search-container">
+        <div class="search-bar">
+            <input type="text" placeholder="Search..." class="form-control search-input">
+
+        </div>
+        <div class="action-buttons">
+            <i class="bi bi-bell"></i>
+            <div class="dropdown avatar-dropdown">
+                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser2" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="~/Content/img/logo.jpg" alt="Avatar">
+                    <strong>@Session["AdminName"]</strong>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownUser2">
+                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                    <li><a class="dropdown-item" href="#">Cài Đặt</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" href="@Url.Action("DangXuat", "Admin")">Đăng Xuất</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    @*<div class="divider"></div>*@
+    <br />
+
+    <!-- Nội dung trang chủ -->
+    <div class="home-content">
+        <h2>Trang Chủ</h2>
+        @Html.Action("TotalPartial", "Admin")
+    </div>
+
+    <!-- Nội dung quản lý nhân viên -->
+    <div class="employee-management d-none">
+        <h2>Quản Lý Nhân Viên</h2>
+        @Html.Action("DanhSachNhanVienPartial", "NhanVien")
+    </div>
+
+
+    <!-- Nội dung quản lý phim -->
+    <div class="movie-management d-none">
+        <h2>Quản Lý Phim</h2>
+        @Html.Action("DanhSachPhimPartial", "Phim")
+
+    </div>
+
+
+    <!-- Nội dung quản lý phòng chiếu -->
+    <div class="screening-room-management d-none">
+        <h2>Quản Lý Phòng Chiếu</h2>
+        @Html.Action("DanhSachPhongChieuPartial", "Phong")
+    </div>
+
+    <!-- Nội dung quản lý khách hàng -->
+    <div class="customer-management d-none">
+        <h2>Quản Lý Khách Hàng</h2>
+        @Html.Action("DanhSachKhangHangPartial", "KhachHang")
+    </div>
+
+    <!-- Nội dung quản lý lịch chiếu -->
+    <div class="showtime-management d-none">
+        <h2>Quản Lý Lịch Chiếu</h2>
+        @Html.Action("DanhSachLichChieuPartial", "LichChieu")
+    </div>
+</div>

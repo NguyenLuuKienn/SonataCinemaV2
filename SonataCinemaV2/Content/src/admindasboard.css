@@ -1,0 +1,346 @@
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.sidebar {
+    width: 280px;
+    height: 100vh; 
+    background-color: #343a40;
+    padding: 10px;
+    color: white;
+    position: fixed;
+}
+
+.sidebar .nav-link {
+    color: white;
+}
+
+.sidebar .nav-link.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.sidebar .dropdown-toggle {
+    text-decoration: none;
+}
+
+.dropdown-menu {
+    background-color: #343a40;
+    border: none;
+}
+
+.dropdown-item {
+    color: white;
+}
+
+.dropdown-item:hover {
+    background-color: #495057;
+    color: white;
+}
+
+.profile img {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+
+.content {
+    margin-left: 280px;
+    padding: 20px;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    margin-right: 20px; 
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 6px;
+    padding-right: 30px; 
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.search-input {
+    height: 50px;
+}
+
+.search-bar i {
+    position: absolute;
+    right: 10px;
+    color: gray;
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.btn-add-movie {
+    padding: 6px 12px;
+}
+
+.avatar-dropdown img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.avatar-dropdown strong {
+    margin-left: 8px;
+}
+
+.bi-bell {
+    font-size: 1.5rem;
+    margin-right: 20px; 
+}
+
+.divider {
+    border-top: 1px solid #ccc;
+    margin: 10px 0;
+}
+
+.row {
+    margin: 0;
+}
+
+.divider {
+    margin: 20px 0;
+    border-top: 1px solid #ccc;
+}
+.employee-management {
+    margin-top: 20px;
+}
+.d-none {
+    display: none;
+}
+
+/* quản lý phim */
+
+.form-control
+
+.movie-management {
+    padding: 20px;
+}
+
+.movie-management h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+#movieForm {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#movieForm .form-label {
+    font-weight: bold;
+}
+
+.movie-management table {
+    margin-top: 20px;
+}
+
+.movie-management table th, .movie-management table td {
+    vertical-align: middle;
+}
+
+.movie-management .btn {
+    font-size: 14px;
+    padding: 5px 10px;
+}
+
+/* quản lý nhân viên */
+.employee-management {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+h2, h3 {
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+label {
+    font-weight: bold;
+}
+
+.table {
+    margin-top: 20px;
+    width: 100%;
+}
+
+.btn {
+    margin-right: 10px;
+}
+/* Thêm style cho quản lý lịch chiếu */
+.showtime-management {
+    padding: 20px;
+}
+
+.showtime-management .table {
+    margin-top: 20px;
+}
+
+.showtime-management .modal-dialog {
+    max-width: 600px;
+}
+
+.showtime-management .form-label {
+    font-weight: bold;
+}
+
+.showtime-management .btn {
+    margin-right: 5px;
+}
+
+.main-content {
+    margin-left: 250px; /* Chiều rộng của sidebar */
+    width: calc(100% - 250px);
+    padding: 20px;
+    position: relative;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+input[type="time"] {
+    font-family: monospace; /* Sử dụng font monospace để đảm bảo hiển thị đều */
+}
+
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto; 
+        position: relative; 
+    }
+
+    .content {
+        margin-left: 0; 
+        padding: 20px;
+    }
+
+    .search-container {
+        flex-direction: column; 
+    }
+
+    .search-bar {
+        width: 100%;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    .action-buttons {
+        flex-direction: row; 
+        margin-top: 10px;
+    }
+
+    .row .col-6 {
+        flex: 0 0 100%; 
+        margin-bottom: 20px;
+    }
+
+    .btn-add-movie {
+        width: 100%; 
+        margin-top: 10px; 
+    }
+}
+/* Thêm vào file CSS hiện có */
+
+/* Form styling */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+}
+
+/* Table styling */
+.table-responsive {
+    margin-top: 2rem;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    vertical-align: middle;
+}
+
+.table-dark {
+    background-color: #343a40;
+}
+
+.table th {
+    font-weight: 500;
+}
+
+.table td, .table th {
+    padding: 0.75rem;
+    vertical-align: middle;
+}
+
+/* Button styling */
+.btn {
+    padding: 0.375rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn i {
+    margin-right: 0.25rem;
+}
+
+/* Alert styling */
+.alert {
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 4px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}

@@ -1,0 +1,9 @@
+﻿@model List<SonataCinemaV2.ViewModel.GheViewModel>
+
+@foreach (var ghe in Model)
+{
+    var soGhe = ghe.TenGhe.Split('-').Last();
+    <div class="seat" id="@ghe.IDGhe" title="@ghe.TenGhe">@soGhe</div>
+}
+
+

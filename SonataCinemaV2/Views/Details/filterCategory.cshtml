@@ -1,0 +1,58 @@
+﻿@model List<SonataCinemaV2.Models.Phim>
+@{
+    ViewBag.Title = "Phim Theo Thể Loại";
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+
+<div class="category-container">
+    <!-- Header Section -->
+    <div class="category-header">
+        <h2 class="main-title">@ViewBag.Message</h2>
+        <div class="filter-options">
+            <select class="form-select">
+                <option selected>Sắp xếp theo</option>
+                <option value="newest">Mới nhất</option>
+                <option value="rating">Đánh giá cao</option>
+                <option value="name">Tên A-Z</option>
+            </select>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Count > 0)
+    {
+        <div class="movies-grid">
+            @foreach (var movie in Model)
+            {
+                <div class="movie-card">
+                    <div class="movie-poster">
+                        <img src="~/Content/img/@movie.Poster" alt="@movie.TenPhim">
+                        <div class="movie-overlay">
+                            <div class="movie-actions">
+                                <a href="@Url.Action("DetailsPage", "Movies", new { id = movie.ID_Phim })" class="btn-details">Chi tiết</a>
+                                <a href="#" class="btn-booking">Đặt vé</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="movie-info">
+                        <h3 class="movie-title">@movie.TenPhim</h3>
+                        <div class="movie-meta">
+                            <span class="duration">@movie.ThoiLuong phút</span>
+                            <span class="rating">
+                                <i class="fas fa-star"></i>
+                                @movie.DanhGia
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="no-results">
+            <i class="fas fa-film"></i>
+            <p>Không có phim nào thuộc thể loại này.</p>
+        </div>
+    }
+</div>
+

@@ -1,0 +1,38 @@
+﻿@model IEnumerable<SonataCinemaV2.Models.Phim>
+
+<div id="carouselExample" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+    <div class="carousel-inner">
+        @for (int i = 0; i < Model.ToList().Take(3).Count(); i++)
+        {
+            var item = Model.ElementAt(i);
+            if (i == 0)
+            {
+                <div class="carousel-item active">
+                    <a href="#" class="img-link"><img src="~/Content/img/@item.Banner" class="d-block w-100" alt="Slide @i"></a>
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>Chào mừng đến với Sonata Cinema</h5>
+                        <p>Phim hay đang chờ đón bạn!</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="carousel-item">
+                    <a href="#" class="img-link"><img src="~/Content/img/@item.Banner" class="d-block w-100" alt="Slide @i"></a>
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>Khám phá thể loại phim đa dạng</h5>
+                        <p>Thể loại hành động, hài hước, kinh dị và nhiều hơn nữa!</p>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>

@@ -1,0 +1,46 @@
+﻿@model List<SonataCinemaV2.ViewModel.GheViewModel>
+
+<div class="seat-layout">
+    <div class="seat-container">
+        @{
+            var sortedSeats = Model
+                .OrderBy(g => g.TenGhe.Split('-')[0])
+                .ThenBy(g => int.Parse(g.TenGhe.Split('-')[1]))
+                .ToList();
+        }
+
+        @for (int i = 0; i < sortedSeats.Count; i += 7)
+        {
+            <div class="col-lg-4 d-flex flex-wrap justify-content-center mb-3">
+                @foreach (var ghe in sortedSeats.Skip(i).Take(7))
+                {
+                    var soGhe = ghe.TenGhe.Split('-')[1];
+                    var seatClass = ghe.TrangThai == "Đã đặt" ? "occupied" : "empty";
+
+                    <div class="seat @seatClass"
+                         data-id="@ghe.IDGhe"
+                         data-name="@ghe.TenGhe"
+                         @(ghe.TrangThai == "Đã đặt" ? "disabled" : "")>
+                        @soGhe
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .seat-layout {
+        display: flex;
+        gap: 10px;
+    }
+
+    .row-label {
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .seat-container {
+        flex: 1;
+    }
+</style>

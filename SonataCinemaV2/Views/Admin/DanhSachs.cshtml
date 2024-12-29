@@ -1,0 +1,375 @@
+﻿
+@model SonataCinemaV2.ViewModel.DanhSachShow
+
+
+@{
+    ViewBag.Title = "IndexAdmin";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<!-- Sidebar -->
+<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark sidebar" id="sidebar">
+    <a href="@Url.Action("Index", "Home")" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+        <svg class="bi me-2" width="40" height="32">
+            <use xlink:href="#bootstrap"></use>
+        </svg>
+        <span class="fs-4">Sonata Cinema</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item">
+            <a href="#" class="nav-link active" aria-current="page" onclick="showContent('home')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#home"></use>
+                </svg>
+                Trang chủ
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white" onclick="showContent('manage-movies')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#speedometer2"></use>
+                </svg>
+                Quản lý Phim
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white" id="manage-employees" onclick="showContent('manage-employees')">
+                <svg class="bi me-2" width="16" height="16"><use xlink:href="#people-circle"></use></svg>
+                Quản lý Nhân viên
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white" onclick="showContent('manage-rooms')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#grid"></use>
+                </svg>
+                Quản lý Phòng Chiếu
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white" onclick="showContent('manage-customers')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#people-circle"></use>
+                </svg>
+                Quản lý Khách Hàng
+            </a>
+        </li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="./img/logo.jpg" alt="" class="rounded-circle me-2" width="32" height="32">
+            <strong style="font-size: 18px;">Admin</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+            <li><a class="dropdown-item" href="#">Cài Đặt</a></li>
+            <li><a class="dropdown-item" href="#">Profile</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="#">Đăng Xuất</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+    <!-- Search and action buttons -->
+    <div class="search-container">
+        <div class="search-bar">
+            <input type="text" placeholder="Search..." class="form-control search-input">
+            <i class="bi bi-search"></i>
+        </div>
+        <div class="action-buttons">
+            <i class="bi bi-bell"></i>
+            <div class="dropdown avatar-dropdown">
+                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser2" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="./img/logo.jpg" alt="Avatar">
+                    <strong>Admin</strong>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownUser2">
+                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                    <li><a class="dropdown-item" href="#">Cài Đặt</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" href="#">Đăng Xuất</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="divider"></div>
+
+    <!-- Nội dung trang chủ -->
+    <div class="home-content">
+        <h2>Trang Chủ</h2>
+        <div class="row mt-4">
+            <div class="col-md-3 col-6">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Movies</h5>
+                        <p class="card-text" style="font-size: 2rem;">2</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Customers</h5>
+                        <p class="card-text" style="font-size: 2rem;">300</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Revenue</h5>
+                        <p class="card-text" style="font-size: 2rem;">1,000,000đ</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Bookings</h5>
+                        <p class="card-text" style="font-size: 2rem;">150</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nội dung quản lý nhân viên -->
+    <div class="employee-management d-none">
+        <h2>Quản Lý Nhân Viên</h2>
+        <form>
+            <div class="form-group">
+                <label for="tenNhanVien">Tên Nhân Viên</label>
+                <input type="text" class="form-control" id="tenNhanVien" placeholder="Nhập tên nhân viên">
+            </div>
+            <div class="form-group">
+                <label for="tenNhanVien">Email</label>
+                <input type="text" class="form-control" id="tenNhanVien" placeholder="Nhập Email">
+            </div>
+            <div class="form-group">
+                <label for="chucVu">Chức Vụ</label>
+                <select class="form-select" id="status">
+                    <option value="Nhân Viên">Nhân Viên</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="matKhau">Mật Khẩu</label>
+                <input type="password" class="form-control" id="matKhau" placeholder="Nhập mật khẩu">
+            </div>
+            <button type="submit" class="btn btn-primary">Thêm Nhân Viên</button>
+        </form>
+
+        <!-- Danh sách nhân viên -->
+        <h3>Danh Sách Nhân Viên</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Tên Nhân Viên</th>
+                    <th>Chức Vụ</th>
+                    <th>Email</th>
+                    <th>Mật khẩu</th>
+                    <th>Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Mẫu nhân viên -->
+                <tr>
+                    <td>Nguyễn Văn A</td>
+                    <td>Quản lý</td>
+                    <td>mail</td>
+                    <td>Mật khẩu</td>
+                    <td>
+                        <button class="btn btn-warning">Sửa</button>
+                        <button class="btn btn-danger">Xoá</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+    <!-- Nội dung quản lý phim -->
+    <div class="movie-management d-none">
+        <h2>Quản Lý Phim</h2>
+
+        <!-- Form nhập thông tin phim -->
+        <form id="movieForm" class="mb-4">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="movieName" class="form-label" style="margin-left: -10px;">Tên Phim</label>
+                    <input type="text" class="form-control" id="movieName" placeholder="Nhập tên phim" style="margin-left: -10px;">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="genre" class="form-label">Thể Loại</label>
+                    <select class="form-select" id="status">
+                        <option value="Đang chiếu">Hành Động</option>
+                        <option value="Sắp chiếu">Tình Cảm</option>
+                        <option value="Đã chiếu">Lịch Sử</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Mô tả</label>
+                <textarea class="form-control" id="description" rows="3" placeholder="Mô tả nội dung phim"></textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="duration" class="form-label" style="margin-left: -10px;">Thời Lượng (phút)</label>
+                    <input type="number" class="form-control" id="duration" placeholder="Nhập thời lượng phim" style="margin-left: -10px;">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="status" class="form-label">Trạng Thái</label>
+                    <select class="form-select" id="status">
+                        <option value="Đang chiếu">Đang chiếu</option>
+                        <option value="Sắp chiếu">Sắp chiếu</option>
+                        <option value="Đã chiếu">Mới</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="featured" class="form-label">Nổi Bật</label>
+                    <select class="form-select" id="featured">
+                        <option value="Có">Có</option>
+                        <option value="Không">Không</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="duration" class="form-label" style="margin-left: -10px;">Ảnh</label>
+
+                    <input type="file" class="form-control" id="duration" placeholder="Nhập thời lượng phim" style="margin-left: -10px;">
+                </div>
+            </div>
+
+
+
+            <button type="submit" class="btn btn-primary">Thêm Phim</button>
+        </form>
+
+        <!-- Danh sách phim -->
+        <h3>Danh Sách Phim</h3>
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Tên Phim</th>
+                    <th>Thể Loại</th>
+                    <th>Thời Lượng</th>
+                    <th>Trạng Thái</th>
+                    <th>Nổi Bật</th>
+                    <th>Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Phim A</td>
+                    <td>Hành Động</td>
+                    <td>120 phút</td>
+                    <td>Đang chiếu</td>
+                    <td>Có</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm">Sửa</button>
+                        <button class="btn btn-danger btn-sm">Xóa</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Phim B</td>
+                    <td>Hài</td>
+                    <td>90 phút</td>
+                    <td>Sắp chiếu</td>
+                    <td>Không</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm">Sửa</button>
+                        <button class="btn btn-danger btn-sm">Xóa</button>
+                    </td>
+                </tr>
+                <!-- Thêm các phim khác -->
+            </tbody>
+        </table>
+    </div>
+
+
+    <!-- Nội dung quản lý phòng chiếu -->
+    <div class="screening-room-management d-none">
+        <h2>Quản Lý Phòng Chiếu</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Tên Phòng</th>
+                    <th>Số Ghế</th>
+                    <th>Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Phòng 1</td>
+                    <td>100</td>
+                    <td><button class="btn btn-danger">Xóa</button><button class="btn btn-warning">Sửa</button></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Phòng 2</td>
+                    <td>80</td>
+                    <td><button class="btn btn-danger">Xóa</button><button class="btn btn-warning">Sửa</button></td>
+                </tr>
+                <!-- Thêm các phòng khác ở đây -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Nội dung quản lý khách hàng -->
+    <div class="customer-management d-none">
+        <h2>Quản Lý Khách Hàng</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Tên Khách Hàng</th>
+                    <th>Email</th>
+                    <th>Số Điện Thoại</th>
+                    <th>Trạng Thái</th>
+                    <th>Mật Khẩu</th>
+                    <th>Thao Tác
+                    <th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Nguyễn Văn C</td>
+                    <td>nguyenvanc@example.com</td>
+                    <td>0123456789</td>
+                    <td>Hoạt Động</td>
+                    <td>Mật Khẩu</td>
+                    <td><button class="btn btn-danger">Xóa</button><button class="btn btn-warning">Sửa</button></td>
+
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Trần Thị D</td>
+                    <td>tranthid@example.com</td>
+                    <td>0987654321</td>
+                    <td>Khoá</td>
+                    <td>Mật Khẩu</td>
+                    <td><button class="btn btn-danger">Xóa</button><button class="btn btn-warning">Sửa</button></td>
+                </tr>
+                <!-- Thêm các khách hàng khác ở đây -->
+            </tbody>
+        </table>
+    </div>
+
+

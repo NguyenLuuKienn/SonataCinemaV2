@@ -1,0 +1,119 @@
+﻿.quick-booking {
+    width: 1152px;
+    height: 70px;
+    margin: -30px auto 20px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 100;
+}
+
+.quickbooking-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    height: 100%;
+}
+
+.booking-step {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 100%;
+}
+
+.step-number {
+    width: 20px;
+    height: 20px;
+    background: #f76707;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.step-content {
+    flex: 1;
+    height: 40px;
+}
+
+.form-select {
+    width: 100%;
+    height: 100%;
+    padding: 0px 15px;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333;
+    background-color: #f8f9fa;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 12px) center;
+}
+
+    .form-select:disabled {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+    }
+
+.btn-book {
+    height: 40px;
+    padding: 0px 25px;
+    background: #f76707;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+    .btn-book:hover {
+        background: #e85d04;
+    }
+
+    .btn-book:disabled {
+        background: #adb5bd;
+        cursor: not-allowed;
+    }
+
+/* Ẩn tiêu đề */
+.booking-title {
+    display: none;
+}
+
+@media (max-width: 1200px) {
+    .quick-booking {
+        width: 95%;
+        margin: -30px auto 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .quick-booking {
+        width: 100%;
+        height: auto;
+        margin: 0;
+        border-radius: 0;
+        padding: 15px 20px;
+    }
+
+    .quickbooking-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .booking-step {
+        width: 100%;
+    }
+}

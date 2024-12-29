@@ -1,0 +1,13 @@
+﻿@model IEnumerable<SonataCinemaV2.ViewModel.LichChieuViewModel>
+
+@foreach (var lichChieu in Model)
+{
+    <div class="lich-chieu-item"
+         data-ma-lich-chieu="@lichChieu.IDLichChieu"
+         data-ten-phim="@lichChieu.TenPhim"
+         data-ngay="@lichChieu.Ngay"
+         data-ma-phong="@lichChieu.IDPhong"
+         data-gio-chieu="@lichChieu.GioChieu">
+        <!-- Hiển thị thông tin lịch chiếu -->
+    </div>
+}

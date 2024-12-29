@@ -1,0 +1,163 @@
+﻿@model SonataCinemaV2.Models.KhachHang
+@{
+    ViewBag.Title = "Thông tin tài khoản";
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Thông tin cá nhân -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-titlee">Thông tin cá nhân</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Họ tên</label>
+                        <p class="form-control-static">@Model.TenKhachHang</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <p class="form-control-static">@Model.Email</p>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                        Đổi mật khẩu
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách vé đã đặt -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-titlee">Vé đã đặt</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Phim</th>
+                                    <th>Ngày chiếu</th>
+                                    <th>Giờ chiếu</th>
+                                    <th>Số ghế</th>
+                                    <th>Giá vé</th>
+                                    <th>Ngày đặt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ve in ViewBag.Tickets)
+                                {
+                                    <tr>
+                                        <td>@ve.LichChieu.Phim.TenPhim</td>
+                                        <td>@ve.LichChieu.NgayChieu.ToString("dd/MM/yyyy")</td>
+                                        <td>@ve.LichChieu.GioChieu.ToString(@"hh\:mm")</td>
+                                        <td>@ve.ChoNgoi</td>
+                                        <td>@ve.Gia.ToString("#,##0") VNĐ</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Đổi mật khẩu -->
+<div class="modal fade" id="changePasswordModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Đổi mật khẩu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu hiện tại</label>
+                        <input type="password" class="form-control" name="currentPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu mới</label>
+                        <input type="password" class="form-control" name="newPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Xác nhận mật khẩu mới</label>
+                        <input type="password" class="form-control" name="confirmPassword" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" onclick="changePassword()">Cập nhật</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <script>
+        function changePassword() {
+            var form = document.getElementById('changePasswordForm');
+            var formData = {
+                currentPassword: form.querySelector('[name="currentPassword"]').value,
+                newPassword: form.querySelector('[name="newPassword"]').value,
+                confirmPassword: form.querySelector('[name="confirmPassword"]').value
+            };
+
+            fetch('@Url.Action("ChangePassword")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    $('#changePasswordModal').modal('hide');
+                    form.reset();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra!');
+            });
+        }
+    </script>
+
+<style>
+    /* Profile styles */
+    .profile-container {
+        padding: 20px;
+    }
+
+    .profile-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .profile-info {
+        padding: 20px;
+    }
+
+    .ticket-table {
+        width: 100%;
+        margin-top: 20px;
+    }
+
+        .ticket-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .ticket-table td, .ticket-table th {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+</style>

@@ -1,0 +1,30 @@
+﻿@model IEnumerable<SonataCinemaV2.Models.PhongChieu>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tên Phòng</th>
+            <th>Số Ghế</th>
+            <th>Thao Tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var phong in Model)
+            {
+                <tr>
+                    <th>@phong.ID_Phong</th>
+                    <th>@phong.TenPhong</th>
+                    <th>@phong.SoLuongGhe</th>
+                    <th>
+                        <button class="btn btn-warning">Sửa</button>
+                        <button class="btn btn-danger">Xoá</button>
+                    </th>
+                </tr>
+            }
+        }
+
+    </tbody>
+</table>

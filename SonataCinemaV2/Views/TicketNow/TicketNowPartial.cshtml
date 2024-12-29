@@ -1,0 +1,135 @@
+﻿@model SonataCinemaV2.ViewModel.BookingViewModel
+
+<div class="quick-booking">
+    <h3>Đặt Vé Nhanh</h3>
+    <div class="booking-steps">
+        <!-- Chọn Phim -->
+        <div class="step">
+            <div class="step-number">1</div>
+            <select id="quickMovieSelect" class="form-select">
+                <option value="">Chọn Phim</option>
+               
+            </select>
+        </div>
+
+        <!-- Chọn Ngày -->
+        <div class="step">
+            <div class="step-number">2</div>
+            <select id="quickDateSelect" class="form-select" disabled>
+                <option value="">Chọn Ngày</option>
+             
+            </select>
+        </div>
+
+        <!-- Chọn Giờ -->
+        <div class="step">
+            <div class="step-number">3</div>
+            <select id="quickTimeSelect" class="form-select" disabled>
+                <option value="">Chọn Giờ</option>
+
+            </select>
+        </div>
+
+        <!-- Chọn Phòng -->
+        <div class="step">
+            <div class="step-number">4</div>
+            <select id="quickRoomSelect" class="form-select" disabled>
+                <option value="">Chọn Phòng</option>
+
+            </select>
+        </div>
+
+        <button id="quickBookBtn" class="btn-book" disabled>Đặt Vé Ngay</button>
+    </div>
+</div>
+<style>
+    .quick-booking {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .booking-title {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 24px;
+    }
+
+    .booking-steps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+    }
+
+    .booking-step {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .step-number {
+        width: 30px;
+        height: 30px;
+        background: #007bff;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    .step-content {
+        flex: 1;
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: white;
+    }
+
+        .form-select:disabled {
+            background-color: #f5f5f5;
+        }
+
+    .room-info {
+        padding: 8px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+
+    .booking-action {
+        width: 100%;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .btn-book-now {
+        padding: 10px 30px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.3s;
+    }
+
+        .btn-book-now:hover {
+            background: #218838;
+        }
+
+        .btn-book-now:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+</style>

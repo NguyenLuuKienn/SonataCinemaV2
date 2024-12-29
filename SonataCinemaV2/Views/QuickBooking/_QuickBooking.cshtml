@@ -1,0 +1,59 @@
+﻿@model SonataCinemaV2.ViewModel.QuickBookingViewModel
+
+<div class="quick-booking">
+    <h3 class="booking-title">Đặt Vé Nhanh</h3>
+    <div class="quickbooking-container">
+        <!-- Chọn Phim -->
+        <div class="booking-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <select id="quickMovieSelect" class="form-select">
+                    <option value="">Chọn Phim</option>
+                    @foreach (var phim in Model.Phims)
+                    {
+                        <option value="@phim">@phim</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <!-- Chọn Ngày -->
+        <div class="booking-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <select id="quickDateSelect" class="form-select" disabled>
+                    <option value="">Chọn Ngày</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Chọn Giờ -->
+        <div class="booking-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <select id="quickTimeSelect" class="form-select" disabled>
+                    <option value="">Chọn Giờ</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Chọn Phòng -->
+        <div class="booking-step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <select id="quickRoomSelect" class="form-select" disabled>
+                    <option value="">Chọn Phòng</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Thêm hidden inputs để lưu trữ thông tin -->
+        <input type="hidden" id="selectedRoomId" />
+        <input type="hidden" id="selectedLichChieuId" />
+
+        <button id="quickBookingBtn" class="btn-book btn btn-primary" disabled>
+            <i class="fas fa-ticket-alt"></i> Đặt Vé Ngay
+        </button>
+    </div>
+</div>
+
