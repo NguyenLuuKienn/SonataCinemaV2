@@ -267,6 +267,7 @@ namespace SonataCinema.Controllers
         public ActionResult DangXuat()
         {
             //Test
+            //Pull
             FormsAuthentication.SignOut();
             Session.Clear();
             return RedirectToAction("Index", "Home");
