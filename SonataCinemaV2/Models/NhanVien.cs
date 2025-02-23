@@ -18,6 +18,8 @@ namespace SonataCinemaV2.Models
         public NhanVien()
         {
             this.ThanhToans = new HashSet<ThanhToan>();
+            this.Blogs = new HashSet<Blog>();
+            this.ChatMessages = new HashSet<ChatMessage>();
         }
     
         public int ID_NhanVien { get; set; }
@@ -27,8 +29,13 @@ namespace SonataCinemaV2.Models
         public string ViTri { get; set; }
         public string QuyenHan { get; set; }
         public string CaLamViec { get; set; }
+        public string TrangThai { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ThanhToan> ThanhToans { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Blog> Blogs { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ChatMessage> ChatMessages { get; set; }
     }
 }

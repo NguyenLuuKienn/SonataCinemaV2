@@ -35,13 +35,13 @@ namespace SonataCinemaV2.Controllers
                 ViewBag.UserType = "KhachHang";
                 return View(khachHang);
             }
-            // Xử lý cho nhân viên
+            // Xử lý cho nhân viên              
             else
             {
                 int staffId = (int)Session["MaNhanVien"];
                 var nhanVien = db.NhanViens.Find(staffId);
                 ViewBag.UserType = "NhanVien";
-                ViewBag.Tickets = new List<Ve>(); // Nhân viên không có vé
+                ViewBag.Tickets = new List<Ve>();
                 return View("IndexStaff", nhanVien);
             }
         }
@@ -122,5 +122,79 @@ namespace SonataCinemaV2.Controllers
                 return Json(new { success = false, message = "Lỗi: " + ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+
+        [HttpPost]
+        public ActionResult UpdateProfile(string tenKhachHang, string email)
+        {
+            if (Session["MaKhachHang"] == null)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập lại!" });
+            }
+
+            int userId = (int)Session["MaKhachHang"];
+            var khachHang = db.KhachHangs.Find(userId);
+
+            if (khachHang == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy tài khoản!" });
+            }
+
+            try
+            {
+                khachHang.TenKhachHang = tenKhachHang;
+                khachHang.Email = email;
+                db.SaveChanges();
+                return Json(new { success = true, message = "Cập nhật thông tin thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public ActionResult RequestCancelTicket(int ticketId)
+        {
+            if (Session["MaKhachHang"] == null)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập lại!" });
+            }
+
+            int maKhachHang = Convert.ToInt32(Session["MaKhachHang"]);
+
+            if (ticketId <= 0)
+            {
+                return Json(new { success = false, message = "ID vé không hợp lệ!" });
+            }
+
+            try
+            {
+                var ve = db.Ves.Find(ticketId);
+                if (ve == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy vé!" });
+                }
+
+                if (ve.ID_KhachHang != maKhachHang)
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền huỷ vé này!" });
+                }
+
+                if (ve.TrangThai != "Thành Công")
+                {
+                    return Json(new { success = false, message = "Vé không thể huỷ!" });
+                }
+
+                ve.TrangThai = "Chờ huỷ";
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Yêu cầu huỷ vé đã được gửi!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
     }
 }

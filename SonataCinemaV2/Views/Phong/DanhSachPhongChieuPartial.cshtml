@@ -1,30 +1,222 @@
 ﻿@model IEnumerable<SonataCinemaV2.Models.PhongChieu>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Tên Phòng</th>
-            <th>Số Ghế</th>
-            <th>Thao Tác</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model != null && Model.Any())
-        {
-            foreach (var phong in Model)
-            {
-                <tr>
-                    <th>@phong.ID_Phong</th>
-                    <th>@phong.TenPhong</th>
-                    <th>@phong.SoLuongGhe</th>
-                    <th>
-                        <button class="btn btn-warning">Sửa</button>
-                        <button class="btn btn-danger">Xoá</button>
-                    </th>
-                </tr>
-            }
+<div class="RoomPartial">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Danh sách phòng chiếu</h5>
+            <button class="btn btn-primary" onclick="showAddModal()">
+                <i class="fas fa-plus"></i> Thêm phòng
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tên Phòng</th>
+                            <th>Số Ghế</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var phong in Model)
+                        {
+                            <tr>
+                                <td>@phong.ID_Phong</td>
+                                <td>@phong.TenPhong</td>
+                                <td>@phong.SoLuongGhe</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" onclick="showEditModal(@phong.ID_Phong, '@phong.TenPhong', @phong.SoLuongGhe)">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="confirmDelete(@phong.ID_Phong)">
+                                        <i class="fas fa-trash"></i> Xoá
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thêm/Sửa -->
+    <div class="modal fade" id="phongModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Thêm phòng chiếu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="phongForm">
+                        <input type="hidden" id="phongId" />
+                        <div class="form-group mb-3">
+                            <label>Tên phòng</label>
+                            <input type="text" class="form-control" id="tenPhong" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label>Số lượng ghế</label>
+                            <input type="number" class="form-control" id="soLuongGhe" required min="1">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" onclick="savePhong()">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function reloadPhongChieuList() {
+        $.get('/Phong/DanhSachPhongChieuPartial', function (data) {
+            $('.RoomPartial').html(data);
+            // Khởi tạo lại các event và plugin
+            initializeEventHandlers();           
+        });
+    }
+
+    function showAddModal() {
+        $('#modalTitle').text('Thêm phòng chiếu');
+        $('#phongId').val('');
+        $('#tenPhong').val('');
+        $('#soLuongGhe').val('');
+        $('#phongModal').modal('show');
+    }
+
+    function showEditModal(id, ten, soGhe) {
+        $('#modalTitle').text('Sửa phòng chiếu');
+        $('#phongId').val(id);
+        $('#tenPhong').val(ten);
+        $('#soLuongGhe').val(soGhe);
+        $('#phongModal').modal('show');
+    }
+
+    function validateForm() {
+        const tenPhong = $('#tenPhong').val().trim();
+        const soLuongGhe = $('#soLuongGhe').val();
+
+        if (!tenPhong) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: 'Vui lòng nhập tên phòng'
+            });
+            return false;
         }
 
-    </tbody>
-</table>
+        if (!soLuongGhe || soLuongGhe < 1) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: 'Số lượng ghế phải lớn hơn 0'
+            });
+            return false;
+        }
+
+        return true;
+    }
+
+    function savePhong() {
+        if (!validateForm()) return;
+
+        const id = $('#phongId').val();
+        const data = {
+            TenPhong: $('#tenPhong').val().trim(),
+            SoLuongGhe: parseInt($('#soLuongGhe').val())
+        };
+
+        if (id) data.ID_Phong = parseInt(id);
+
+        $.ajax({
+            url: id ? '/Phong/SuaPhong' : '/Phong/ThemPhong',
+            type: 'POST',
+            data: data,
+            success: function (res) {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: res.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        $('#phongModal').modal('hide');
+                        reloadPhongChieuList()
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: res.message
+                    });
+                }
+            },
+            error: function () {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'Có lỗi xảy ra, vui lòng thử lại'
+                });
+            }
+        });
+    }
+
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'Xác nhận xóa?',
+            text: "Bạn không thể hoàn tác sau khi xóa!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                deletePhong(id);
+                reloadPhongChieuList();
+            }
+        });
+    }
+
+    function deletePhong(id) {
+        $.ajax({
+            url: '/Phong/XoaPhong',
+            type: 'POST',
+            data: { id: id },
+            success: function (res) {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Đã xóa!',
+                        text: res.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        reloadPhongChieuList()
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: res.message
+                    });
+                }
+            },
+            error: function () {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'Có lỗi xảy ra, vui lòng thử lại'
+                });
+            }
+        });
+    }
+</script>

@@ -22,6 +22,8 @@ namespace SonataCinemaV2.Models
         public decimal Gia { get; set; }
         public Nullable<int> DiemThuong { get; set; }
         public string TrangThai { get; set; }
+        public Nullable<System.DateTime> NgayDat { get; set; }
+        public string TrangThaiGhe { get; set; }
     
         public virtual KhachHang KhachHang { get; set; }
         public virtual LichChieu LichChieu { get; set; }

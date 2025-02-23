@@ -28,8 +28,8 @@
                         <img src="~/Content/img/@movie.Poster" alt="@movie.TenPhim">
                         <div class="movie-overlay">
                             <div class="movie-actions">
-                                <a href="@Url.Action("DetailsPage", "Movies", new { id = movie.ID_Phim })" class="btn-details">Chi tiết</a>
-                                <a href="#" class="btn-booking">Đặt vé</a>
+                                <a href="@Url.Action("DetailsPage", "Details", new { id = movie.ID_Phim })" class="btn-details">Chi tiết</a>
+                                <a href="@Url.Action("BookingTicket", "Booking")" class="btn-booking">Đặt vé</a>
                             </div>
                         </div>
                     </div>

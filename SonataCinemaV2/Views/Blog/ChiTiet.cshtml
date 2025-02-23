@@ -1,0 +1,160 @@
+﻿@model SonataCinemaV2.Models.Blog
+
+@{
+    ViewBag.Title = Model.TieuDe;
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="blog-detail">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="@Url.Action("BlogPage", "Blog")">Blog</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("BlogPage", "Blog", new { category = Model.TheLoai })">@Model.TheLoai</a></li>
+                <li class="breadcrumb-item active">@Model.TieuDe</li>
+            </ol>
+        </nav>
+
+        <!-- Blog Header -->
+        <div class="blog-header mb-4">
+            <h1 class="blog-title">@Model.TieuDe</h1>
+            <div class="blog-meta">
+                <span class="author">
+                    <i class="fas fa-user"></i> @Model.NhanVien.TenNhanVien
+                </span>
+                <span class="date">
+                    <i class="fas fa-calendar"></i> @Model.NgayDang
+                </span>
+                <span class="views">
+                    <i class="fas fa-eye"></i> @Model.LuotXem lượt xem
+                </span>
+                <span class="category">
+                    <i class="fas fa-tag"></i> @Model.TheLoai
+                </span>
+            </div>
+        </div>
+
+        <!-- Featured Image -->
+        @if (!string.IsNullOrEmpty(Model.HinhAnh))
+        {
+            <div class="blog-featured-image mb-4">
+                <img src="@Model.HinhAnh" alt="@Model.TieuDe" class="img-fluid rounded">
+            </div>
+        }
+
+        <!-- Blog Content -->
+        <div class="blog-content mb-5">
+            @Html.Raw(Model.NoiDung)
+        </div>
+
+        <!-- Share Buttons -->
+        <div class="blog-share mb-4">
+            <h5>Chia sẻ bài viết:</h5>
+            <div class="share-buttons">
+                <a href="https://www.facebook.com/sharer/sharer.php?u=@Request.Url.AbsoluteUri"
+                   target="_blank" class="btn btn-facebook">
+                    <i class="fab fa-facebook-f"></i> Facebook
+                </a>
+                <a href="https://twitter.com/intent/tweet?url=@Request.Url.AbsoluteUri&text=@Model.TieuDe"
+                   target="_blank" class="btn btn-twitter">
+                    <i class="fab fa-twitter"></i> Twitter
+                </a>
+            </div>
+        </div>
+
+        <!-- Related Posts -->
+        <div class="related-posts">
+            <h3>Bài viết liên quan</h3>
+            <div class="row">
+                @{
+                    var relatedPosts = ViewBag.RelatedPosts as IEnumerable<SonataCinemaV2.Models.Blog>;
+                    if (relatedPosts != null && relatedPosts.Any())
+                    {
+                        foreach (var post in relatedPosts.Take(3))
+                        {
+                            <div class="col-md-4">
+                                <div class="card mb-4">
+                                    @if (!string.IsNullOrEmpty(post.HinhAnh))
+                                    {
+                                        <img src="@post.HinhAnh" class="card-img-top" alt="@post.TieuDe">
+                                    }
+                                    <div class="card-body">
+                                        <h5 class="card-title">@post.TieuDe</h5>
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                @post.NgayDang
+                                            </small>
+                                        </p>
+                                        <a href="@Url.Action("ChiTiet", "Blog", new { id = post.ID_Blog })"
+                                           class="btn btn-primary btn-sm">Đọc thêm</a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .blog-detail {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .blog-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .blog-meta {
+        color: #666;
+        margin: 1rem 0;
+    }
+
+        .blog-meta span {
+            margin-right: 1.5rem;
+        }
+
+    .blog-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #444;
+    }
+
+    .blog-featured-image img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+
+    .share-buttons .btn {
+        margin-right: 10px;
+    }
+
+    .btn-facebook {
+        background-color: #3b5998;
+        color: white;
+    }
+
+    .btn-twitter {
+        background-color: #1da1f2;
+        color: white;
+    }
+
+    .related-posts {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid #eee;
+    }
+
+    .blog-content img {
+        max-width: 100%;
+        height: auto;
+        margin: 1rem 0;
+    }
+</style>

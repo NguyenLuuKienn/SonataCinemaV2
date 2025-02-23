@@ -1,0 +1,32 @@
+﻿@model SonataCinemaV2.Models.KhachHang
+
+<div class="customer-details">
+    <div class="mb-3">
+        <label class="fw-bold">Tên Khách Hàng:</label>
+        <p>@Model.TenKhachHang</p>
+    </div>
+    <div class="mb-3">
+        <label class="fw-bold">Email:</label>
+        <p>@Model.Email</p>
+    </div>
+    <div class="mb-3">
+        <label class="fw-bold">Số Điện Thoại:</label>
+        <p>@Model.SoDienThoai</p>
+    </div>
+    <div class="mb-3">
+        <label class="fw-bold">Giới Tính:</label>
+        <p>@Model.GioiTinh</p>
+    </div>
+    <div class="mb-3">
+        <label class="fw-bold">Ngày Sinh:</label>
+        <p>@(Model.NgaySinh?.ToString("dd/MM/yyyy"))</p>
+    </div>
+    <div class="mb-3">
+        <label class="fw-bold">Điểm Thưởng:</label>
+        <p>@Model.DiemThuong</p>
+    </div>
+    <div class="mb-3">
+        <label class="fw-bold">Trạng Thái:</label>
+        <p><span class="badge @(Model.TrangThai == "Hoạt Động" ? "bg-success" : "bg-danger")">@Model.TrangThai</span></p>
+    </div>
+</div>

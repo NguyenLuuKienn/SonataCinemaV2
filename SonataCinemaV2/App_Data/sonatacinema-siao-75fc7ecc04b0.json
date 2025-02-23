@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "sonatacinema-siao",
+  "private_key_id": "75fc7ecc04b010a53d1ddd6166805743ff0d9bec",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCedGuQpQrHdkQO\nNOj0usgctFbcfVVmw4BlWM57qEYC/062z9QZnc46pkNrt6kgJLtVZagN0uscHLdj\nl7e6XZPJXtyLWPrFT+yCN8nSUPOKw1vWYTry4g/HkS6WfW7OSL1M3I+AcvGYAKFc\n2Ko2attyXdObQWlywkVHZ5W9ooEhyCsgzQvDJ8FiG7SgKSNX2TaERYC+KPsYOOXV\nRbhey7kCtVPEhRgj81E2W/3AIgl4fPeXKgnfpiLmSolpqc77+u9Ud/T6xlC0atqu\nuBm2sQW3m9oRL0+t0wm+IgdUp8KsUz8xINidHwz8CHnLWY6/857/zoFhVKtJWNgk\n4YjJAw69AgMBAAECggEATmmfV0+NI4LPj9Y4F++cmrPVrjwpuHZzwfNuDvyJVO9h\n1Q7Iz7prdVOU1qfm/lyfBdYOEXU4WsuNJzBLv+KSAVs7uYuZYW45RIF2Eulzc85U\nUqUABnS/SUt7qgY9gMC3SON28iIvk0BwmeEwbkh3+0MaNeDrXVps7TaB//t8eqnr\nwvtg3xVAI8OMyptdkUoWW5RfEaPOYSR02zZA3iPQyxBWs0sSb55DBwtc9wLhQ1vo\nmFIaMrzOJ4T9OqWlLaQi/A1sEJsI9RoANsf01nPFXbrevEgWNUbvFi1IPPECaB4X\niLggEmQs7T3kwl659tQkEvVE4WXUEhdSz7aHD5LBcwKBgQDSXR8ZBZ50YtHDjsLR\nS5HZSty1C9FTzm/Y4Fq9Uao+RFAMXStxpCbAufmtkw3uv2S8XGqzFM6NcYrYhxfm\nH5qXENi8LFxZYSAsM17ctQggt3Pi25cd/pedSNA8jD5nRPks9mE2apghhVe3zoPl\n9vf9BFDZj0KfdLlpotkxCYJD2wKBgQDA1HPDEUk6G5n+aCcSbLWPoJSQdpnZRUmN\nyEBWSTEBsmqFqMAJM+ajvmYUDkdyJXG6miO4pmvUZZB8SgckZ1YG41A445NmH0sQ\n3GoTB3z/+A0v4UXgTIy2bpFN67aq8zfEv28h/HA7Lm0kOpL+3Sp7VrPBXeU3CV5O\nfs0rpFnHRwKBgHSFSi1k9GEJP6FvmS+vCSlwExJhamBeb4uUsg49huwYkLJYhTDc\nOO711Hu1gbkl4JmJIzzwoHyuULchFTbNeKaGmVaZx8lmSBjTl47u44KjuxgEhA8E\nL1zasSVolUREazThf/VRU9T1dCIGzP57Lt/CHTp05PVIBU+i+WT1HGeTAoGAIWFl\nvMH0TDPU/55mDSF2eKuSrENrtJny9rFQud8ntaR+Hi8tNyqd5YCjSRuDsLXcrzHZ\ntzBQAE+oqGtkOyAMW1rkW0TCEm6eXwfY8Pxd3i3BkqVLpF18CmSvkK6aS5OY9t0w\nztBVWVlbGWduZOJCZWGH8pRfhpx/j9URjVmBFScCgYASnm2X5BUWYV6rRDn50FZ7\nRb/yfW2UgoXwaHSI2lHDBA1JlUxVw2CLw7NSoy1SbqsFR2oxmG2ngHe8iJBxBhHA\nGuYrxJRoONgUWU/MZr2iL/vSO9e5Qa9cSHkW+Q4Cuf1lA3vqSwqJjEOUUhJ+WpXK\nhIlFz7r1/5Hj2ICpr4HH1w==\n-----END PRIVATE KEY-----\n",
+  "client_email": "sonatacinema@sonatacinema-siao.iam.gserviceaccount.com",
+  "client_id": "103440706615189596063",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/sonatacinema%40sonatacinema-siao.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

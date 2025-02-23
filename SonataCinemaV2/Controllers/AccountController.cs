@@ -3,14 +3,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
 using System.Web.UI.WebControls;
+using CaptchaMvc.HtmlHelpers;
+using Newtonsoft.Json.Linq;
 using SonataCinemaV2.Models;
 using SonataCinemaV2.ViewModel;
 
-namespace SonataCinema.Controllers
+namespace SonataCinemaV2.Controllers
 {
     public class AccountController : Controller
     {
@@ -32,6 +36,33 @@ namespace SonataCinema.Controllers
             return PartialView("_LoginPartial", model);
         }
 
+        // Captcha google
+        public class ReCaptchaHelper
+        {
+            public static bool VerifyReCaptcha(string response)
+            {
+                try
+                {
+                    string secret = "6LeLSrIqAAAAAO7dxwA7JLEIfJR4jEr3h00R-dMK"; // Kiểm tra lại secret key
+                    using (var client = new WebClient())
+                    {
+                        var result = client.DownloadString(string.Format(
+                            "https://www.google.com/recaptcha/api/siteverify?secret={0}&response={1}",
+                            secret,
+                            response
+                        ));
+                        var obj = JObject.Parse(result);
+                        return (bool)obj.SelectToken("success");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"reCAPTCHA Error: {ex.Message}");
+                    return false;
+                }
+            }
+        }
+
         // POST: Account
         [HttpPost]
         [AllowAnonymous]
@@ -40,46 +71,178 @@ namespace SonataCinema.Controllers
         {
             if (ModelState.IsValid)
             {
+                // kiểm tra captcha google
+                var response = Request["g-recaptcha-response"];
+                if (string.IsNullOrEmpty(response))
+                {
+                    ModelState.AddModelError("ReCaptcha", "Vui lòng xác nhận captcha");
+                    if (Request.IsAjaxRequest())
+                    {
+                        return PartialView("_LoginPartial", model);
+                    }
+                    return View(model);
+                }
+                bool isValidCaptcha = ReCaptchaHelper.VerifyReCaptcha(response);
+                if (!isValidCaptcha)
+                {
+                    ModelState.AddModelError("ReCaptcha", "Xác thực captcha không thành công");
+                    if (Request.IsAjaxRequest())
+                    {
+                        return PartialView("_LoginPartial", model);
+                    }
+                    return View(model);
+                }
                 // Kiểm tra tài khoản khách hàng
                 var userKH = db.KhachHangs.SingleOrDefault(k => k.Email == model.Email);
-                if (userKH != null && userKH.MatKhau == model.Password)
+                if (userKH != null)
                 {
-                    FormsAuthentication.SetAuthCookie(userKH.Email, false);
-                    Session["Admin"] = false;
-                    Session["UserName"] = userKH.TenKhachHang;
-                    Session["MaKhachHang"] = userKH.ID_KhachHang;
-
-                    return Json(new
+                    if(userKH.TrangThai == "Khoá")
                     {
-                        success = true,
-                        redirectUrl = Url.Action("Index", "Home")
-                    });
+                        ModelState.AddModelError("", "Tài khoản này đã bị khóa. Vui lòng liên hệ admin để được hỗ trợ.");
+                        if (Request.IsAjaxRequest())
+                        {
+                            return PartialView("_LoginPartial", model);
+                        }
+                        return View(model);
+                    }    
+                    if(userKH.TrangThai == "Hoạt Động")
+                    {
+                        try
+                        {
+                            bool isValidPassword = BCrypt.Net.BCrypt.Verify(model.Password, userKH.MatKhau);
+                            if (isValidPassword)
+                            {
+                                FormsAuthentication.SetAuthCookie(userKH.Email, false);
+                                Session["Admin"] = false;
+                                Session["Staff"] = false;
+                                Session["Customer"] = true;
+                                Session["UserName"] = userKH.TenKhachHang;
+                                Session["MaKhachHang"] = userKH.ID_KhachHang;
+
+                                return Json(new
+                                {
+                                    success = true,
+                                    redirectUrl = Url.Action("Index", "Home")
+                                });
+                            }
+                        }
+                        catch (BCrypt.Net.SaltParseException)
+                        {
+                            if (userKH.MatKhau == model.Password)
+                            {
+                                userKH.MatKhau = BCrypt.Net.BCrypt.HashPassword(model.Password);
+                                db.SaveChanges();
+                                FormsAuthentication.SetAuthCookie(userKH.Email, false);
+                                Session["Admin"] = false;
+                                Session["UserName"] = userKH.TenKhachHang;
+                                Session["MaKhachHang"] = userKH.ID_KhachHang;
+                                return Json(new
+                                {
+                                    success = true,
+                                    redirectUrl = Url.Action("Index", "Home")
+                                });
+                            }
+                        }
+                    }    
+                    
+                    
                 }
 
                 // Kiểm tra tài khoản nhân viên
                 var userNV = db.NhanViens.FirstOrDefault(n => n.Email == model.Email);
-                if (userNV != null && userNV.MatKhau == model.Password)
+                if (userNV != null)
                 {
-                    FormsAuthentication.SetAuthCookie(userNV.Email, false);
-                    Session["Admin"] = userNV.QuyenHan == "Admin";
-                    Session["UserEmail"] = userNV.TenNhanVien;
-                    Session["MaNhanVien"] = userNV.ID_NhanVien;
-
-                    return Json(new
+                    if (userNV.TrangThai == "Khoá")
                     {
-                        success = true,
-                        redirectUrl = Url.Action("Index", "Home")
-                    });
-                }
+                        ModelState.AddModelError("", "Tài khoản này đã bị khóa. Vui lòng liên hệ admin để được hỗ trợ.");
+                        if (Request.IsAjaxRequest())
+                        {
+                            return PartialView("_LoginPartial", model);
+                        }
+                        return View(model);
+                    }
+                    try
+                    {
+                        bool isValidPassword = BCrypt.Net.BCrypt.Verify(model.Password, userNV.MatKhau);
+                        if (isValidPassword)
+                        {
+                            FormsAuthentication.SetAuthCookie(userNV.Email, false);
+                            if (userNV.QuyenHan == "Admin")
+                            {
+                                Session["Admin"] = true;
+                                Session["Staff"] = false;
+                            }
+                            else if(userNV.QuyenHan == "Staff")
+                            {
+                                Session["Admin"] = false;
+                                Session["Staff"] = true;
+                            }
 
-                // Nếu tài khoản hoặc mật khẩu sai, thêm lỗi vào ModelState
+                            Session["UserName"] = userNV.TenNhanVien;
+                            Session["NhanVien"] = new
+                            {
+                                ID_NhanVien = userNV.ID_NhanVien,
+                                TenNhanVien = userNV.TenNhanVien,
+                                Email = userNV.Email,
+                                QuyenHan = userNV.QuyenHan
+                            };
+
+                            return Json(new
+                            {
+                                success = true,
+                                redirectUrl = Url.Action("Index", "Home")
+                            });
+                        }  
+                    }
+                    catch(BCrypt.Net.SaltParseException)
+                    {
+                        if(userNV.MatKhau == model.Password)
+                        {
+                            userNV.MatKhau = BCrypt.Net.BCrypt.HashPassword(model.Password);
+                            db.SaveChanges();
+                            FormsAuthentication.SetAuthCookie(userNV.Email, false);
+                            if (userNV.QuyenHan == "Admin")
+                            {
+                                Session["Admin"] = true;
+                                Session["Staff"] = false;
+                            }
+                            else if (userNV.QuyenHan == "Staff")
+                            {
+                                Session["Admin"] = false;
+                                Session["Staff"] = true;
+                                System.Diagnostics.Debug.WriteLine("Staff session set successfully");
+                            }
+
+                            Session["UserName"] = userNV.TenNhanVien;
+                            Session["NhanVien"] = new
+                            {
+                                ID_NhanVien = userNV.ID_NhanVien,
+                                TenNhanVien = userNV.TenNhanVien,
+                                Email = userNV.Email,
+                                QuyenHan = userNV.QuyenHan
+                            };
+
+                            return Json(new
+                            {
+                                success = true,
+                                redirectUrl = Url.Action("Index", "Home")
+                            });
+                        }    
+                    }
+                    
+                }
                 ModelState.AddModelError("", "Sai email hoặc mật khẩu.");
             }
 
             if (Request.IsAjaxRequest())
             {
-                return PartialView("_LoginPartial", model);
+                if (!ModelState.IsValid)
+                {
+                    return PartialView("_LoginPartial", model);
+                }
+                return Json(new { success = true, redirectUrl = Url.Action("Index", "Home") });
             }
+
             return View(model);
         }
 

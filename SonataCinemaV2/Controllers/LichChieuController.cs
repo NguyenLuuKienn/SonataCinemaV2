@@ -1,4 +1,4 @@
-﻿using SonataCinema.Quyen;
+﻿using SonataCinemaV2.Quyen;
 using SonataCinemaV2.ViewModel;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using SonataCinemaV2.Models;
 
 namespace SonataCinema.Controllers
 {
-    [AdminAuthorize("Admin")]
+    [AuthorizeRoles]
     public class LichChieuController : Controller
     {
         private CinemaV3Entities db = new CinemaV3Entities();
@@ -17,7 +17,7 @@ namespace SonataCinema.Controllers
         // Lấy danh sách lịch chiếu
         public ActionResult DanhSachLichChieuPartial()
         {
-            ViewBag.DanhSachPhim = db.Phims.ToList();
+            ViewBag.DanhSachPhim = db.Phims.Where(p => p.TrangThai == "Đang chiếu").ToList();
             ViewBag.DanhSachPhong = db.PhongChieux.ToList();
 
             var lichChieus = db.LichChieux
@@ -27,57 +27,112 @@ namespace SonataCinema.Controllers
 
             return PartialView("DanhSachLichChieuPartial", lichChieus);
         }
+        private bool KiemTraTrungLichChieu(DateTime ngayChieu, TimeSpan gioChieu, int phongId, int thoiLuong)
+        {
+            try
+            {
+                // Tính toán thời gian bắt đầu và kết thúc của lịch chiếu mới
+                DateTime thoiDiemBatDau = ngayChieu.Date + gioChieu;
+                DateTime thoiDiemKetThuc = thoiDiemBatDau.AddMinutes(thoiLuong);
 
+                // Lấy tất cả lịch chiếu trong ngày của phòng đó
+                var lichChieuTrongNgay = db.LichChieux
+                    .Where(lc => lc.ID_Phong == phongId && DbFunctions.TruncateTime(lc.NgayChieu) == ngayChieu.Date)
+                    .ToList();
+
+                foreach (var lichChieu in lichChieuTrongNgay)
+                {
+                    DateTime batDauHienCo = lichChieu.NgayChieu.Date + lichChieu.GioChieu;
+                    DateTime ketThucHienCo = batDauHienCo.AddMinutes(lichChieu.Phim.ThoiLuong ?? 0);
+
+                    // 🔥 Cải thiện kiểm tra trùng lịch bằng cách kiểm tra khoảng thời gian chồng lấn
+                    if ((thoiDiemBatDau < ketThucHienCo && thoiDiemKetThuc > batDauHienCo))
+                    {
+                        return true; // Phim mới bị trùng lịch
+                    }
+                }
+
+                return false; // Không có lịch nào trùng
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi trong KiemTraTrungLichChieu: {ex.Message}");
+                throw;
+            }
+        }
+
+        [AdminOnlyAuthorize]
         // Thêm lịch chiếu
         [HttpPost]
-        public ActionResult ThemLichChieu(LichChieuMoi lichChieuMoi)
+        public JsonResult ThemLichChieu(LichChieuMoi lichChieuMoi)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
                     TimeSpan gioChieu = TimeSpan.Parse(lichChieuMoi.GioChieu);
+                    var lichChieuMoiList = new List<LichChieu>();
 
+                    var phimm = db.Phims.Find(lichChieuMoi.IDPhim);
+                    int thoiLuong = phimm?.ThoiLuong ?? 0; 
+
+                    // Kiểm tra trùng lịch cho tất cả các ngày
                     for (DateTime ngay = lichChieuMoi.TuNgay; ngay <= lichChieuMoi.DenNgay; ngay = ngay.AddDays(1))
                     {
                         DateTime thoiGianChieu = ngay.Date + gioChieu;
 
-                        // Kiểm tra trùng lịch
-                        bool coTrungLich = db.LichChieux.Any(lc =>
-                            lc.ID_Phong == lichChieuMoi.IDPhong &&
-                            DbFunctions.TruncateTime(lc.NgayChieu) == ngay.Date &&
-                            lc.GioChieu == thoiGianChieu.TimeOfDay);
 
-                        if (!coTrungLich)
+                        // Kiểm tra trùng lịch
+                        if (KiemTraTrungLichChieu(ngay, gioChieu, lichChieuMoi.IDPhong, thoiLuong))
                         {
-                            var lichChieu = new LichChieu
+                            var phim = db.Phims.Find(lichChieuMoi.IDPhim);
+                            var phong = db.PhongChieux.Find(lichChieuMoi.IDPhong);
+                            return Json(new
                             {
-                                ID_Phim = lichChieuMoi.IDPhim,
-                                ID_Phong = lichChieuMoi.IDPhong,
-                                NgayChieu = ngay,
-                                GioChieu = thoiGianChieu.TimeOfDay
-                            };
-                            db.LichChieux.Add(lichChieu);
+                                success = false,
+                                message = $"Lịch chiếu bị trùng! Phòng {phong.TenPhong} đã có lịch chiếu phim khác vào thời điểm {gioChieu.ToString(@"hh\:mm")}, vui lòng chọn khung giờ khác."
+                            });
                         }
+
+                        // Nếu không trùng, thêm vào danh sách chờ
+                        lichChieuMoiList.Add(new LichChieu
+                        {
+                            ID_Phim = lichChieuMoi.IDPhim,
+                            ID_Phong = lichChieuMoi.IDPhong,
+                            NgayChieu = ngay,
+                            GioChieu = thoiGianChieu.TimeOfDay,
+                            GiaVe = lichChieuMoi.GiaVe,
+                            TrangThai = "Đang chiếu"
+                        });
                     }
 
-                    db.SaveChanges();
-                    TempData["Message"] = "Thêm lịch chiếu thành công!";
+                    // Nếu không có lịch nào trùng, thêm tất cả vào database
+                    if (lichChieuMoiList.Any())
+                    {
+                        db.LichChieux.AddRange(lichChieuMoiList);
+                        db.SaveChanges();
+                        return Json(new
+                        {
+                            success = true,
+                            message = $"Đã thêm thành công {lichChieuMoiList.Count} lịch chiếu!"
+                        });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Không có lịch chiếu nào được thêm!" });
+                    }
                 }
                 catch (Exception ex)
                 {
-                    TempData["Error"] = "Lỗi: " + ex.Message;
+                    return Json(new { success = false, message = "Lỗi: " + ex.Message });
                 }
             }
-            else
-            {
-                TempData["Error"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại.";
-            }
 
-            return RedirectToAction("IndexAdmin", "Admin");
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+            return Json(new { success = false, message = "Dữ liệu không hợp lệ: " + string.Join(", ", errors) });
         }
 
-        // Xóa lịch chiếu
+        [AdminOnlyAuthorize]
         [HttpPost]
         public ActionResult XoaLichChieu(int ID_LichChieu)
         {
@@ -86,101 +141,123 @@ namespace SonataCinema.Controllers
                 var lichChieu = db.LichChieux.Find(ID_LichChieu);
                 if (lichChieu == null)
                 {
-                    TempData["Error"] = "Lịch chiếu không tồn tại!";
-                    return RedirectToAction("IndexAdmin", "Admin");
+                    return Json(new { success = false, message = "Lịch chiếu không tồn tại!" });
+                }
+
+                // Kiểm tra xem có vé nào đã được đặt cho lịch chiếu này không
+                var coVeDat = db.Ves.Any(v => v.ID_LichChieu == ID_LichChieu);
+                if (coVeDat)
+                {
+                    return Json(new { success = false, message = "Không thể xóa lịch chiếu đã có người đặt vé!" });
                 }
 
                 db.LichChieux.Remove(lichChieu);
                 db.SaveChanges();
-                TempData["Message"] = "Xóa lịch chiếu thành công!";
+                return Json(new { success = true, message = "Xóa lịch chiếu thành công!" });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Lỗi: " + ex.Message;
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
             }
-
-            return RedirectToAction("IndexAdmin", "Admin");
         }
 
-        // Sửa lịch chiếu
+        [AdminOnlyAuthorize]
         [HttpPost]
-        public ActionResult SuaLichChieu(LichChieu lichChieu)
+        public JsonResult SuaLichChieu(LichChieu lichChieu)
         {
             try
             {
-
                 if (ModelState.IsValid)
                 {
-                    var lichChieuCu = db.LichChieux.Find(lichChieu.ID_LichChieu);
                     var lcc = db.LichChieux.Find(lichChieu.ID_LichChieu);
                     if (lcc == null)
                     {
-                        TempData["Error"] = "Không tìm thấy lịch chiếu!";
-                        return RedirectToAction("IndexAdmin", "Admin");
+                        return Json(new { success = false, message = "Không tìm thấy lịch chiếu!" });
                     }
 
                     // Cập nhật thông tin
-                    lcc.ID_LichChieu = lichChieu.ID_LichChieu;
                     lcc.ID_Phong = lichChieu.ID_Phong;
                     lcc.NgayChieu = lichChieu.NgayChieu;
                     lcc.GioChieu = lichChieu.GioChieu;
 
                     db.SaveChanges();
-                    TempData["Message"] = "Cập nhật lịch chiếu thành công!";
+                    return Json(new { success = true, message = "Cập nhật lịch chiếu thành công!" });
                 }
-                else
-                {
-                    var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                                .Select(e => e.ErrorMessage);
-                    TempData["Error"] = "Dữ liệu không hợp lệ: " + string.Join(", ", errors);
-                }
+
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, message = "Dữ liệu không hợp lệ: " + string.Join(", ", errors) });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Lỗi: " + ex.Message;
-                System.Diagnostics.Debug.WriteLine($"Error in Edit: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
             }
-
-            return RedirectToAction("IndexAdmin", "Admin");
         }
-        // Thêm action này để lấy thông tin lịch chiếu dạng JSON
+
+        [AdminOnlyAuthorize]
+        [HttpPost]
+        public JsonResult ToggleTrangThaiLichChieu(int id)
+        {
+            try
+            {
+                var lichChieu = db.LichChieux.Find(id);
+                if (lichChieu == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy lịch chiếu!" });
+                }
+
+                // Đổi trạng thái
+                if (lichChieu.TrangThai == "Đang chiếu")
+                {
+                    lichChieu.TrangThai = "Ngừng chiếu";
+                }
+                else
+                {
+                    lichChieu.TrangThai = "Đang chiếu";
+                }
+
+                db.Entry(lichChieu).State = EntityState.Modified;
+                db.SaveChanges();
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Đã chuyển trạng thái thành {lichChieu.TrangThai}",
+                    newStatus = lichChieu.TrangThai
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in ToggleTrangThaiLichChieu: {ex.Message}");
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
+        // lấy thông tin lịch 
         [HttpGet]
         public JsonResult GetLichChieuById(int id)
         {
             try
             {
-                var lichChieu = db.LichChieux
-                    .Include(l => l.Phim)
-                    .Include(l => l.PhongChieu)
-                    .FirstOrDefault(l => l.ID_LichChieu == id);
+                var lichChieu = db.LichChieux.Find(id);
+                if (lichChieu == null)
+                    return Json(new { success = false, message = "Không tìm thấy lịch chiếu" });
 
-                if (lichChieu != null)
+                return Json(new
                 {
-                    // Debug
-                    System.Diagnostics.Debug.WriteLine($"Time before format: {lichChieu.GioChieu}");
-
-                    var result = new
+                    success = true,
+                    data = new
                     {
-                        MaLichChieu = lichChieu.ID_LichChieu,
-                        MaPhim = lichChieu.ID_Phim,
-                        MaPhong = lichChieu.ID_Phong,
-                        Ngay = lichChieu.NgayChieu.ToString("yyyy-MM-dd"),
-                        ThoiGianChieu = $"{lichChieu.GioChieu.Hours:00}:{lichChieu.GioChieu.Minutes:00}", // Đảm bảo dùng HH cho 24h
-                        TenPhim = lichChieu.Phim.TenPhim,
-                        TenPhong = lichChieu.PhongChieu.TenPhong
-                    };
-
-                    // Debug
-                    System.Diagnostics.Debug.WriteLine($"Time after format: {result.ThoiGianChieu}");
-
-                    return Json(result, JsonRequestBehavior.AllowGet);
-                }
-                return Json(null, JsonRequestBehavior.AllowGet);
+                        ID_LichChieu = lichChieu.ID_LichChieu,
+                        ID_Phim = lichChieu.ID_Phim,
+                        ID_Phong = lichChieu.ID_Phong,
+                        NgayChieu = lichChieu.NgayChieu.ToString("dd/MM/yyyy"),
+                        GioChieu = lichChieu.GioChieu.ToString(@"hh\:mm")
+                    }
+                }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                return Json(new { error = ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
             }
         }
     }

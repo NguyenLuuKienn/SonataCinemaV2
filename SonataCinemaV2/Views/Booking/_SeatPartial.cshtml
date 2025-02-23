@@ -2,32 +2,21 @@
 
 <div class="seat-layout">
     <div class="seat-container">
-        @{
-            var sortedSeats = Model
-                .OrderBy(g => g.TenGhe.Split('-')[0])
-                .ThenBy(g => int.Parse(g.TenGhe.Split('-')[1]))
-                .ToList();
-        }
-
-        @for (int i = 0; i < sortedSeats.Count; i += 7)
+        @foreach (var ghe in Model.OrderBy(g => g.TenGhe))
         {
-            <div class="col-lg-4 d-flex flex-wrap justify-content-center mb-3">
-                @foreach (var ghe in sortedSeats.Skip(i).Take(7))
-                {
-                    var soGhe = ghe.TenGhe.Split('-')[1];
-                    var seatClass = ghe.TrangThai == "Đã đặt" ? "occupied" : "empty";
+            var seatClass = ghe.TrangThai == "Đã đặt" ? "occupied" :
+                           ghe.TrangThai == "Đang giữ" ? "holding" : "empty";
 
-                    <div class="seat @seatClass"
-                         data-id="@ghe.IDGhe"
-                         data-name="@ghe.TenGhe"
-                         @(ghe.TrangThai == "Đã đặt" ? "disabled" : "")>
-                        @soGhe
-                    </div>
-                }
+            <div class="seat @seatClass"
+                 data-id="@ghe.IDGhe"
+                 data-name="@ghe.TenGhe"
+                 @(ghe.TrangThai != "Trống" ? "disabled" : "")>
+                @ghe.TenGhe.Split('-')[1]
             </div>
         }
     </div>
 </div>
+
 
 <style>
     .seat-layout {
@@ -42,5 +31,9 @@
 
     .seat-container {
         flex: 1;
+    }
+    .seat.holding {
+        background-color: #f39c12;
+        cursor: not-allowed;
     }
 </style>

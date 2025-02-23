@@ -4,7 +4,41 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="CinemaV3Model.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="CinemaV3Model.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="__EFMigrationsHistory">
+          <Key>
+            <PropertyRef Name="MigrationId" />
+          </Key>
+          <Property Name="MigrationId" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="ProductVersion" Type="nvarchar" MaxLength="32" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Blog">
+          <Key>
+            <PropertyRef Name="ID_Blog" />
+          </Key>
+          <Property Name="ID_Blog" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TieuDe" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="NoiDung" Type="ntext" Nullable="false" />
+          <Property Name="HinhAnh" Type="nvarchar" MaxLength="255" />
+          <Property Name="NgayDang" Type="datetime" />
+          <Property Name="ID_NhanVien" Type="int" Nullable="false" />
+          <Property Name="TheLoai" Type="nvarchar" MaxLength="50" />
+          <Property Name="TrangThai" Type="bit" />
+          <Property Name="LuotXem" Type="int" />
+        </EntityType>
+        <EntityType Name="ChatMessages">
+          <Key>
+            <PropertyRef Name="ID_Chat" />
+          </Key>
+          <Property Name="ID_Chat" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RoomId" Type="nvarchar" MaxLength="50" />
+          <Property Name="ID_KhachHang" Type="int" />
+          <Property Name="ID_NhanVien" Type="int" />
+          <Property Name="Message" Type="nvarchar(max)" />
+          <Property Name="Timestamp" Type="datetime" />
+          <Property Name="Role" Type="nvarchar" MaxLength="20" />
+          <Property Name="Status" Type="nvarchar" MaxLength="20" />
+        </EntityType>
         <EntityType Name="DiemThuong">
           <Key>
             <PropertyRef Name="ID_KhachHang" />
@@ -22,7 +56,16 @@
           <Property Name="ID_Ghe" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="ID_Phong" Type="int" Nullable="false" />
           <Property Name="TenGhe" Type="nvarchar" MaxLength="20" Nullable="false" />
-          <Property Name="TrangThai" Type="nvarchar" MaxLength="10" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Ghe_TrangThai">
+          <Key>
+            <PropertyRef Name="ID_TrangThai" />
+          </Key>
+          <Property Name="ID_TrangThai" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ID_LichChieu" Type="int" Nullable="false" />
+          <Property Name="ID_Ghe" Type="int" Nullable="false" />
+          <Property Name="TrangThai" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="ThoiGianGiu" Type="datetime" />
         </EntityType>
         <EntityType Name="KhachHang">
           <Key>
@@ -35,8 +78,9 @@
           <Property Name="NgaySinh" Type="date" />
           <Property Name="GioiTinh" Type="nvarchar" MaxLength="10" />
           <Property Name="DiemThuong" Type="int" />
-          <Property Name="MatKhau" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="MatKhau" Type="nvarchar" MaxLength="100" Nullable="false" />
           <Property Name="QuyenHan" Type="nvarchar" MaxLength="50" />
+          <Property Name="TrangThai" Type="nvarchar" MaxLength="100" />
         </EntityType>
         <EntityType Name="LichChieu">
           <Key>
@@ -47,6 +91,8 @@
           <Property Name="ID_Phong" Type="int" Nullable="false" />
           <Property Name="GioChieu" Type="time" Precision="7" Nullable="false" />
           <Property Name="NgayChieu" Type="date" Nullable="false" />
+          <Property Name="GiaVe" Type="decimal" Precision="18" Scale="0" />
+          <Property Name="TrangThai" Type="nvarchar" MaxLength="100" />
         </EntityType>
         <EntityType Name="NhanVien">
           <Key>
@@ -56,9 +102,10 @@
           <Property Name="TenNhanVien" Type="nvarchar" MaxLength="100" Nullable="false" />
           <Property Name="Email" Type="varchar" MaxLength="100" />
           <Property Name="MatKhau" Type="varchar" MaxLength="100" Nullable="false" />
-          <Property Name="ViTri" Type="nvarchar" MaxLength="50" />
+          <Property Name="ViTri" Type="nvarchar" MaxLength="100" />
           <Property Name="QuyenHan" Type="nvarchar" MaxLength="50" />
           <Property Name="CaLamViec" Type="nvarchar" MaxLength="50" />
+          <Property Name="TrangThai" Type="nvarchar" MaxLength="100" />
         </EntityType>
         <EntityType Name="Phim">
           <Key>
@@ -119,7 +166,45 @@
           <Property Name="Gia" Type="decimal" Precision="10" Scale="2" Nullable="false" />
           <Property Name="DiemThuong" Type="int" />
           <Property Name="TrangThai" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="NgayDat" Type="datetime" />
+          <Property Name="TrangThaiGhe" Type="nvarchar" MaxLength="50" />
         </EntityType>
+        <Association Name="FK__ChatMessa__ID_Kh__1F63A897">
+          <End Role="KhachHang" Type="Self.KhachHang" Multiplicity="0..1" />
+          <End Role="ChatMessages" Type="Self.ChatMessages" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="KhachHang">
+              <PropertyRef Name="ID_KhachHang" />
+            </Principal>
+            <Dependent Role="ChatMessages">
+              <PropertyRef Name="ID_KhachHang" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__ChatMessa__ID_Nh__2057CCD0">
+          <End Role="NhanVien" Type="Self.NhanVien" Multiplicity="0..1" />
+          <End Role="ChatMessages" Type="Self.ChatMessages" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="NhanVien">
+              <PropertyRef Name="ID_NhanVien" />
+            </Principal>
+            <Dependent Role="ChatMessages">
+              <PropertyRef Name="ID_NhanVien" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Blog_NhanVien">
+          <End Role="NhanVien" Type="Self.NhanVien" Multiplicity="1" />
+          <End Role="Blog" Type="Self.Blog" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="NhanVien">
+              <PropertyRef Name="ID_NhanVien" />
+            </Principal>
+            <Dependent Role="Blog">
+              <PropertyRef Name="ID_NhanVien" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_DiemThuong_KhachHang">
           <End Role="KhachHang" Type="Self.KhachHang" Multiplicity="1" />
           <End Role="DiemThuong" Type="Self.DiemThuong" Multiplicity="0..1" />
@@ -141,6 +226,30 @@
             </Principal>
             <Dependent Role="Ghe">
               <PropertyRef Name="ID_Phong" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Ghe_TrangThai_Ghe">
+          <End Role="Ghe" Type="Self.Ghe" Multiplicity="1" />
+          <End Role="Ghe_TrangThai" Type="Self.Ghe_TrangThai" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Ghe">
+              <PropertyRef Name="ID_Ghe" />
+            </Principal>
+            <Dependent Role="Ghe_TrangThai">
+              <PropertyRef Name="ID_Ghe" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Ghe_TrangThai_LichChieu">
+          <End Role="LichChieu" Type="Self.LichChieu" Multiplicity="1" />
+          <End Role="Ghe_TrangThai" Type="Self.Ghe_TrangThai" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="LichChieu">
+              <PropertyRef Name="ID_LichChieu" />
+            </Principal>
+            <Dependent Role="Ghe_TrangThai">
+              <PropertyRef Name="ID_LichChieu" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -228,9 +337,44 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Function Name="fn_diagramobjects" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" ReturnType="int" />
+        <Function Name="sp_alterdiagram" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
+          <Parameter Name="owner_id" Type="int" Mode="In" />
+          <Parameter Name="version" Type="int" Mode="In" />
+          <Parameter Name="definition" Type="varbinary(max)" Mode="In" />
+        </Function>
+        <Function Name="sp_creatediagram" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
+          <Parameter Name="owner_id" Type="int" Mode="In" />
+          <Parameter Name="version" Type="int" Mode="In" />
+          <Parameter Name="definition" Type="varbinary(max)" Mode="In" />
+        </Function>
+        <Function Name="sp_dropdiagram" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
+          <Parameter Name="owner_id" Type="int" Mode="In" />
+        </Function>
+        <Function Name="sp_helpdiagramdefinition" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
+          <Parameter Name="owner_id" Type="int" Mode="In" />
+        </Function>
+        <Function Name="sp_helpdiagrams" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
+          <Parameter Name="owner_id" Type="int" Mode="In" />
+        </Function>
+        <Function Name="sp_renamediagram" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
+          <Parameter Name="owner_id" Type="int" Mode="In" />
+          <Parameter Name="new_diagramname" Type="nvarchar" Mode="In" />
+        </Function>
+        <Function Name="sp_upgraddiagrams" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" />
         <EntityContainer Name="CinemaV3ModelStoreContainer">
+          <EntitySet Name="__EFMigrationsHistory" EntityType="Self.__EFMigrationsHistory" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Blog" EntityType="Self.Blog" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ChatMessages" EntityType="Self.ChatMessages" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DiemThuong" EntityType="Self.DiemThuong" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Ghe" EntityType="Self.Ghe" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Ghe_TrangThai" EntityType="Self.Ghe_TrangThai" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="KhachHang" EntityType="Self.KhachHang" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="LichChieu" EntityType="Self.LichChieu" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="NhanVien" EntityType="Self.NhanVien" Schema="dbo" store:Type="Tables" />
@@ -239,6 +383,18 @@
           <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagrams" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ThanhToan" EntityType="Self.ThanhToan" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Ve" EntityType="Self.Ve" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK__ChatMessa__ID_Kh__1F63A897" Association="Self.FK__ChatMessa__ID_Kh__1F63A897">
+            <End Role="KhachHang" EntitySet="KhachHang" />
+            <End Role="ChatMessages" EntitySet="ChatMessages" />
+          </AssociationSet>
+          <AssociationSet Name="FK__ChatMessa__ID_Nh__2057CCD0" Association="Self.FK__ChatMessa__ID_Nh__2057CCD0">
+            <End Role="NhanVien" EntitySet="NhanVien" />
+            <End Role="ChatMessages" EntitySet="ChatMessages" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Blog_NhanVien" Association="Self.FK_Blog_NhanVien">
+            <End Role="NhanVien" EntitySet="NhanVien" />
+            <End Role="Blog" EntitySet="Blog" />
+          </AssociationSet>
           <AssociationSet Name="FK_DiemThuong_KhachHang" Association="Self.FK_DiemThuong_KhachHang">
             <End Role="KhachHang" EntitySet="KhachHang" />
             <End Role="DiemThuong" EntitySet="DiemThuong" />
@@ -246,6 +402,14 @@
           <AssociationSet Name="FK_Ghe_PhongChieu" Association="Self.FK_Ghe_PhongChieu">
             <End Role="PhongChieu" EntitySet="PhongChieu" />
             <End Role="Ghe" EntitySet="Ghe" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Ghe_TrangThai_Ghe" Association="Self.FK_Ghe_TrangThai_Ghe">
+            <End Role="Ghe" EntitySet="Ghe" />
+            <End Role="Ghe_TrangThai" EntitySet="Ghe_TrangThai" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Ghe_TrangThai_LichChieu" Association="Self.FK_Ghe_TrangThai_LichChieu">
+            <End Role="LichChieu" EntitySet="LichChieu" />
+            <End Role="Ghe_TrangThai" EntitySet="Ghe_TrangThai" />
           </AssociationSet>
           <AssociationSet Name="FK_LichChieu_Phim" Association="Self.FK_LichChieu_Phim">
             <End Role="Phim" EntitySet="Phim" />
@@ -276,8 +440,7 @@
             <End Role="Ve" EntitySet="Ve" />
           </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="CinemaV3Model" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -299,8 +462,8 @@
           <Property Name="ID_Ghe" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="ID_Phong" Type="Int32" Nullable="false" />
           <Property Name="TenGhe" Type="String" MaxLength="20" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="TrangThai" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="false" />
           <NavigationProperty Name="PhongChieu" Relationship="Self.FK_Ghe_PhongChieu" FromRole="Ghe" ToRole="PhongChieu" />
+          <NavigationProperty Name="Ghe_TrangThai" Relationship="CinemaV3Model.FK_Ghe_TrangThai_Ghe" FromRole="Ghe" ToRole="Ghe_TrangThai" />
         </EntityType>
         <EntityType Name="KhachHang">
           <Key>
@@ -313,11 +476,13 @@
           <Property Name="NgaySinh" Type="DateTime" Precision="0" />
           <Property Name="GioiTinh" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
           <Property Name="DiemThuong" Type="Int32" />
-          <Property Name="MatKhau" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="MatKhau" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="QuyenHan" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="DiemThuong1" Relationship="Self.FK_DiemThuong_KhachHang" FromRole="KhachHang" ToRole="DiemThuong" />
           <NavigationProperty Name="ThanhToans" Relationship="Self.FK_ThanhToan_KhachHang" FromRole="KhachHang" ToRole="ThanhToan" />
           <NavigationProperty Name="Ves" Relationship="Self.FK_Ve_KhachHang" FromRole="KhachHang" ToRole="Ve" />
+          <Property Name="TrangThai" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="ChatMessages" Relationship="CinemaV3Model.FK__ChatMessa__ID_Kh__1F63A897" FromRole="KhachHang" ToRole="ChatMessage" />
         </EntityType>
         <EntityType Name="LichChieu">
           <Key>
@@ -331,6 +496,9 @@
           <NavigationProperty Name="Phim" Relationship="Self.FK_LichChieu_Phim" FromRole="LichChieu" ToRole="Phim" />
           <NavigationProperty Name="PhongChieu" Relationship="Self.FK_LichChieu_PhongChieu" FromRole="LichChieu" ToRole="PhongChieu" />
           <NavigationProperty Name="Ves" Relationship="Self.FK_Ve_LichChieu" FromRole="LichChieu" ToRole="Ve" />
+          <Property Name="GiaVe" Type="Decimal" Precision="18" Scale="0" />
+          <Property Name="TrangThai" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Ghe_TrangThai" Relationship="CinemaV3Model.FK_Ghe_TrangThai_LichChieu" FromRole="LichChieu" ToRole="Ghe_TrangThai" />
         </EntityType>
         <EntityType Name="NhanVien">
           <Key>
@@ -340,10 +508,13 @@
           <Property Name="TenNhanVien" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="Email" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
           <Property Name="MatKhau" Type="String" MaxLength="100" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="ViTri" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ViTri" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <Property Name="QuyenHan" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="CaLamViec" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="ThanhToans" Relationship="Self.FK_ThanhToan_NhanVien" FromRole="NhanVien" ToRole="ThanhToan" />
+          <NavigationProperty Name="Blogs" Relationship="CinemaV3Model.FK_Blog_NhanVien" FromRole="NhanVien" ToRole="Blog" />
+          <Property Name="TrangThai" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="ChatMessages" Relationship="CinemaV3Model.FK__ChatMessa__ID_Nh__2057CCD0" FromRole="NhanVien" ToRole="ChatMessage" />
         </EntityType>
         <EntityType Name="Phim">
           <Key>
@@ -413,6 +584,8 @@
           <NavigationProperty Name="KhachHang" Relationship="Self.FK_Ve_KhachHang" FromRole="Ve" ToRole="KhachHang" />
           <NavigationProperty Name="LichChieu" Relationship="Self.FK_Ve_LichChieu" FromRole="Ve" ToRole="LichChieu" />
           <NavigationProperty Name="ThanhToan" Relationship="Self.FK_Ve_ThanhToan" FromRole="Ve" ToRole="ThanhToan" />
+          <Property Name="NgayDat" Type="DateTime" Precision="3" />
+          <Property Name="TrangThaiGhe" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
         </EntityType>
         <Association Name="FK_DiemThuong_KhachHang">
           <End Role="KhachHang" Type="Self.KhachHang" Multiplicity="1" />
@@ -569,7 +742,181 @@
             <End Role="ThanhToan" EntitySet="ThanhToans" />
             <End Role="Ve" EntitySet="Ves" />
           </AssociationSet>
+          <FunctionImport Name="sp_alterdiagram">
+            <Parameter Name="diagramname" Mode="In" Type="String" />
+            <Parameter Name="owner_id" Mode="In" Type="Int32" />
+            <Parameter Name="version" Mode="In" Type="Int32" />
+            <Parameter Name="definition" Mode="In" Type="Binary" />
+          </FunctionImport>
+          <FunctionImport Name="sp_creatediagram">
+            <Parameter Name="diagramname" Mode="In" Type="String" />
+            <Parameter Name="owner_id" Mode="In" Type="Int32" />
+            <Parameter Name="version" Mode="In" Type="Int32" />
+            <Parameter Name="definition" Mode="In" Type="Binary" />
+          </FunctionImport>
+          <FunctionImport Name="sp_dropdiagram">
+            <Parameter Name="diagramname" Mode="In" Type="String" />
+            <Parameter Name="owner_id" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="sp_helpdiagramdefinition" ReturnType="Collection(CinemaV3Model.sp_helpdiagramdefinition_Result)">
+            <Parameter Name="diagramname" Mode="In" Type="String" />
+            <Parameter Name="owner_id" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="sp_helpdiagrams" ReturnType="Collection(CinemaV3Model.sp_helpdiagrams_Result)">
+            <Parameter Name="diagramname" Mode="In" Type="String" />
+            <Parameter Name="owner_id" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="sp_renamediagram">
+            <Parameter Name="diagramname" Mode="In" Type="String" />
+            <Parameter Name="owner_id" Mode="In" Type="Int32" />
+            <Parameter Name="new_diagramname" Mode="In" Type="String" />
+          </FunctionImport>
+          <FunctionImport Name="sp_upgraddiagrams" />
+          <EntitySet Name="Blogs" EntityType="CinemaV3Model.Blog" />
+          <AssociationSet Name="FK_Blog_NhanVien" Association="CinemaV3Model.FK_Blog_NhanVien">
+            <End Role="NhanVien" EntitySet="NhanViens" />
+            <End Role="Blog" EntitySet="Blogs" />
+          </AssociationSet>
+          <EntitySet Name="ChatMessages" EntityType="CinemaV3Model.ChatMessage" />
+          <AssociationSet Name="FK__ChatMessa__ID_Kh__1F63A897" Association="CinemaV3Model.FK__ChatMessa__ID_Kh__1F63A897">
+            <End Role="KhachHang" EntitySet="KhachHangs" />
+            <End Role="ChatMessage" EntitySet="ChatMessages" />
+          </AssociationSet>
+          <AssociationSet Name="FK__ChatMessa__ID_Nh__2057CCD0" Association="CinemaV3Model.FK__ChatMessa__ID_Nh__2057CCD0">
+            <End Role="NhanVien" EntitySet="NhanViens" />
+            <End Role="ChatMessage" EntitySet="ChatMessages" />
+          </AssociationSet>
+          <EntitySet Name="C__EFMigrationsHistory" EntityType="CinemaV3Model.C__EFMigrationsHistory" />
+          <EntitySet Name="Ghe_TrangThai" EntityType="CinemaV3Model.Ghe_TrangThai" />
+          <AssociationSet Name="FK_Ghe_TrangThai_Ghe" Association="CinemaV3Model.FK_Ghe_TrangThai_Ghe">
+            <End Role="Ghe" EntitySet="Ghes" />
+            <End Role="Ghe_TrangThai" EntitySet="Ghe_TrangThai" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Ghe_TrangThai_LichChieu" Association="CinemaV3Model.FK_Ghe_TrangThai_LichChieu">
+            <End Role="LichChieu" EntitySet="LichChieux" />
+            <End Role="Ghe_TrangThai" EntitySet="Ghe_TrangThai" />
+          </AssociationSet>
         </EntityContainer>
+        <ComplexType Name="sp_helpdiagramdefinition_Result">
+          <Property Type="Int32" Name="version" Nullable="true" />
+          <Property Type="Binary" Name="definition" Nullable="true" />
+        </ComplexType>
+        <ComplexType Name="sp_helpdiagrams_Result">
+          <Property Type="String" Name="Database" Nullable="true" MaxLength="128" />
+          <Property Type="String" Name="Name" Nullable="false" MaxLength="128" />
+          <Property Type="Int32" Name="ID" Nullable="false" />
+          <Property Type="String" Name="Owner" Nullable="true" MaxLength="128" />
+          <Property Type="Int32" Name="OwnerID" Nullable="false" />
+        </ComplexType>
+        <EntityType Name="Blog">
+          <Key>
+            <PropertyRef Name="ID_Blog" />
+          </Key>
+          <Property Name="ID_Blog" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TieuDe" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="NoiDung" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="HinhAnh" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="NgayDang" Type="DateTime" Precision="3" />
+          <Property Name="ID_NhanVien" Type="Int32" Nullable="false" />
+          <Property Name="TheLoai" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TrangThai" Type="Boolean" />
+          <Property Name="LuotXem" Type="Int32" />
+          <NavigationProperty Name="NhanVien" Relationship="CinemaV3Model.FK_Blog_NhanVien" FromRole="Blog" ToRole="NhanVien" />
+        </EntityType>
+        <Association Name="FK_Blog_NhanVien">
+          <End Type="CinemaV3Model.NhanVien" Role="NhanVien" Multiplicity="1" />
+          <End Type="CinemaV3Model.Blog" Role="Blog" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="NhanVien">
+              <PropertyRef Name="ID_NhanVien" />
+            </Principal>
+            <Dependent Role="Blog">
+              <PropertyRef Name="ID_NhanVien" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ChatMessage">
+          <Key>
+            <PropertyRef Name="ID_Chat" />
+          </Key>
+          <Property Name="ID_Chat" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RoomId" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ID_KhachHang" Type="Int32" />
+          <Property Name="ID_NhanVien" Type="Int32" />
+          <Property Name="Message" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Timestamp" Type="DateTime" Precision="3" />
+          <Property Name="Role" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Status" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="KhachHang" Relationship="CinemaV3Model.FK__ChatMessa__ID_Kh__1F63A897" FromRole="ChatMessage" ToRole="KhachHang" />
+          <NavigationProperty Name="NhanVien" Relationship="CinemaV3Model.FK__ChatMessa__ID_Nh__2057CCD0" FromRole="ChatMessage" ToRole="NhanVien" />
+        </EntityType>
+        <Association Name="FK__ChatMessa__ID_Kh__1F63A897">
+          <End Type="CinemaV3Model.KhachHang" Role="KhachHang" Multiplicity="0..1" />
+          <End Type="CinemaV3Model.ChatMessage" Role="ChatMessage" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="KhachHang">
+              <PropertyRef Name="ID_KhachHang" />
+            </Principal>
+            <Dependent Role="ChatMessage">
+              <PropertyRef Name="ID_KhachHang" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__ChatMessa__ID_Nh__2057CCD0">
+          <End Type="CinemaV3Model.NhanVien" Role="NhanVien" Multiplicity="0..1" />
+          <End Type="CinemaV3Model.ChatMessage" Role="ChatMessage" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="NhanVien">
+              <PropertyRef Name="ID_NhanVien" />
+            </Principal>
+            <Dependent Role="ChatMessage">
+              <PropertyRef Name="ID_NhanVien" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="C__EFMigrationsHistory">
+          <Key>
+            <PropertyRef Name="MigrationId" />
+          </Key>
+          <Property Name="MigrationId" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="ProductVersion" Type="String" Nullable="false" MaxLength="32" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="Ghe_TrangThai">
+          <Key>
+            <PropertyRef Name="ID_TrangThai" />
+          </Key>
+          <Property Name="ID_TrangThai" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ID_LichChieu" Type="Int32" Nullable="false" />
+          <Property Name="ID_Ghe" Type="Int32" Nullable="false" />
+          <Property Name="TrangThai" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="ThoiGianGiu" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Ghe" Relationship="CinemaV3Model.FK_Ghe_TrangThai_Ghe" FromRole="Ghe_TrangThai" ToRole="Ghe" />
+          <NavigationProperty Name="LichChieu" Relationship="CinemaV3Model.FK_Ghe_TrangThai_LichChieu" FromRole="Ghe_TrangThai" ToRole="LichChieu" />
+        </EntityType>
+        <Association Name="FK_Ghe_TrangThai_Ghe">
+          <End Type="CinemaV3Model.Ghe" Role="Ghe" Multiplicity="1" />
+          <End Type="CinemaV3Model.Ghe_TrangThai" Role="Ghe_TrangThai" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Ghe">
+              <PropertyRef Name="ID_Ghe" />
+            </Principal>
+            <Dependent Role="Ghe_TrangThai">
+              <PropertyRef Name="ID_Ghe" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Ghe_TrangThai_LichChieu">
+          <End Type="CinemaV3Model.LichChieu" Role="LichChieu" Multiplicity="1" />
+          <End Type="CinemaV3Model.Ghe_TrangThai" Role="Ghe_TrangThai" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="LichChieu">
+              <PropertyRef Name="ID_LichChieu" />
+            </Principal>
+            <Dependent Role="Ghe_TrangThai">
+              <PropertyRef Name="ID_LichChieu" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -593,13 +940,13 @@
                 <ScalarProperty Name="ID_Ghe" ColumnName="ID_Ghe" />
                 <ScalarProperty Name="ID_Phong" ColumnName="ID_Phong" />
                 <ScalarProperty Name="TenGhe" ColumnName="TenGhe" />
-                <ScalarProperty Name="TrangThai" ColumnName="TrangThai" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
           <EntitySetMapping Name="KhachHangs">
             <EntityTypeMapping TypeName="CinemaV3Model.KhachHang">
               <MappingFragment StoreEntitySet="KhachHang">
+                <ScalarProperty Name="TrangThai" ColumnName="TrangThai" />
                 <ScalarProperty Name="ID_KhachHang" ColumnName="ID_KhachHang" />
                 <ScalarProperty Name="TenKhachHang" ColumnName="TenKhachHang" />
                 <ScalarProperty Name="Email" ColumnName="Email" />
@@ -615,6 +962,8 @@
           <EntitySetMapping Name="LichChieux">
             <EntityTypeMapping TypeName="CinemaV3Model.LichChieu">
               <MappingFragment StoreEntitySet="LichChieu">
+                <ScalarProperty Name="TrangThai" ColumnName="TrangThai" />
+                <ScalarProperty Name="GiaVe" ColumnName="GiaVe" />
                 <ScalarProperty Name="ID_LichChieu" ColumnName="ID_LichChieu" />
                 <ScalarProperty Name="ID_Phim" ColumnName="ID_Phim" />
                 <ScalarProperty Name="ID_Phong" ColumnName="ID_Phong" />
@@ -626,11 +975,12 @@
           <EntitySetMapping Name="NhanViens">
             <EntityTypeMapping TypeName="CinemaV3Model.NhanVien">
               <MappingFragment StoreEntitySet="NhanVien">
+                <ScalarProperty Name="TrangThai" ColumnName="TrangThai" />
+                <ScalarProperty Name="ViTri" ColumnName="ViTri" />
                 <ScalarProperty Name="ID_NhanVien" ColumnName="ID_NhanVien" />
                 <ScalarProperty Name="TenNhanVien" ColumnName="TenNhanVien" />
                 <ScalarProperty Name="Email" ColumnName="Email" />
                 <ScalarProperty Name="MatKhau" ColumnName="MatKhau" />
-                <ScalarProperty Name="ViTri" ColumnName="ViTri" />
                 <ScalarProperty Name="QuyenHan" ColumnName="QuyenHan" />
                 <ScalarProperty Name="CaLamViec" ColumnName="CaLamViec" />
               </MappingFragment>
@@ -690,6 +1040,8 @@
           <EntitySetMapping Name="Ves">
             <EntityTypeMapping TypeName="CinemaV3Model.Ve">
               <MappingFragment StoreEntitySet="Ve">
+                <ScalarProperty Name="TrangThaiGhe" ColumnName="TrangThaiGhe" />
+                <ScalarProperty Name="NgayDat" ColumnName="NgayDat" />
                 <ScalarProperty Name="ID_Ve" ColumnName="ID_Ve" />
                 <ScalarProperty Name="ID_ThanhToan" ColumnName="ID_ThanhToan" />
                 <ScalarProperty Name="ID_KhachHang" ColumnName="ID_KhachHang" />
@@ -698,6 +1050,78 @@
                 <ScalarProperty Name="Gia" ColumnName="Gia" />
                 <ScalarProperty Name="DiemThuong" ColumnName="DiemThuong" />
                 <ScalarProperty Name="TrangThai" ColumnName="TrangThai" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="sp_alterdiagram" FunctionName="CinemaV3Model.Store.sp_alterdiagram" />
+          <FunctionImportMapping FunctionImportName="sp_creatediagram" FunctionName="CinemaV3Model.Store.sp_creatediagram" />
+          <FunctionImportMapping FunctionImportName="sp_dropdiagram" FunctionName="CinemaV3Model.Store.sp_dropdiagram" />
+          <FunctionImportMapping FunctionImportName="sp_helpdiagramdefinition" FunctionName="CinemaV3Model.Store.sp_helpdiagramdefinition">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="CinemaV3Model.sp_helpdiagramdefinition_Result">
+                <ScalarProperty Name="version" ColumnName="version" />
+                <ScalarProperty Name="definition" ColumnName="definition" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="sp_helpdiagrams" FunctionName="CinemaV3Model.Store.sp_helpdiagrams">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="CinemaV3Model.sp_helpdiagrams_Result">
+                <ScalarProperty Name="Database" ColumnName="Database" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="Owner" ColumnName="Owner" />
+                <ScalarProperty Name="OwnerID" ColumnName="OwnerID" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="sp_renamediagram" FunctionName="CinemaV3Model.Store.sp_renamediagram" />
+          <FunctionImportMapping FunctionImportName="sp_upgraddiagrams" FunctionName="CinemaV3Model.Store.sp_upgraddiagrams" />
+          <EntitySetMapping Name="Blogs">
+            <EntityTypeMapping TypeName="CinemaV3Model.Blog">
+              <MappingFragment StoreEntitySet="Blog">
+                <ScalarProperty Name="LuotXem" ColumnName="LuotXem" />
+                <ScalarProperty Name="TrangThai" ColumnName="TrangThai" />
+                <ScalarProperty Name="TheLoai" ColumnName="TheLoai" />
+                <ScalarProperty Name="ID_NhanVien" ColumnName="ID_NhanVien" />
+                <ScalarProperty Name="NgayDang" ColumnName="NgayDang" />
+                <ScalarProperty Name="HinhAnh" ColumnName="HinhAnh" />
+                <ScalarProperty Name="NoiDung" ColumnName="NoiDung" />
+                <ScalarProperty Name="TieuDe" ColumnName="TieuDe" />
+                <ScalarProperty Name="ID_Blog" ColumnName="ID_Blog" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ChatMessages">
+            <EntityTypeMapping TypeName="CinemaV3Model.ChatMessage">
+              <MappingFragment StoreEntitySet="ChatMessages">
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="Role" ColumnName="Role" />
+                <ScalarProperty Name="Timestamp" ColumnName="Timestamp" />
+                <ScalarProperty Name="Message" ColumnName="Message" />
+                <ScalarProperty Name="ID_NhanVien" ColumnName="ID_NhanVien" />
+                <ScalarProperty Name="ID_KhachHang" ColumnName="ID_KhachHang" />
+                <ScalarProperty Name="RoomId" ColumnName="RoomId" />
+                <ScalarProperty Name="ID_Chat" ColumnName="ID_Chat" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="C__EFMigrationsHistory">
+            <EntityTypeMapping TypeName="CinemaV3Model.C__EFMigrationsHistory">
+              <MappingFragment StoreEntitySet="__EFMigrationsHistory">
+                <ScalarProperty Name="ProductVersion" ColumnName="ProductVersion" />
+                <ScalarProperty Name="MigrationId" ColumnName="MigrationId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Ghe_TrangThai">
+            <EntityTypeMapping TypeName="CinemaV3Model.Ghe_TrangThai">
+              <MappingFragment StoreEntitySet="Ghe_TrangThai">
+                <ScalarProperty Name="ThoiGianGiu" ColumnName="ThoiGianGiu" />
+                <ScalarProperty Name="TrangThai" ColumnName="TrangThai" />
+                <ScalarProperty Name="ID_Ghe" ColumnName="ID_Ghe" />
+                <ScalarProperty Name="ID_LichChieu" ColumnName="ID_LichChieu" />
+                <ScalarProperty Name="ID_TrangThai" ColumnName="ID_TrangThai" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

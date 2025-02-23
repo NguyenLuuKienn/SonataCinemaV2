@@ -1,0 +1,37 @@
+﻿@model IEnumerable<SonataCinemaV2.Models.Phim>
+
+@foreach (var item in Model)
+{
+    <div class="movie-card" data-status="@item.TrangThai" data-id="@item.ID_Phim" data-rating="@item.DanhGia">
+        <div class="movie-poster">
+            <img src="~/Content/img/@item.Poster" alt="@item.TenPhim">
+            <div class="movie-overlay">
+                <div class="movie-actions">
+                    <a href="@Url.Action("DetailsPage", "Details", new { id = item.ID_Phim})" class="btn-details">
+                        <i class="fas fa-info-circle"></i> Chi tiết
+                    </a>
+                    <a href="@Url.Action("BookingTicket", "Booking")" class="btn-booking">
+                        Đặt vé
+                    </a>
+                    @if (!string.IsNullOrEmpty(item.Trailer))
+                    {
+                        <button class="btn-trailer" onclick="playTrailer('@item.Trailer')">
+                            <i class="fas fa-play"></i> Xem trailer
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="movie-info">
+            <h3 class="movie-title">@item.TenPhim</h3>
+            <div class="movie-meta">
+                <span class="duration">
+                    <i class="far fa-clock"></i> @item.ThoiLuong phút
+                </span>
+                <span class="rating">
+                    <i class="fas fa-star"></i> @item.DanhGia
+                </span>
+            </div>
+        </div>
+    </div>
+}

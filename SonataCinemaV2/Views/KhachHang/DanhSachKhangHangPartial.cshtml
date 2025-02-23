@@ -1,33 +1,155 @@
 ﻿@model IEnumerable<SonataCinemaV2.Models.KhachHang>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Tên Khách Hàng</th>
-            <th>Email</th>
-            <th>Số Điện Thoại</th>
-            <th>Trạng Thái</th>
-            <th>Mật Khẩu</th>
-            <th>Thao Tác
-            <th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model != null && Model.Any())
-        {
-            foreach (var khach in Model)
-            {
-                <tr>
-                    <td>@khach.ID_KhachHang</td>
-                    <td>@khach.TenKhachHang</td>
-                    <td>@khach.Email</td>
-                    <td>@khach.SoDienThoai</td>
-                    <td>Active</td>
-                    <td>@khach.MatKhau</td>
-                    <td><button class="btn btn-danger">Xóa</button><button class="btn btn-warning">Sửa</button></td>
-                </tr>
+<div class="content-wrapper">
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Quản Lý Khách Hàng</h3>
+            <div class="d-flex gap-2">
+                <div class="search-box">
+                    <input type="text" id="searchCustomer" class="form-control" placeholder="Tìm kiếm khách hàng...">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="customerTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Tên Khách Hàng</th>
+                                <th>Email</th>
+                                <th>Số Điện Thoại</th>
+                                <th>Điểm Thưởng</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var khach in Model)
+                            {
+                                <tr>
+                                    <td>@khach.ID_KhachHang</td>
+                                    <td>@khach.TenKhachHang</td>
+                                    <td>@khach.Email</td>
+                                    <td>@khach.SoDienThoai</td>
+                                    <td>@khach.DiemThuong</td>
+                                    <td>
+                                        <span class="badge @(khach.TrangThai == "Hoạt Động" ? "bg-success" : "bg-danger")"
+                                              id="status-badge-@khach.ID_KhachHang">
+                                            @khach.TrangThai
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-info btn-sm"
+                                                    onclick="viewCustomerDetails(@khach.ID_KhachHang)">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button type="button"
+                                                    class="btn @(khach.TrangThai == "Hoạt Động" ? "btn-danger" : "btn-success") btn-sm"
+                                                    onclick="toggleCustomerStatus(@khach.ID_KhachHang)"
+                                                    id="toggle-btn-@khach.ID_KhachHang">
+                                                <i class="bi @(khach.TrangThai == "Hoạt Động" ? "bi-lock" : "bi-unlock")"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chi tiết khách hàng -->
+<div class="modal fade" id="customerDetailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi Tiết Khách Hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="customerDetailContent">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        // Tìm kiếm realtime
+        $('#searchCustomer').on('keyup', function () {
+            table.search(this.value).draw();
+        });
+    });
+
+    function viewCustomerDetails(id) {
+        $.ajax({
+            url: '/KhachHang/GetCustomerDetails',
+            type: 'GET',
+            data: { id: id },
+            success: function (response) {
+                if (response.success) {
+                    $('#customerDetailContent').html(response.html);
+                    $('#customerDetailModal').modal('show');
+                } else {
+                    Swal.fire('Lỗi!', response.message, 'error');
+                }
+            },
+            error: function () {
+                Swal.fire('Lỗi!', 'Không thể tải thông tin khách hàng', 'error');
             }
-        }
-    </tbody>
-</table>
+        });
+    }
+
+
+    function toggleCustomerStatus(id) {
+        Swal.fire({
+            title: 'Xác nhận thay đổi?',
+            text: "Bạn có chắc muốn thay đổi trạng thái khách hàng này?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/KhachHang/ToggleStatus',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function (response) {
+                        if (response.success) {
+                            const statusBadge = $(`#status-badge-${id}`);
+                            const toggleBtn = $(`#toggle-btn-${id}`);
+
+                            if (response.newStatus === "Hoạt Động") {
+                                statusBadge.removeClass('bg-danger').addClass('bg-success');
+                                toggleBtn.removeClass('btn-success').addClass('btn-danger');
+                                toggleBtn.find('i').removeClass('bi-unlock').addClass('bi-lock');
+                            } else {
+                                statusBadge.removeClass('bg-success').addClass('bg-danger');
+                                toggleBtn.removeClass('btn-danger').addClass('btn-success');
+                                toggleBtn.find('i').removeClass('bi-lock').addClass('bi-unlock');
+                            }
+
+                            statusBadge.text(response.newStatus);
+                            Swal.fire('Thành công!', response.message, 'success');
+                        } else {
+                            Swal.fire('Lỗi!', response.message, 'error');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Lỗi!', 'Không thể thay đổi trạng thái', 'error');
+                    }
+                });
+            }
+        });
+    }
+</script>

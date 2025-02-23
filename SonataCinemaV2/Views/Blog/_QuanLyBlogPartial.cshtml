@@ -1,0 +1,531 @@
+﻿@model IEnumerable<SonataCinemaV2.Models.Blog>
+
+<div class="blog-management">
+    <!-- Header -->
+    <div class="management-header">
+        <h2>Quản Lý Blog</h2>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#blogModal">
+            <i class="fas fa-plus"></i> Thêm Bài Viết
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="management-filters mb-3">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" id="searchBlog" class="form-control" placeholder="Tìm kiếm...">
+            </div>
+            <div class="col-md-4">
+                <select id="statusFilter" class="form-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="true">Đã đăng</option>
+                    <option value="false">Chưa đăng</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select id="categoryFilter" class="form-select">
+                    <option value="">Tất cả thể loại</option>
+                    <option value="review">Review Phim</option>
+                    <option value="news">Tin Tức</option>
+                    <option value="actor">Diễn Viên</option>
+                    <option value="director">Đạo Diễn</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blog Table -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Hình Ảnh</th>
+                    <th>Tiêu Đề</th>
+                    <th>Thể Loại</th>
+                    <th>Người Viết</th>
+                    <th>Ngày Đăng</th>
+                    <th>Trạng Thái</th>
+                    <th>Lượt Xem</th>
+                    <th>Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <img src="@item.HinhAnh" alt="@item.TieuDe" class="blog-thumbnail" style="max-width: 100px;">
+                        </td>
+                        <td>@item.TieuDe</td>
+                        <td>@item.TheLoai</td>
+                        <td>@item.NhanVien.TenNhanVien</td>
+                        <td>@item.NgayDang</td>
+                        <td>
+                            <span class="badge @(item.TrangThai == true ? "bg-success" : "bg-secondary")">
+                                @(item.TrangThai == true ? "Đã đăng" : "Chưa đăng")
+                            </span>
+                        </td>
+                        <td>@item.LuotXem</td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-info" onclick="editBlog(@item.ID_Blog)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-warning" onclick="toggleBlogStatus(@item.ID_Blog)">
+                                    <i class="fas fa-power-off"></i>
+                                </button>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <button class="btn btn-sm btn-danger" onclick="deleteBlog(@item.ID_Blog)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                }
+
+                                @using (Html.BeginForm("Delete", "Blog", FormMethod.Post, new { @class = "d-inline" }))
+                                {
+                                    @Html.Hidden("id", item.ID_Blog)
+                                    <button type="button" class="btn btn-danger btn-sm"
+                                            onclick="deleteBlog(@item.ID_Blog)"
+                                            data-id="@item.ID_Blog"
+                                            data-ten="@item.TieuDe">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Blog -->
+<div class="modal fade" id="blogModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalTitle">Thêm Bài Viết Mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="blogForm" onsubmit="return false;">
+                    <input type="hidden" id="ID_Blog" name="ID_Blog" />
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tiêu Đề <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="TieuDe" name="TieuDe" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Thể Loại <span class="text-danger">*</span></label>
+                                <select class="form-select" id="TheLoai" name="TheLoai" required>
+                                    <option value="">-- Chọn thể loại --</option>
+                                    <option value="review">Review Phim</option>
+                                    <option value="news">Tin Tức</option>
+                                    <option value="actor">Diễn Viên</option>
+                                    <option value="director">Đạo Diễn</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Hình Ảnh</label>
+                                <input type="file" class="form-control" id="HinhAnh" name="HinhAnh" accept="image/*">
+                                <div id="imagePreview" class="mt-2 text-center"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nội Dung <span class="text-danger">*</span></label>
+                        <div id="editor-container" style="height: 300px;"></div>
+                        <textarea id="NoiDung" name="NoiDung" class="form-control d-none" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Đóng
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveBlog()">
+                    <i class="fas fa-save"></i> Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var quill = null;
+    // Xử lý blog khi document ready
+    $(document).ready(function () {
+        initializeBlogHandlers();      
+
+        // Khởi tạo Quill
+        quill = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: 'Nhập nội dung bài viết...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Lắng nghe sự kiện thay đổi nội dung
+        quill.on('text-change', function () {
+            var html = quill.root.innerHTML;
+            $('#NoiDung').val(html);
+        });
+
+        // Xử lý khi mở modal
+        $('#blogModal').on('shown.bs.modal', function () {
+            quill.focus();
+        });
+    });
+
+       
+    // Khởi tạo các handler cho blog
+    function initializeBlogHandlers() {
+        // Xử lý preview hình ảnh
+        $('#HinhAnh').on('change', function (e) {
+            previewBlogImage(this);
+        });
+
+        // Xử lý nút lưu
+        $('#btnSaveBlog').on('click', function () {
+            saveBlog();
+        });
+
+        // Xử lý filter và search
+        $('#searchBlog, #statusFilter, #categoryFilter').on('change keyup', function () {
+            filterBlogs();
+        });
+    }
+
+    // Hiển thị modal thêm mới blog
+    function showBlogModal() {
+        resetBlogForm();
+        $('#modalTitle').text('Thêm Bài Viết Mới');
+        $('#blogModal').modal('show');
+    }
+
+    // Reset form blog
+    function resetBlogForm() {
+        $('#blogForm')[0].reset();
+        $('#ID_Blog').val('');
+        $('#imagePreview').empty();
+        quill.setContents([]);
+        clearValidationErrors();
+    }
+
+    // Xóa thông báo lỗi
+    function clearValidationErrors() {
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').remove();
+    }
+
+    // load lại trang
+    function reloadBlogList() {
+        $.get('/Blog/QuanLyBlogPartial', function (data) {
+            $('.blog-management').html(data);
+            // Khởi tạo lại DataTable và các event sau khi load
+            initializeDataTable();
+            initializeQuillEditor();
+        });
+    }
+
+    // Preview hình ảnh blog
+    function previewBlogImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                $('#imagePreview').html(`
+                <img src="${e.target.result}" class="img-thumbnail" style="max-height: 200px;">
+            `);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Lưu blog
+    function saveBlog() {
+        if (!validateBlogForm()) return;
+
+        const blogId = $('#ID_Blog').val();
+        const formData = new FormData();
+        formData.append('ID_Blog', blogId);
+        formData.append('TieuDe', $('#TieuDe').val().trim());
+        formData.append('TheLoai', $('#TheLoai').val());
+        formData.append('NoiDung', quill.root.innerHTML.trim());
+
+        // Thêm file hình ảnh nếu có
+        var fileInput = $('#HinhAnh')[0];
+        if (fileInput.files.length > 0) {
+            formData.append('HinhAnh', fileInput.files[0]);
+        }
+
+        const url = blogId ? '/Blog/Edit' : '/Blog/Create';
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Thành công!',
+                        text: blogId ? 'Cập nhật bài viết thành công' : 'Thêm bài viết thành công',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        $('#blogModal').modal('hide');
+                        reloadBlogList();
+                    });
+                } else {
+                    Swal.fire('Lỗi!', response.message, 'error');
+                }
+            },
+            error: function () {
+                Swal.fire('Lỗi!', 'Có lỗi xảy ra khi lưu bài viết', 'error');
+            }
+        });
+    }
+
+    // Validate form blog
+    function validateBlogForm() {
+        clearValidationErrors();
+        let isValid = true;
+
+        // Validate tiêu đề
+        if (!$('#TieuDe').val().trim()) {
+            showInputError('#TieuDe', 'Vui lòng nhập tiêu đề');
+            isValid = false;
+        }
+
+        // Validate thể loại
+        if (!$('#TheLoai').val()) {
+            showInputError('#TheLoai', 'Vui lòng chọn thể loại');
+            isValid = false;
+        }
+
+        // Validate nội dung
+        if (quill) {
+            if (quill.getLength() <= 1) {
+                showInputError('#editor-container', 'Vui lòng nhập nội dung');
+                isValid = false;
+            }
+        } else {
+            console.error('Quill editor not initialized');
+            showBlogNotification('Có lỗi khi khởi tạo editor', 'error');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    // Hiển thị lỗi input
+    function showInputError(inputId, message) {
+        const input = $(inputId);
+        input.addClass('is-invalid');
+        input.after(`<div class="invalid-feedback">${message}</div>`);
+    }
+
+    // Xử lý response từ server
+    function handleBlogResponse(response) {
+        if (response.success) {
+            showBlogNotification(response.message, 'success');
+            $('#blogModal').modal('hide');
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showBlogNotification(response.message || 'Có lỗi xảy ra', 'error');
+        }
+    }
+
+    // Sửa blog
+    function editBlog(id) {
+        $.get('/Blog/GetBlogById', { id: id })
+            .done(function (response) {
+                if (response.success) {
+                    // Reset form trước
+                    resetBlogForm();
+
+                    const blog = response.data;
+
+                    // Cập nhật các trường dữ liệu
+                    $('#modalTitle').text('Chỉnh Sửa Bài Viết');
+                    $('#ID_Blog').val(blog.ID_Blog);
+                    $('#TieuDe').val(blog.TieuDe);
+                    $('#TheLoai').val(blog.TheLoai);
+
+                    // Quan trọng: Cập nhật nội dung cho Quill editor
+                    if (quill) {
+                        quill.root.innerHTML = blog.NoiDung;
+                        $('#NoiDung').val(blog.NoiDung);
+                    }
+
+                    // Hiển thị hình ảnh nếu có
+                    if (blog.HinhAnh) {
+                        $('#imagePreview').html(`
+                        <img src="${blog.HinhAnh}" class="img-thumbnail" style="max-height: 200px;">
+                    `);
+                    }
+
+                    $('#blogModal').modal('show');
+                } else {
+                    showBlogNotification('Không thể tải thông tin bài viết', 'error');
+                }
+            })
+            .fail(function (xhr, status, error) {
+                showBlogNotification('Có lỗi xảy ra khi tải dữ liệu', 'error');
+                console.error('Error:', error);
+            });
+    }
+    // Hàm load nội dung khi sửa
+    function loadBlogEdit(id) {
+        $.get('/Blog/GetBlogById/' + id, function (response) {
+            if (response.success) {
+                const data = response.data;
+                $('#ID_Blog').val(data.ID_Blog);
+                $('#TieuDe').val(data.TieuDe);
+                $('#TheLoai').val(data.TheLoai);
+
+                // Set nội dung cho Quill
+                quill.root.innerHTML = data.NoiDung;
+
+                // Cập nhật hidden input
+                $('#NoiDung').val(data.NoiDung);
+
+                if (data.HinhAnh) {
+                    $('#imagePreview').html(`
+                    <img src="${data.HinhAnh}" class="img-thumbnail" style="max-height: 200px;">
+                `);
+                }
+
+                $('#modalTitle').text('Chỉnh Sửa Bài Viết');
+                $('#blogModal').modal('show');
+            } else {
+                showBlogNotification('Không thể tải thông tin bài viết', 'error');
+            }
+        });
+    }
+
+    // Điền thông tin vào form edit
+    function populateBlogForm(blog) {
+        $('#modalTitle').text('Chỉnh Sửa Bài Viết');
+        $('#ID_Blog').val(blog.ID_Blog);
+        $('#TieuDe').val(blog.TieuDe);
+        $('#TheLoai').val(blog.TheLoai);
+        $('#NoiDung').val(blog.NoiDung);
+
+        if (blog.HinhAnh) {
+            $('#imagePreview').html(`
+            <img src="${blog.HinhAnh}" class="img-thumbnail" style="max-height: 200px;">
+        `);
+        }
+    }
+
+    // Xóa blog
+    function deleteBlog(id) {
+        Swal.fire({
+            title: 'Xác nhận xóa?',
+            text: 'Bạn có chắc muốn xóa bài viết này?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/Blog/Delete', { id: id })
+                    .done(function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                title: 'Thành công!',
+                                text: 'Xóa bài viết thành công',
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                reloadBlogList();
+                            });
+                        } else {
+                            Swal.fire('Lỗi!', response.message, 'error');
+                        }
+                    })
+                    .fail(function () {
+                        Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xóa bài viết', 'error');
+                    });
+            }
+        });
+    }
+
+    // Toggle trạng thái blog
+    function toggleBlogStatus(id) {
+        $.post('/Blog/ToggleStatus', { id: id })
+            .done(function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Thành công!',
+                        text: 'Thay đổi trạng thái thành công',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        reloadBlogList();
+                    });
+                } else {
+                    Swal.fire('Lỗi!', response.message, 'error');
+                }
+            })
+            .fail(function () {
+                Swal.fire('Lỗi!', 'Có lỗi xảy ra khi thay đổi trạng thái', 'error');
+            });
+    }
+
+    // Filter blogs
+    function filterBlogs() {
+        const search = $('#searchBlog').val().toLowerCase();
+        const status = $('#statusFilter').val();
+        const category = $('#categoryFilter').val();
+
+        $('table tbody tr').each(function () {
+            const row = $(this);
+            const title = row.find('td:eq(1)').text().toLowerCase();
+            const rowCategory = row.find('td:eq(2)').text();
+            const rowStatus = row.find('td:eq(5)').text().includes('Đã đăng');
+
+            let show = true;
+
+            if (search && !title.includes(search)) show = false;
+            if (status && rowStatus.toString() !== status) show = false;
+            if (category && rowCategory !== category) show = false;
+
+            row.toggle(show);
+        });
+    }
+
+    // Hiển thị thông báo
+    function showBlogNotification(message, type = 'success') {
+        Swal.fire({
+            title: type === 'success' ? 'Thành công' : 'Lỗi',
+            text: message,
+            icon: type,
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+</script>

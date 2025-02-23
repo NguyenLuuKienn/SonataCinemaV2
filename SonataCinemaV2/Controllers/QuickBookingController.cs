@@ -19,10 +19,7 @@ namespace SonataCinemaV2.Controllers
         {
             var model = new QuickBookingViewModel
             {
-                // Lấy danh sách phim đang chiếu
-                Phims = db.Phims
-                    .Select(p => p.TenPhim)
-                    .ToList(),
+                Phims = db.LichChieux.Where(p => p.TrangThai == "Đang chiếu").Select(p => p.Phim.TenPhim).ToList(),
             };
             return PartialView("_QuickBooking", model);
         }
@@ -36,7 +33,6 @@ namespace SonataCinemaV2.Controllers
                 .Distinct()
                 .ToList();
 
-            // Format sau khi đã lấy dữ liệu
             var ngayChieu = dates.Select(d => d.ToString("dd/MM/yyyy")).ToList();
 
             return Json(ngayChieu, JsonRequestBehavior.AllowGet);
@@ -45,7 +41,6 @@ namespace SonataCinemaV2.Controllers
         [HttpGet]
         public JsonResult GetGioChieu(string tenPhim, string ngayChieu)
         {
-            // Chuyển ngayChieu (string) thành DateTime
             DateTime parsedNgayChieu = DateTime.ParseExact(ngayChieu, "dd/MM/yyyy", CultureInfo.InvariantCulture);
 
             var gioChieu = db.LichChieux

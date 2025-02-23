@@ -11,6 +11,7 @@ namespace SonataCinemaV2.ViewModel
         [Required]
         public int IDLichChieu { get; set; }
         public int IDKhachHang { get; set; }
+        public decimal GiaVe {  get; set; }
         public decimal TongTien { get; set; }
         public string TenPhim { get; set; }
         public string TenPhong { get; set; }

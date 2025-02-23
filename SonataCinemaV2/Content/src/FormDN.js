@@ -19,8 +19,6 @@ window.addEventListener('click', function (event) {
 
 
 
-
-
 $(document).ready(function () {
     $("#showRegisterForm").click(function () {
         $("#formContainer").load('@Url.Action("DangKy", "Account")'); 
@@ -30,6 +28,8 @@ $("#showLoginForm").click(function () {
     $("#formContainer").load('@Url.Action("DangNhap", "Account")'); 
     });
 });
+
+
 
 
 

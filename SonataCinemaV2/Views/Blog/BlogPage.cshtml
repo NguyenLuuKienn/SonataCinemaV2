@@ -1,0 +1,73 @@
+﻿@model IEnumerable<SonataCinemaV2.Models.Blog>
+@{
+    ViewBag.Title = "Blog Điện Ảnh";
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+
+<div class="blog-page">
+    <div class="blog-container">
+        <!-- Blog Header -->
+        <div class="blog-header">
+            <h1>Blog Điện Ảnh</h1>
+            <div class="blog-filters">
+                <div class="search-box">
+                    <input type="text" id="searchBlog" placeholder="Tìm kiếm bài viết...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <select id="categoryFilter">
+                    <option value="">Tất cả thể loại</option>
+                    <option value="review">Review Phim</option>
+                    <option value="news">Tin Tức</option>
+                    <option value="actor">Diễn Viên</option>
+                    <option value="director">Đạo Diễn</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Blog Grid -->
+        <div class="blog-grid">
+            @foreach (var item in Model)
+            {
+                <div class="blog-card">
+                    <div class="blog-image">
+                        <img src="@item.HinhAnh" alt="@item.TieuDe">
+                        <div class="blog-category">@item.TheLoai</div>
+                    </div>
+                    <div class="blog-content">
+                        <div class="blog-info">
+                            <span><i class="far fa-calendar"></i> @item.NgayDang</span>
+                            <span><i class="far fa-eye"></i> @item.LuotXem lượt xem</span>
+                        </div>
+                        <h3 class="blog-title">@item.TieuDe</h3>
+                        <p class="blog-excerpt">
+                            @{
+                                var plainText = System.Text.RegularExpressions.Regex.Replace(item.NoiDung, "<.*?>", string.Empty);
+                                if (plainText.Length > 150)
+                                {
+                                    @(plainText.Substring(0, 150) + "...")
+                                }
+                                else
+                                {
+                                    @plainText
+                                }
+                            }
+                        </p>
+                        <div class="blog-footer">
+                            <span class="blog-author">
+                                <i class="far fa-user"></i> @item.NhanVien.TenNhanVien
+                            </span>
+                            <a href="@Url.Action("ChiTiet", "Blog", new { id = item.ID_Blog })" class="read-more">
+                                Đọc thêm <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        <div class="blog-pagination">
+            <button class="load-more">Xem thêm</button>
+        </div>
+    </div>
+</div>

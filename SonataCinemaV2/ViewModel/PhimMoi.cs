@@ -19,6 +19,7 @@ namespace SonataCinemaV2.ViewModel
         [Required(ErrorMessage = "Thời lượng không được để trống")]
         public int ThoiLuong { get; set; }
 
+        public float DanhGia { get; set; }
         public string TrangThai { get; set; }
 
         public byte NoiBat { get; set; }

@@ -6,6 +6,8 @@
             <h2 style="color:#000">Đăng Ký Tài Khoản</h2>
         </div>
         <div class="registration-body">
+            @using CaptchaMvc.HtmlHelpers
+            @using CaptchaMvc;
             @using (Html.BeginForm("DangKy", "KhachHang", FormMethod.Post, FormMethod.Post, new { @id = "registerForm" }))
             {
                 @Html.AntiForgeryToken()
@@ -51,6 +53,11 @@
                     <label for="NhapLaiMatKhau" class="control-label-custom">Nhập Lại Mật Khẩu</label>
                     <input type="password" name="NhapLaiMatKhau" class="form-control-custom" placeholder="Nhập lại mật khẩu" />
                     @Html.ValidationMessageFor(model => model.NhapLaiMatKhau, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    <div class="g-recaptcha" data-sitekey="6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL"></div>
+                    @Html.ValidationMessage("ReCaptcha", new { @class = "text-danger" })
                 </div>
 
                 <div class="form-group-custom text-center">

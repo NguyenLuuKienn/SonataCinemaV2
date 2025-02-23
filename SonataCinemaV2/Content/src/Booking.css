@@ -239,31 +239,7 @@
     transform: none;
 }
 
-/* Responsive Design */
-@media (max-width: 992px) {
-    .booking-wrapper {
-        grid-template-columns: 1fr;
-    }
 
-    .ticket-info-section {
-        position: static;
-    }
-}
-
-@media (max-width: 576px) {
-    .booking-container {
-        padding: 20px 0;
-    }
-
-    .booking-wrapper {
-        padding: 0 15px;
-    }
-
-    .legend {
-        flex-direction: column;
-        align-items: center;
-    }
-}
 
 body {
     background-color: #f8f9fa;
@@ -543,20 +519,146 @@ body {
     }
 }
 
-@media (max-width: 480px) {
-    .success-content {
-        padding: 30px 20px;
+/* Giữ nguyên CSS hiện tại và thêm/sửa phần responsive */
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+    .booking-wrapper {
+        max-width: 1200px;
+        padding: 0 15px;
+    }
+
+    .booking-form-section {
+        width: 800px;
+    }
+
+    .ticket-card {
+        width: 350px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .booking-wrapper {
+        max-width: 960px;
+    }
+
+    .booking-form-section {
+        width: 600px;
+    }
+
+    .ticket-card {
+        width: 300px;
+    }
+}
+
+@media (max-width: 992px) {
+    .booking-wrapper {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .booking-form-section {
+        width: 100%;
+        max-width: 800px;
+    }
+
+    .ticket-info-section {
+        position: static;
+        width: 100%;
+        max-width: 800px;
+    }
+
+    .ticket-card {
+        width: 100%;
+    }
+
+    .seat-container {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .booking-container {
+        padding: 20px 0;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
     }
 
     .action-buttons {
         flex-direction: column;
+        gap: 10px;
     }
 
-    .success-content h1 {
-        font-size: 24px;
+    .btn {
+        width: 100%;
     }
 
-    .message {
-        font-size: 16px;
+    .legend {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .legend-item {
+        flex: 0 0 calc(50% - 10px);
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .booking-wrapper {
+        padding: 0 10px;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+    }
+
+    .seat {
+        width: 30px;
+        height: 30px;
+        margin: 3px;
+        font-size: 12px;
+    }
+
+    .screen {
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+
+    .info-item {
+        margin-bottom: 15px;
+    }
+
+    .total-price {
+        font-size: 1.1em;
+    }
+
+    .legend-item {
+        flex: 0 0 100%;
+    }
+}
+
+/* Thêm styles cho seat container khi responsive */
+@media (max-width: 480px) {
+    .seat-container {
+        gap: 2px;
+    }
+
+    .seat {
+        width: 25px;
+        height: 25px;
+        margin: 2px;
+        font-size: 11px;
+    }
+
+    .info-content label {
+        font-size: 0.8em;
+    }
+
+    .info-content span {
+        font-size: 0.9em;
     }
 }

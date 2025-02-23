@@ -19,6 +19,7 @@ namespace SonataCinemaV2.Models
         {
             this.ThanhToans = new HashSet<ThanhToan>();
             this.Ves = new HashSet<Ve>();
+            this.ChatMessages = new HashSet<ChatMessage>();
         }
     
         public int ID_KhachHang { get; set; }
@@ -30,11 +31,14 @@ namespace SonataCinemaV2.Models
         public Nullable<int> DiemThuong { get; set; }
         public string MatKhau { get; set; }
         public string QuyenHan { get; set; }
+        public string TrangThai { get; set; }
     
         public virtual DiemThuong DiemThuong1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ThanhToan> ThanhToans { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Ve> Ves { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ChatMessage> ChatMessages { get; set; }
     }
 }

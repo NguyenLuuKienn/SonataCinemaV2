@@ -4,43 +4,55 @@
     Layout = "~/Views/Shared/_LayoutIndex.cshtml";
 }
 
-<div class="container py-5">
-    <div class="row">
+<div class="container-fluid py-5">
+    <div class="row mx-3">
         <!-- Thông tin cá nhân -->
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-titlee">Thông tin cá nhân</h5>
-                    <div class="mb-3">
-                        <label class="form-label">Họ tên</label>
-                        <p class="form-control-static">@Model.TenKhachHang</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <p class="form-control-static">@Model.Email</p>
-                    </div>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-                        Đổi mật khẩu
-                    </button>
+                    <h5 class="card-titlee mb-4">Thông tin cá nhân</h5>
+                    <form id="profileForm">
+                        <div class="mb-3">
+                            <label class="form-label">Họ tên</label>
+                            <input type="text" class="form-control" id="tenKhachHang" value="@Model.TenKhachHang">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" value="@Model.Email">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Điểm thưởng hiện có</label>
+                            <p class="form-control-static">@Model.DiemThuong</p>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary" onclick="updateProfile()">
+                                Cập nhật thông tin
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                Đổi mật khẩu
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
 
         <!-- Danh sách vé đã đặt -->
-        <div class="col-md-8">
+        <div class="col-md-9">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-titlee">Vé đã đặt</h5>
+                    <h5 class="card-titlee mb-4">Vé đã đặt</h5>
                     <div class="table-responsive">
-                        <table class="table">
+                        <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>Phim</th>
-                                    <th>Ngày chiếu</th>
+                                    <th>Ngày đặt</th>
                                     <th>Giờ chiếu</th>
                                     <th>Số ghế</th>
                                     <th>Giá vé</th>
-                                    <th>Ngày đặt</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -48,10 +60,28 @@
                                 {
                                     <tr>
                                         <td>@ve.LichChieu.Phim.TenPhim</td>
-                                        <td>@ve.LichChieu.NgayChieu.ToString("dd/MM/yyyy")</td>
+                                        <td>@ve.NgayDat</td>
                                         <td>@ve.LichChieu.GioChieu.ToString(@"hh\:mm")</td>
                                         <td>@ve.ChoNgoi</td>
                                         <td>@ve.Gia.ToString("#,##0") VNĐ</td>
+                                        <td>
+                                            <span class="badge @(ve.TrangThai == "Thành Công" ? "bg-success" :
+                                                               ve.TrangThai == "Chờ huỷ" ? "bg-warning" :
+                                                               ve.TrangThai == "Đã huỷ" ? "bg-danger" : "bg-secondary")">
+                                                @ve.TrangThai
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if (ve.TrangThai == "Thành Công")
+                                            {
+                                                <button class="btn btn-sm btn-danger" onclick="requestCancelTicket(@ve.ID_Ve)">
+                                                    Yêu cầu huỷ
+                                                </button>
+                                            }
+                                            <button class="btn btn-sm btn-info" onclick="showTicketDetail(@ve.ID_Ve)">
+                                                Chi tiết
+                                            </button>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -95,8 +125,86 @@
     </div>
 </div>
 
+<!-- Modal Chi tiết vé -->
+<div class="modal fade" id="ticketDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <!-- Thêm class modal-lg -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết vé</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="ticketDetailContent" class="ticket-detail p-3">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Phim:</label>
+                                <span class="movie-name"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Phòng:</label>
+                                <span class="room-name"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Ngày chiếu:</label>
+                                <span class="show-date"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Giờ chiếu:</label>
+                                <span class="show-time"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Ghế:</label>
+                                <span class="seat-number"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Giá vé:</label>
+                                <span class="ticket-price"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <script>
+
+<script>
+        function updateProfile() {
+            const data = {
+                tenKhachHang: document.getElementById('tenKhachHang').value,
+                email: document.getElementById('email').value
+            };
+
+            fetch('@Url.Action("UpdateProfile")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('Thành công', data.message, 'success');
+                } else {
+                    Swal.fire('Lỗi', data.message, 'error');
+                }
+            });
+        }
+
         function changePassword() {
             var form = document.getElementById('changePasswordForm');
             var formData = {
@@ -115,49 +223,152 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(data.message);
+                    Swal.fire('Thành công', data.message, 'success');
                     $('#changePasswordModal').modal('hide');
                     form.reset();
                 } else {
-                    alert(data.message);
+                    Swal.fire('Lỗi', data.message, 'error');
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Có lỗi xảy ra!');
             });
         }
-    </script>
+
+        function requestCancelTicket(ticketId) {
+            Swal.fire({
+                title: 'Xác nhận huỷ vé?',
+                text: "Bạn có chắc muốn yêu cầu huỷ vé này?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch('@Url.Action("RequestCancelTicket")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ ticketId: ticketId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('Thành công', data.message, 'success')
+                            .then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Lỗi', data.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function showTicketDetail(ticketId) {
+            fetch(`@Url.Action("GetTicketDetail")?id=${ticketId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const ticket = data.data;
+                    const content = `
+                        <div class="ticket-detail">
+                            <p><strong>Phim:</strong> ${ticket.movieName}</p>
+                            <p><strong>Phòng:</strong> ${ticket.roomName}</p>
+                            <p><strong>Ngày chiếu:</strong> ${ticket.showDate}</p>
+                            <p><strong>Giờ chiếu:</strong> ${ticket.showTime}</p>
+                            <p><strong>Ghế:</strong> ${ticket.seatNumber}</p>
+                            <p><strong>Giá vé:</strong> ${ticket.price.toLocaleString('vi-VN')} VNĐ</p>
+                        </div>
+                    `;
+                    document.getElementById('ticketDetailContent').innerHTML = content;
+                    $('#ticketDetailModal').modal('show');
+                }
+            });
+        }
+</script>
 
 <style>
-    /* Profile styles */
-    .profile-container {
-        padding: 20px;
+    .card {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        border: none;
     }
 
-    .profile-card {
-        background: #fff;
+    .card-titlee {
+        color: #333;
+        font-weight: 600;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 10px;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .badge {
+        padding: 8px 12px;
+    }
+
+    .btn-sm {
+        margin: 2px; /* Thêm khoảng cách giữa các nút */
+    }
+
+    .ticket-detail p {
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .ticket-detail p:last-child {
+        border-bottom: none;
+    }
+    .ticket-detail {
+        background-color: #f8f9fa;
         border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
     }
 
-    .profile-info {
-        padding: 20px;
+    .detail-item {
+        padding: 15px;
+        background: white;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
-    .ticket-table {
-        width: 100%;
-        margin-top: 20px;
-    }
-
-        .ticket-table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
+        .detail-item label {
+            display: block;
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
         }
 
-        .ticket-table td, .ticket-table th {
-            padding: 12px;
-            border-bottom: 1px solid #dee2e6;
+        .detail-item span {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #212529;
         }
+
+    /* Tùy chỉnh modal */
+    .modal-lg {
+        max-width: 800px; /* Tăng độ rộng tối đa của modal */
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+    }
+
+    .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #007bff;
+    }
+
+    .modal-title {
+        font-weight: 600;
+        color: #333;
+    }
 </style>

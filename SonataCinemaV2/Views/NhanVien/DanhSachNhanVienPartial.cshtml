@@ -1,39 +1,79 @@
 ﻿@model IEnumerable<SonataCinemaV2.Models.NhanVien>
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Quản Lý Nhân Viên</h3>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#themNhanVienModal">
-            <i class="bi bi-plus-circle"></i> Thêm Nhân Viên
+<div class="employee-management">
+    <!-- Header -->
+    <div class="management-header">
+        <h2>Quản Lý Nhân Viên</h2>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#employeeModal">
+            <i class="fas fa-plus"></i> Thêm Nhân Viên
         </button>
     </div>
 
+    <!-- Filters -->
+    <div class="management-filters mb-3">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" id="searchStaff" class="form-control" placeholder="Tìm kiếm...">
+            </div>
+            <div class="col-md-4">
+                <select id="roleFilter" class="form-select">
+                    <option value="">Tất cả chức vụ</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Employee">Nhân viên</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select id="statusFilter" class="form-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active">Đang hoạt động</option>
+                    <option value="locked">Đã khóa</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Table -->
     <div class="table-responsive">
-        <table class="table table-striped">
+        <table class="table table-striped" id="employeeTable">
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Tên Nhân Viên</th>
                     <th>Email</th>
                     <th>Chức Vụ</th>
+                    <th>Trạng Thái</th>
                     <th>Thao Tác</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var nv in Model)
+                @foreach (var item in Model)
                 {
                     <tr>
-                        <td>@nv.TenNhanVien</td>
-                        <td>@nv.Email</td>
-                        <td>@nv.QuyenHan</td>
+                        <td>@item.ID_NhanVien</td>
+                        <td>@item.TenNhanVien</td>
+                        <td>@item.Email</td>
                         <td>
-                            @using (Html.BeginForm("deleteEmploy", "NhanVien", FormMethod.Post, new { @class = "d-inline" }))
-                            {
-                                @Html.Hidden("maNV", nv.ID_NhanVien)
-                                <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Bạn có chắc muốn xóa nhân viên này?')">
-                                    <i class="bi bi-trash"></i> Xóa
+                            <span class="badge @(item.QuyenHan == "Admin" ? "bg-danger" : "bg-info")">
+                                @item.QuyenHan
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge @(item.TrangThai == "Khoá" ? "bg-secondary" : "bg-success")">
+                                @(item.TrangThai ?? "Hoạt động")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-info" onclick="editEmployee(@item.ID_NhanVien)" data-bs-toggle="modal" data-bs-target="#employeeModal">
+                                    <i class="fas fa-edit"></i>
                                 </button>
-                            }
+                                <button class="btn btn-sm btn-warning" onclick="StatusEmployee(@item.ID_NhanVien)">
+                                    <i class="fas fa-power-off"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteEmployee(@item.ID_NhanVien, '@item.TenNhanVien')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 }
@@ -42,55 +82,455 @@
     </div>
 </div>
 
-<!-- Modal Thêm Nhân Viên -->
-<div class="modal fade" id="themNhanVienModal">
+<!-- Modal Staff -->
+<div class="modal fade" id="employeeModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Thêm Nhân Viên</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalTitle">Thêm Nhân Viên Mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="employForm" action="@Url.Action("addEmploy", "NhanVien")" method="post">
+                <form id="employeeForm" onsubmit="return false;">
+                    <input type="hidden" id="ID_NhanVien" name="ID_NhanVien" />
+
                     <div class="mb-3">
-                        <label class="form-label">Tên Nhân Viên</label>
-                        <input type="text" class="form-control" name="TenNhanVien" required>
+                        <label class="form-label fw-bold">Tên Nhân Viên <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="TenNhanVien" name="TenNhanVien" required>
                     </div>
+
                     <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" name="Email" required>
+                        <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="Email" name="Email" required>
                     </div>
+
                     <div class="mb-3">
-                        <label class="form-label">Chức Vụ</label>
-                        <select class="form-select" name="ChucVu">
-                            <option value="Employee">Employee</option>
+                        <label class="form-label fw-bold">Chức Vụ <span class="text-danger">*</span></label>
+                        <select class="form-select" id="QuyenHan" name="QuyenHan" required>
+                            <option value="">-- Chọn chức vụ --</option>
+                            <option value="Staff">Nhân viên</option>
                             <option value="Admin">Admin</option>
                         </select>
                     </div>
+
                     <div class="mb-3">
-                        <label class="form-label">Mật Khẩu</label>
-                        <input type="password" class="form-control" name="MatKhau" required>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="submit" class="btn btn-primary">Lưu</button>
+                        <label class="form-label fw-bold">Mật Khẩu <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="MatKhau" name="MatKhau" required>
                     </div>
                 </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Đóng
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveEmployee()">
+                    <i class="fas fa-save"></i> Lưu
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-@if (TempData["Message"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["Message"]
-    </div>
-}
+<style>
+    .management-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">
-        @TempData["Error"]
-    </div>
-}
+    .management-filters {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+    }
+
+    .btn-group .btn {
+        margin-right: 0.25rem;
+    }
+    /* Style cho quản lý nhân viên */
+    .employee-management {
+        background: #fff;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        margin-top: 20px;
+        width: 100%; /* Thay vì max-width */
+    }
+
+        /* Header và nút thêm */
+        .employee-management .management-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+            .employee-management .management-header h2 {
+                font-size: 24px;
+                color: #2c3e50;
+                margin: 0;
+            }
+
+        /* Table styling cho employee */
+        .employee-management .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+        }
+
+            .employee-management .table th {
+                background: #f8f9fa;
+                padding: 15px;
+                font-weight: 600;
+                color: #2c3e50;
+                text-align: left;
+                border-bottom: 2px solid #dee2e6;
+            }
+
+            .employee-management .table td {
+                padding: 15px;
+                vertical-align: middle;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+        /* Action buttons cho employee */
+        .employee-management .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+            .employee-management .action-buttons button {
+                width: 35px;
+                height: 35px;
+                border: none;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+        /* Modal cho employee */
+        .employee-management .modal-content {
+            border-radius: 10px;
+            border: none;
+            width: 100%;
+        }
+
+        .employee-management .modal-header {
+            background: #f8f9fa;
+            border-radius: 10px 10px 0 0;
+            padding: 15px 20px;
+        }
+
+        .employee-management .modal-body {
+            padding: 20px;
+        }
+
+        /* Form controls cho employee */
+        .employee-management .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+            .employee-management .form-control:focus {
+                border-color: #3498db;
+                outline: none;
+            }
+</style>
+<script>
+
+    // Khởi tạo khi document ready
+    $(document).ready(function () {
+        initializeFilters();
+        initializeFormValidation();
+    });
+
+
+    // Khởi tạo các filter
+    function initializeFilters() {
+        $('#searchStaff, #roleFilter, #statusFilter').on('keyup change', function () {
+            filterEmployees();
+        });
+    }
+
+    // load lại partialview
+    function reloadEmployeeList() {
+        $.get('/NhanVien/DanhSachNhanVienPartial', function (data) {
+            $('.employee-management').html(data);
+            // Khởi tạo lại các event sau khi load
+            initializeFilters();
+            initializeFormValidation();
+        });
+    }
+    // Hàm lọc nhân viên
+    function filterEmployees() {
+        const search = $('#searchStaff').val().toLowerCase();
+        const role = $('#roleFilter').val();
+        const status = $('#statusFilter').val();
+
+        $('table tbody tr').each(function () {
+            const row = $(this);
+            const name = row.find('td:eq(1)').text().toLowerCase();
+            const email = row.find('td:eq(2)').text().toLowerCase();
+            const roleText = row.find('td:eq(3)').text();
+            const statusText = row.find('td:eq(4)').text();
+
+            const matchesSearch = name.includes(search) || email.includes(search);
+            const matchesRole = !role || roleText.includes(role);
+            const matchesStatus = !status ||
+                (status === 'active' && statusText.includes('Hoạt động')) ||
+                (status === 'locked' && statusText.includes('Khoá'));
+
+            row.toggle(matchesSearch && matchesRole && matchesStatus);
+        });
+    }
+
+  
+    // function để cập nhật/thêm row
+    function updateTableRow(data, isNew = false) {
+        const statusBadge = `<span class="badge ${data.TrangThai === 'Khoá' ? 'bg-secondary' : 'bg-success'}">${data.TrangThai || 'Hoạt động'}</span>`;
+        const roleBadge = `<span class="badge ${data.QuyenHan === 'Admin' ? 'bg-danger' : 'bg-info'}">${data.QuyenHan}</span>`;
+
+        const actionButtons = `
+        <div class="btn-group">
+            <button class="btn btn-sm btn-info" onclick="editEmployee(${data.ID_NhanVien})" data-bs-toggle="modal" data-bs-target="#employeeModal">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-warning" onclick="StatusEmployee(${data.ID_NhanVien})">
+                <i class="fas fa-power-off"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="deleteEmployee(${data.ID_NhanVien}, '${data.TenNhanVien}')">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>`;
+
+        const newRow = `
+        <tr id="employee-${data.ID_NhanVien}">
+            <td>${data.ID_NhanVien}</td>
+            <td>${data.TenNhanVien}</td>
+            <td>${data.Email}</td>
+            <td>${roleBadge}</td>
+            <td>${statusBadge}</td>
+            <td>${actionButtons}</td>
+        </tr>`;
+
+        if (isNew) {
+            $('#employeeTable tbody').prepend(newRow);
+        } else {
+            $(`#employee-${data.ID_NhanVien}`).replaceWith(newRow);
+        }
+    }
+    // Sửa thông tin nhân viên
+    function editEmployee(id) {
+        // Reset form trước
+        $('#employeeForm')[0].reset();
+        $('#modalTitle').text('Cập Nhật Nhân Viên');
+
+        // Gọi API lấy thông tin nhân viên
+        $.get('/NhanVien/GetEmployee', { id: id })
+            .done(function (response) {
+                if (response.success) {
+                    // Điền dữ liệu vào form
+                    $('#ID_NhanVien').val(response.data.ID_NhanVien);
+                    $('#TenNhanVien').val(response.data.TenNhanVien);
+                    $('#Email').val(response.data.Email);
+                    $('#QuyenHan').val(response.data.QuyenHan);
+
+                    // Không yêu cầu mật khẩu khi sửa
+                    $('#MatKhau').prop('required', false);
+                    $('.password-required').hide();
+                } else {
+                    showNotification(response.message || 'Không thể tải thông tin nhân viên', 'error');
+                }
+            })
+            .fail(function (xhr, status, error) {
+                console.error('Error:', error);
+                showNotification('Có lỗi xảy ra khi tải thông tin nhân viên', 'error');
+            });
+    }
+
+    // Khóa nhân viên
+    function StatusEmployee(id) {
+        const row = $(`#employee-${id}`);
+        const currentStatus = row.find('td:eq(4) span').text().trim();
+        const isLocked = currentStatus === "Khoá";
+
+        Swal.fire({
+            title: `Xác nhận ${isLocked ? 'mở khóa' : 'khóa'}?`,
+            text: `Bạn có chắc muốn ${isLocked ? 'mở khóa' : 'khóa'} nhân viên này?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: isLocked ? 'Mở khóa' : 'Khóa',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: isLocked ? '#28a745' : '#d33'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/NhanVien/StatusEmploy',
+                    type: 'POST',
+                    data: { maNV: id },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                title: 'Thành công!',
+                                text: response.message,
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                reloadEmployeeList();
+                            });
+                        } else {
+                            Swal.fire('Lỗi!', response.message || 'Có lỗi xảy ra', 'error');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Lỗi!', 'Có lỗi xảy ra khi thay đổi trạng thái', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    // Xóa nhân viên
+    function deleteEmployee(id, name) {
+        Swal.fire({
+            title: 'Xác nhận xoá?',
+            text: `Bạn có chắc muốn xoá nhân viên "${name}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Xoá',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#d33'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/NhanVien/deleteEmploy',
+                    type: 'POST',
+                    data: { maNV: id },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                title: 'Thành công!',
+                                text: 'Xoá nhân viên thành công!',
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                reloadEmployeeList();
+                            });
+                        } else {
+                            Swal.fire('Lỗi!', response.message || 'Có lỗi xảy ra', 'error');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xoá nhân viên', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    // Lưu thông tin nhân viên (Thêm/Sửa)
+    function saveEmployee() {
+        if (!$('#employeeForm')[0].checkValidity()) {
+            Swal.fire('Lỗi!', 'Vui lòng điền đầy đủ thông tin', 'error');
+            return;
+        }
+
+        const id = $('#ID_NhanVien').val();
+        const url = id ? '/NhanVien/UpdateEmployee' : '/NhanVien/addEmploy';
+        const formData = {
+            ID_NhanVien: id,
+            TenNhanVien: $('#TenNhanVien').val().trim(),
+            Email: $('#Email').val().trim(),
+            QuyenHan: $('#QuyenHan').val(),
+            MatKhau: $('#MatKhau').val()
+        };
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Thành công!',
+                        text: id ? 'Cập nhật thành công!' : 'Thêm mới thành công!',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        $('#employeeModal').modal('hide');
+                        reloadEmployeeList(); // Thay thế updateTableRow bằng reloadEmployeeList
+                    });
+                } else {
+                    Swal.fire('Lỗi!', response.message || 'Có lỗi xảy ra', 'error');
+                }
+            },
+            error: function () {
+                Swal.fire('Lỗi!', 'Có lỗi xảy ra khi lưu thông tin', 'error');
+            }
+        });
+    }
+
+
+    // Khởi tạo form validation
+    function initializeFormValidation() {
+        const form = document.getElementById('staffForm');
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                if (form.checkValidity()) {
+                    saveEmployee();
+                }
+            });
+        }
+    }
+
+    // Reset form khi mở modal thêm mới
+    $('#employeeModal').on('show.bs.modal', function (e) {
+        const button = $(e.relatedTarget);
+        // Nếu không có data-id, đây là thêm mới
+        if (!$('#ID_NhanVien').val()) {
+            $('#employeeForm')[0].reset();
+            $('#modalTitle').text('Thêm Nhân Viên Mới');
+            $('#MatKhau').prop('required', true);
+            $('.password-required').show();
+        }
+    });
+
+    $('#employeeModal').on('hidden.bs.modal', function () {
+        $('#employeeForm')[0].reset();
+        $('#ID_NhanVien').val('');
+        $('#MatKhau').prop('required', true);
+        $('.password-required').show();
+    });
+
+    // Toggle hiển thị mật khẩu
+    function togglePassword(button) {
+        const input = button.previousElementSibling;
+        const icon = button.querySelector('i');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+</script>

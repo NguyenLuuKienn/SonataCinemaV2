@@ -18,6 +18,7 @@ namespace SonataCinemaV2.Models
         public LichChieu()
         {
             this.Ves = new HashSet<Ve>();
+            this.Ghe_TrangThai = new HashSet<Ghe_TrangThai>();
         }
     
         public int ID_LichChieu { get; set; }
@@ -25,10 +26,14 @@ namespace SonataCinemaV2.Models
         public int ID_Phong { get; set; }
         public System.TimeSpan GioChieu { get; set; }
         public System.DateTime NgayChieu { get; set; }
+        public Nullable<decimal> GiaVe { get; set; }
+        public string TrangThai { get; set; }
     
         public virtual Phim Phim { get; set; }
         public virtual PhongChieu PhongChieu { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Ve> Ves { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Ghe_TrangThai> Ghe_TrangThai { get; set; }
     }
 }

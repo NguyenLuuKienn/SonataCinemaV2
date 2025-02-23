@@ -1,16 +1,17 @@
 ﻿@model SonataCinemaV2.ViewModel.UserLogin
 
-
 <div class="login-page-container-partial">
     <div class="login-form-content-partial">
         <h2 class="text-center-partial">Đăng Nhập</h2>
 
+        @using CaptchaMvc.HtmlHelpers
+        @using CaptchaMvc;
         @using (Html.BeginForm("DangNhap", "Account", FormMethod.Post, new { @id = "loginForm" }))
         {
             @Html.AntiForgeryToken()
             @Html.Hidden("ReturnUrl", (string)ViewBag.ReturnUrl)
 
-
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
             <div class="custom-form-group-partial">
                 <label for="Email" class="custom-control-label-partial"></label>
@@ -20,8 +21,28 @@
 
             <div class="custom-form-group-partial">
                 <label for="Password" class="custom-control-label-partial"></label>
-                <input type="password" name="Password" class="custom-form-control-partial" placeholder="Nhập mật khẩu" />
+                <div class="password-input-wrapper">
+                    <input type="password" name="Password" id="passwordInput" class="custom-form-control-partial" placeholder="Nhập mật khẩu" />
+                    <span class="password-toggle" onclick="togglePassword()">
+                        <i class="far fa-eye" id="togglePassword"></i>
+                    </span>
+                </div>
                 @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="custom-form-group-partial">
+                <div class="remember-me-wrapper">
+                    <label class="remember-me-label">
+                        <input type="checkbox" name="RememberMe" id="rememberMe" />
+                        <span class="checkmark"></span>
+                        Nhớ mật khẩu
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="g-recaptcha" data-sitekey="6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL"></div>
+                @Html.ValidationMessage("ReCaptcha", new { @class = "text-danger" })
             </div>
 
             <div class="custom-form-group-partial text-center-partial">
@@ -39,3 +60,46 @@
 
 
 
+<script>
+    $(document).ready(function () {
+        $('#loginForm').on('submit', function (e) {
+            e.preventDefault();
+
+            var form = $(this);
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                success: function (response) {
+                    if (response.success) {
+                        window.location.href = response.redirectUrl;
+                    } else {
+                        // Cập nhật nội dung form với thông báo lỗi
+                        $('.login-form-content-partial').html($(response).find('.login-form-content-partial').html());
+
+                        // Thêm setTimeout để đảm bảo DOM đã được cập nhật
+                        setTimeout(function () {
+                            // Render lại captcha
+                            if (typeof grecaptcha !== 'undefined') {
+                                $('.g-recaptcha').empty();
+                                grecaptcha.render($('.g-recaptcha')[0], {
+                                    'sitekey': '6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL'
+                                });
+                            }
+                        }, 100); // Delay 100ms
+                    }
+                },
+                error: function () {
+                    setTimeout(function () {
+                        if (typeof grecaptcha !== 'undefined') {
+                            $('.g-recaptcha').empty();
+                            grecaptcha.render($('.g-recaptcha')[0], {
+                                'sitekey': '6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL'
+                            });
+                        }
+                    }, 100);
+                }
+            });
+        });
+    });
+</script>

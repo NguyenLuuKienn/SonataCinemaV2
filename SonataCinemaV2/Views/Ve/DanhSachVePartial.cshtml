@@ -1,0 +1,412 @@
+﻿@model IEnumerable<SonataCinemaV2.Models.Ve>
+
+<div class="ticket-management">
+    <div class="content-wrapper">
+        <div class="container-fluid px-4">
+            <div class="card">
+                <div class="card-header text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 style="color:black">Quản lý vé</h2>
+                        <div class="d-flex gap-2">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="ticketTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mã Vé</th>
+                                    <th>Khách Hàng</th>
+                                    <th>Phim</th>
+                                    <th>Phòng - Ghế</th>
+                                    <th>Thời Gian Chiếu</th>
+                                    <th>Ngày Đặt</th>
+                                    <th>Giá Vé</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ve in Model.OrderByDescending(v => v.NgayDat))
+                                {
+                                    <tr>
+                                        <td>@ve.ID_Ve</td>
+                                        <td>@ve.KhachHang.TenKhachHang</td>
+                                        <td>@ve.LichChieu.Phim.TenPhim</td>
+                                        <td>
+                                            <span class="d-block">@ve.LichChieu.PhongChieu.TenPhong</span>
+                                            <small class="text-muted">Ghế: @ve.ChoNgoi</small>
+                                        </td>
+                                        <td>
+                                            <span class="d-block">@ve.LichChieu.NgayChieu.ToString("dd/MM/yyyy")</span>
+                                            <small class="text-muted">@ve.LichChieu.GioChieu</small>
+                                        </td>
+                                        <td>@(ve.NgayDat?.ToString("dd/MM/yyyy HH:mm"))</td>
+                                        <td>@ve.Gia.ToString("#,##0 đ")</td>
+                                        <td>
+                                            <span class="badge @(ve.TrangThai == "Thành Công" ? "bg-success" :
+                                                ve.TrangThai == "Chờ huỷ" ? "bg-warning" :
+                                                ve.TrangThai == "Đã huỷ" ? "bg-danger" : "bg-secondary")"
+                                                  id="status-@ve.ID_Ve">
+                                                @ve.TrangThai
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-info btn-sm"
+                                                        onclick="showTicketDetails(@ve.ID_Ve)">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                @if (ve.TrangThai == "Thành công")
+                                                {
+                                                    <button type="button" class="btn btn-danger btn-sm"
+                                                            onclick="cancelTicket(@ve.ID_Ve)">
+                                                        <i class="bi bi-x-circle"></i>
+                                                    </button>
+                                                }
+                                                <button type="button" class="btn btn-danger btn-sm cancel-ticket-btn"
+                                                        onclick="cancelTicket(@ve.ID_Ve)">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chi tiết vé -->
+    <div class="modal fade" id="ticketDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chi Tiết Vé</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">Thông Tin Vé</h5>
+                                </div>
+                                <div class="card-body" id="ticketInfo">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">Thông Tin Suất Chiếu</h5>
+                                </div>
+                                <div class="card-body" id="showInfo">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        $('#ticketTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+            },
+            pageLength: 10,
+            responsive: true,
+            order: [], // Bỏ sắp xếp mặc định
+            columnDefs: [
+                {
+                    targets: [8], // Cột thao tác
+                    orderable: false
+                }
+            ],
+            dom: '<"d-flex justify-content-between align-items-center mb-3"lf>rt<"d-flex justify-content-between align-items-center"ip>',
+            // Tùy chỉnh style cho header
+            initComplete: function () {
+                // Thêm style cho header
+                $('<style>')
+                    .text(`
+                        .sorting::before, .sorting::after,
+                        .sorting_asc::before, .sorting_asc::after,
+                        .sorting_desc::before, .sorting_desc::after {
+                            display: none !important;
+                        }
+                        
+                        .sorting, .sorting_asc, .sorting_desc {
+                            position: relative;
+                            cursor: pointer;
+                            padding-right: 20px !important;
+                        }
+                        
+                        .sorting::after, .sorting_asc::after, .sorting_desc::after {
+                            content: '▼';
+                            position: absolute;
+                            right: 5px;
+                            color: #6c757d;
+                            opacity: 0.3;
+                            font-size: 0.8em;
+                        }
+                        
+                        .sorting_asc::after {
+                            opacity: 1;
+                            color: #0d6efd;
+                        }
+                        
+                        .sorting_desc::after {
+                            content: '▲';
+                            opacity: 1;
+                            color: #0d6efd;
+                        }
+                        
+                        /* Animation cho header khi hover */
+                        .sorting:hover::after {
+                            opacity: 0.7;
+                            transition: opacity 0.3s ease;
+                        }
+                        
+                        /* Animation cho các hàng */
+                        #ticketTable tbody tr {
+                            transition: all 0.3s ease;
+                        }
+                        
+                        /* Các style khác giữ nguyên */
+                    `)
+                    .appendTo('head');
+            },
+            drawCallback: function () {
+                $('tbody tr').css('opacity', 0).animate({
+                    opacity: 1
+                }, 500);
+            }
+        });
+    });
+
+    function showTicketDetails(id) {
+        $.ajax({
+            url: '/Ve/GetTicketDetails',
+            type: 'GET',
+            data: { id: id },
+            success: function(response) {
+                if (response.success) {
+                    var ve = response.data;
+                    var ticketInfo = `
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="35%">Mã Vé:</th>
+                                <td>${ve.ID_Ve}</td>
+                            </tr>
+                            <tr>
+                                <th>Khách Hàng:</th>
+                                <td>${ve.KhachHang.TenKhachHang}</td>
+                            </tr>
+                            <tr>
+                                <th>Trạng Thái:</th>
+                                <td>
+                                    <span class="badge ${ve.TrangThai == "Thành Công" ? "bg-success" :
+                                        ve.TrangThai == "Chờ huỷ" ? "bg-warning" :
+                                        ve.TrangThai == "Đã huỷ" ? "bg-danger" : "bg-secondary"}">
+                                        ${ve.TrangThai}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Giá Vé:</th>
+                                <td>${ve.Gia.toLocaleString('vi-VN')} đ</td>
+                            </tr>
+                            <tr>
+                                <th>Điểm Thưởng:</th>
+                                <td>${ve.DiemThuong || 0}</td>
+                            </tr>
+                            <tr>
+                                <th>Ngày Đặt:</th>
+                                <td>${new Date(parseInt(ve.NgayDat.substr(6))).toLocaleString('vi-VN')}</td>
+                            </tr>
+                        </table>
+                    `;
+
+                    var showInfo = `
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="35%">Phim:</th>
+                                <td>${ve.LichChieu.Phim.TenPhim}</td>
+                            </tr>
+                            <tr>
+                                <th>Phòng:</th>
+                                <td>${ve.LichChieu.PhongChieu.TenPhong}</td>
+                            </tr>
+                            <tr>
+                                <th>Ghế:</th>
+                                <td>${ve.ChoNgoi}</td>
+                            </tr>
+                            <tr>
+                                <th>Ngày Chiếu:</th>
+                                <td>${new Date(parseInt(ve.LichChieu.NgayChieu.substr(6))).toLocaleDateString('vi-VN')}</td>
+                            </tr>
+                            <tr>
+                                <th>Giờ Chiếu:</th>
+                                <td>${ve.LichChieu.GioChieu}</td>
+                            </tr>
+                        </table>
+                    `;
+
+                    $('#ticketInfo').html(ticketInfo);
+                    $('#showInfo').html(showInfo);
+                    $('#ticketDetailModal').modal('show');
+                } else {
+                    Swal.fire('Lỗi!', response.message, 'error');
+                }
+            },
+            error: function() {
+                Swal.fire('Lỗi!', 'Không thể tải thông tin vé', 'error');
+            }
+        });
+    }
+
+    function cancelTicket(id) {
+        Swal.fire({
+            title: 'Xác nhận huỷ vé?',
+            text: "Bạn có chắc muốn huỷ vé này?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Huỷ vé',
+            cancelButtonText: 'Không'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Ve/CancelTicket',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire('Thành công!', response.message, 'success')
+                                .then(() => reloadTicketList());
+                        } else {
+                            Swal.fire('Lỗi!', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Lỗi!', 'Không thể huỷ vé', 'error');
+                    }
+                });
+            }
+        });
+    }
+    function reloadTicketList() {
+        $.get('/Ve/DanhSachVePartial', function (data) {
+            $('.ticket-management').html(data);
+
+            // Khởi tạo lại DataTable
+            if ($.fn.DataTable.isDataTable('#ticketTable')) {
+                $('#ticketTable').DataTable().destroy();
+            }
+
+            $('#ticketTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+                },
+                pageLength: 10,
+                responsive: true,
+                order: [],
+                columnDefs: [
+                    {
+                        targets: [8],
+                        orderable: false
+                    }
+                ],
+                dom: '<"d-flex justify-content-between align-items-center mb-3"lf>rt<"d-flex justify-content-between align-items-center"ip>',
+                initComplete: function () {
+                    $('<style>')
+                        .text(`
+                        .sorting::before, .sorting::after,
+                        .sorting_asc::before, .sorting_asc::after,
+                        .sorting_desc::before, .sorting_desc::after {
+                            display: none !important;
+                        }
+                        
+                        .sorting, .sorting_asc, .sorting_desc {
+                            position: relative;
+                            cursor: pointer;
+                            padding-right: 20px !important;
+                        }
+                        
+                        .sorting::after, .sorting_asc::after, .sorting_desc::after {
+                            content: '▼';
+                            position: absolute;
+                            right: 5px;
+                            color: #6c757d;
+                            opacity: 0.3;
+                            font-size: 0.8em;
+                        }
+                        
+                        .sorting_asc::after {
+                            opacity: 1;
+                            color: #0d6efd;
+                        }
+                        
+                        .sorting_desc::after {
+                            content: '▲';
+                            opacity: 1;
+                            color: #0d6efd;
+                        }
+                        
+                        .sorting:hover::after {
+                            opacity: 0.7;
+                            transition: opacity 0.3s ease;
+                        }
+                        
+                        #ticketTable tbody tr {
+                            transition: all 0.3s ease;
+                        }
+                    `)
+                        .appendTo('head');
+                },
+                drawCallback: function () {
+                    $('tbody tr').css('opacity', 0).animate({
+                        opacity: 1
+                    }, 500);
+                }
+            });
+
+            // Khởi tạo lại các event khác
+            initializeFilters();
+            initializeFormValidation();
+        });
+    }
+</script>
+<style>
+    /* Thêm style cho badge */
+    .badge {
+        padding: 8px 12px;
+        font-weight: 500;
+    }
+
+    .bg-success {
+        background-color: #28a745 !important;
+        color: white !important;
+    }
+
+    .bg-warning {
+        background-color: #ffc107 !important;
+        color: #000 !important;
+    }
+
+    .bg-danger {
+        background-color: #dc3545 !important;
+        color: white !important;
+    }
+</style>

@@ -24,6 +24,15 @@
         <AssociationConnector Association="CinemaV3Model.FK_Ve_LichChieu" ManuallyRouted="false" />
         <AssociationConnector Association="CinemaV3Model.FK_ThanhToan_NhanVien" ManuallyRouted="false" />
         <AssociationConnector Association="CinemaV3Model.FK_Ve_ThanhToan" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="CinemaV3Model.Blog" Width="1.5" PointX="6" PointY="0.75" />
+        <AssociationConnector Association="CinemaV3Model.FK_Blog_NhanVien" />
+        <EntityTypeShape EntityType="CinemaV3Model.ChatMessage" Width="1.5" PointX="9" PointY="0.75" />
+        <AssociationConnector Association="CinemaV3Model.FK__ChatMessa__ID_Kh__1F63A897" />
+        <AssociationConnector Association="CinemaV3Model.FK__ChatMessa__ID_Nh__2057CCD0" />
+        <EntityTypeShape EntityType="CinemaV3Model.C__EFMigrationsHistory" Width="1.5" PointX="0.75" PointY="0.75" />
+        <EntityTypeShape EntityType="CinemaV3Model.Ghe_TrangThai" Width="1.5" PointX="8.625" PointY="12.375" />
+        <AssociationConnector Association="CinemaV3Model.FK_Ghe_TrangThai_Ghe" />
+        <AssociationConnector Association="CinemaV3Model.FK_Ghe_TrangThai_LichChieu" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

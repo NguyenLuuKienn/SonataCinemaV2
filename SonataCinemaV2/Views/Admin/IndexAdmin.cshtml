@@ -4,6 +4,11 @@
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
+<script>
+    console.log('=== DEBUG SESSION IN INDEXADMIN VIEW ===');
+    var debugSession = @Html.Raw(Json.Encode(ViewBag.DebugSession));
+    console.log('Session Debug Info:', debugSession);
+</script>
 <!-- Sidebar -->
 <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark sidebar" id="sidebar">
     <a href="@Url.Action("Index", "Home")" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
@@ -22,28 +27,39 @@
                 Trang chủ
             </a>
         </li>
-        <li>
-            <a href="#" class="nav-link text-white" onclick="showContent('manage-movies')">
-                <svg class="bi me-2" width="16" height="16">
-                    <use xlink:href="#speedometer2"></use>
-                </svg>
-                Quản lý Phim
-            </a>
-        </li>
-        <li>
-            <a href="#" class="nav-link text-white" id="manage-employees" onclick="showContent('manage-employees')">
-                <svg class="bi me-2" width="16" height="16"><use xlink:href="#people-circle"></use></svg>
-                Quản lý Nhân viên
-            </a>
-        </li>
-        <li>
-            <a href="#" class="nav-link text-white" onclick="showContent('manage-rooms')">
-                <svg class="bi me-2" width="16" height="16">
-                    <use xlink:href="#grid"></use>
-                </svg>
-                Quản lý Phòng Chiếu
-            </a>
-        </li>
+        @if (Session["Admin"] != null && (bool)Session["Admin"])
+        {
+            <li>
+                <a href="#" class="nav-link text-white" onclick="showContent('manage-movies')">
+                    <svg class="bi me-2" width="16" height="16">
+                        <use xlink:href="#speedometer2"></use>
+                    </svg>
+                    Quản lý Phim
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link text-white" id="manage-employees" onclick="showContent('manage-employees')">
+                    <svg class="bi me-2" width="16" height="16"><use xlink:href="#people-circle"></use></svg>
+                    Quản lý Nhân viên
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link text-white" onclick="showContent('manage-rooms')">
+                    <svg class="bi me-2" width="16" height="16">
+                        <use xlink:href="#grid"></use>
+                    </svg>
+                    Quản lý Phòng Chiếu
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link text-white" onclick="showContent('manage-showtimes')">
+                    <svg class="bi me-2" width="16" height="16">
+                        <use xlink:href="#calendar"></use>
+                    </svg>
+                    Quản lý Lịch Chiếu
+                </a>
+            </li>
+        }
         <li>
             <a href="#" class="nav-link text-white" onclick="showContent('manage-customers')">
                 <svg class="bi me-2" width="16" height="16">
@@ -53,18 +69,42 @@
             </a>
         </li>
         <li>
-            <a href="#" class="nav-link text-white" onclick="showContent('manage-showtimes')">
+            <a href="#" class="nav-link text-white" onclick="showContent('manage-blog')">
                 <svg class="bi me-2" width="16" height="16">
-                    <use xlink:href="#calendar"></use>
+                    <use xlink:href="#file-text"></use>
                 </svg>
-                Quản lý Lịch Chiếu
+                Quản lý Blog
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white" onclick="showContent('ticket-blog')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#file-text"></use>
+                </svg>
+                Quản lý Vé
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white" onclick="showContent('customer-helper')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#file-text"></use>
+                </svg>
+                Hỗ trợ Khách hàng
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link text-white" onclick="showContent('report-management')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#file-text"></use>
+                </svg>
+                Báo Cao Doanh Thu
             </a>
         </li>
     </ul>
     <hr>
     <div class="dropdown">
         <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-            <img src="~/Content/img/logo.jpg" alt="" class="rounded-circle me-2" width="32" height="32">
+            <img src="~/Content/img/Avatar.jpg" alt="" class="rounded-circle me-2" width="32" height="32">
             <strong style="font-size: 18px;">@Session["AdminName"]</strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
@@ -90,7 +130,7 @@
             <i class="bi bi-bell"></i>
             <div class="dropdown avatar-dropdown">
                 <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser2" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="~/Content/img/logo.jpg" alt="Avatar">
+                    <img src="~/Content/img/Avatar.jpg" alt="Avatar">
                     <strong>@Session["AdminName"]</strong>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownUser2">
@@ -112,27 +152,33 @@
         <h2>Trang Chủ</h2>
         @Html.Action("TotalPartial", "Admin")
     </div>
+    @if (Session["Admin"] != null && (bool)Session["Admin"])
+    {
+        <!-- Nội dung quản lý phim -->
+        <div class="movie-management d-none">
+            <h2>Quản Lý Phim</h2>
+            @Html.Action("DanhSachPhimPartial", "Phim")
 
-    <!-- Nội dung quản lý nhân viên -->
-    <div class="employee-management d-none">
-        <h2>Quản Lý Nhân Viên</h2>
-        @Html.Action("DanhSachNhanVienPartial", "NhanVien")
-    </div>
+        </div>
 
+        <!-- Nội dung quản lý phòng chiếu -->
+        <div class="screening-room-management d-none">
+            <h2>Quản Lý Phòng Chiếu</h2>
+            @Html.Action("DanhSachPhongChieuPartial", "Phong")
+        </div>
 
-    <!-- Nội dung quản lý phim -->
-    <div class="movie-management d-none">
-        <h2>Quản Lý Phim</h2>
-        @Html.Action("DanhSachPhimPartial", "Phim")
+        <!-- Nội dung quản lý nhân viên -->
+        <div class="employee-management d-none">
+            <h2>Quản Lý Nhân Viên</h2>
+            @Html.Action("DanhSachNhanVienPartial", "NhanVien")
+        </div>
 
-    </div>
-
-
-    <!-- Nội dung quản lý phòng chiếu -->
-    <div class="screening-room-management d-none">
-        <h2>Quản Lý Phòng Chiếu</h2>
-        @Html.Action("DanhSachPhongChieuPartial", "Phong")
-    </div>
+        <!-- Nội dung quản lý lịch chiếu -->
+        <div class="showtime-management d-none">
+            <h2>Quản Lý Lịch Chiếu</h2>
+            @Html.Action("DanhSachLichChieuPartial", "LichChieu")
+        </div>
+    }
 
     <!-- Nội dung quản lý khách hàng -->
     <div class="customer-management d-none">
@@ -140,9 +186,27 @@
         @Html.Action("DanhSachKhangHangPartial", "KhachHang")
     </div>
 
-    <!-- Nội dung quản lý lịch chiếu -->
-    <div class="showtime-management d-none">
-        <h2>Quản Lý Lịch Chiếu</h2>
-        @Html.Action("DanhSachLichChieuPartial", "LichChieu")
+    <!-- Nội dung quản lý blog -->
+    <div class="blog-management d-none">
+        <h2>Quản Lý Blog</h2>
+        @Html.Action("QuanLyBlogPartial", "Blog")
+    </div>
+
+    <!-- Nội dung quản lý vé -->
+    <div class="ticket-management d-none">
+        <h2>Quản Lý Vé</h2>
+        @Html.Action("DanhSachVePartial", "Ve")
+    </div>
+
+    <!-- Hỗ trợ khách hàng -->
+    <div class="helper-management d-none">
+        <h2>Hỗ trợ Khách hàng</h2>
+        @Html.Action("HelperCustomer", "Chat")
+    </div>
+    <!-- Doanh thu -->
+    <div class="report-management d-none">
+        <h2>Báo cáo Doanh Thu</h2>
+        @Html.Action("ExportExcelPartial", "Admin")
     </div>
 </div>
+

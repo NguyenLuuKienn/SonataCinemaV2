@@ -1,0 +1,672 @@
+﻿<div id="chat-widget" class="chat-widget">
+    <button id="chat-toggle" class="chat-toggle">
+        <i class="fas fa-comments"></i>
+    </button>
+
+    <div id="chat-box" class="chat-box" style="display: none;">
+        <div class="chat-header">
+            <div class="header-content">
+                <div class="bot-avatar">
+                    <img src="~/Content/img/Picturelogo.png" alt="Bot Avatar">
+                </div>
+                <div class="bot-info">
+                    <h5>Sonata Bot</h5>
+                    <span class="status">Trực tuyến</span>
+                </div>
+                <button id="end-chat-btn" style="display: none;" onclick="endChat()">
+                    <i class="fas fa-times"></i> Kết thúc
+                </button>
+            </div>
+            <button class="close-btn" onclick="toggleChat()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div id="chat-messages" class="chat-messages"></div>
+
+        <div class="chat-mode-switch">
+            <button id="chat-with-agent" onclick="requestStaffChat()">
+                Trò chuyện với nhân viên
+            </button>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Nhập tin nhắn...">
+            <button onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-widget {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .chat-toggle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0061f2 0%, #6e00ff 100%);
+        color: white;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: transform 0.3s;
+    }
+
+        .chat-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .chat-toggle i {
+            font-size: 24px;
+        }
+
+    .chat-box {
+        position: absolute;
+        bottom: 80px;
+        right: 0;
+        width: 350px;
+        height: 500px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-header {
+        padding: 15px 20px;
+        background: linear-gradient(135deg, #0061f2 0%, #6e00ff 100%);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .bot-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+
+        .bot-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .bot-info h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .status {
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+    .chat-messages {
+        flex-grow: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #f8f9fa;
+    }
+
+    .user-message, .bot-message {
+        margin: 8px 0;
+        max-width: 85%;
+        word-wrap: break-word;
+    }
+
+    .message-content {
+        padding: 12px 16px;
+        border-radius: 15px;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .user-message {
+        margin-left: auto;
+    }
+
+        .user-message .message-content {
+            background: linear-gradient(135deg, #0061f2 0%, #6e00ff 100%);
+            color: white;
+            border-radius: 15px 15px 0 15px;
+        }
+
+    .bot-message .message-content {
+        background: white;
+        color: #333;
+        border-radius: 15px 15px 15px 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .message-time {
+        font-size: 11px;
+        color: #999;
+        margin-top: 4px;
+        margin-bottom: 8px;
+    }
+
+    .chat-input {
+        padding: 15px 20px;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 10px;
+        background: white;
+        border-radius: 0 0 20px 20px;
+    }
+
+        .chat-input input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+            .chat-input input:focus {
+                outline: none;
+                border-color: #0061f2;
+            }
+
+        .chat-input button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0061f2 0%, #6e00ff 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+            .chat-input button:hover {
+                transform: scale(1.1);
+            }
+
+    .close-btn {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 5px;
+        opacity: 0.8;
+        transition: opacity 0.3s;
+    }
+
+        .close-btn:hover {
+            opacity: 1;
+        }
+
+    /* Custom Scrollbar */
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 3px;
+    }
+    .chat-mode-switch {
+        padding: 10px;
+        text-align: center;
+        border-top: 1px solid #eee;
+    }
+
+        .chat-mode-switch button {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #0061f2 0%, #6e00ff 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+            .chat-mode-switch button:hover {
+                background: linear-gradient(135deg, #0052cc 0%, #5c00d6 100%);
+            }
+    .staff-message, .customer-message {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 8px;
+        max-width: 80%;
+    }
+
+    .staff-message {
+        background-color: #e3f2fd;
+        margin-left: auto;
+    }
+
+    .customer-message {
+        background-color: #f5f5f5;
+        margin-right: auto;
+    }
+
+    .message-info {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .system-message {
+        text-align: center;
+        color: #666;
+        margin: 10px 0;
+        font-style: italic;
+    }
+    #end-chat-btn {
+        padding: 6px 12px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+        #end-chat-btn:hover {
+            background: #c82333;
+        }
+
+        #end-chat-btn i {
+            margin-right: 4px;
+        }
+</style>
+
+<script>
+    let chatHub;
+    let currentRoomId;
+    let isStaffChat = false;
+    let currentStaffName = null;
+    let isDialogFlowEnabled = true;
+
+    // Khởi tạo khi document ready
+    $(document).ready(function() {
+        initializeSignalR();
+        setupEventHandlers();
+    });
+
+    // Khởi tạo SignalR
+    function initializeSignalR() {
+        var connection = $.connection.hub;
+        chatHub = $.connection.chatHub;
+
+    // Đăng ký các event handlers
+    connection.received(function (data) {
+        console.log('📨 Received data:', data);
+
+        if (data.M === "chatAccepted") {
+            console.log('🎯 ChatAccepted event received:', data);
+            handleChatAccepted(data.A[0]);
+        }
+    });
+
+    // Handler khi nhân viên chấp nhận chat
+    chatHub.client.chatAccepted = function(staffEmail) {
+        handleChatAccepted(staffEmail);
+    };
+
+    // Handler nhận tin nhắn
+    chatHub.client.receiveMessage = function(senderId, message, role, timestamp) {
+    console.log('📨 Nhận tin nhắn:', { senderId, message, role, timestamp });
+    // Chỉ append tin nhắn từ người khác
+    if (senderId !== '@User.Identity.Name') {
+        appendMessage(
+            role === 'Staff' ? currentStaffName : 'Bot',
+            message,
+            role,
+            new Date(timestamp)
+        );
+    }
+};
+
+    connection.start()
+        .done(function () {
+            console.log('✅ SignalR Connected');
+        })
+        .fail(function (error) {
+            console.error('❌ SignalR Connection Error:', error);
+        });
+}
+
+    // Thiết lập các event handler
+    function setupEventHandlers() {
+        // Toggle chat box
+        $('#chat-toggle').click(function() {
+            $('#chat-box').slideToggle(300);
+        });
+
+        // Gửi tin nhắn khi click nút gửi
+        $('.chat-input button').click(handleMessageSend);
+
+        // Gửi tin nhắn khi nhấn Enter
+        $('#message-input').keypress(function (e) {
+            if (e.which == 13 && !e.shiftKey) {
+                e.preventDefault();
+                handleMessageSend();
+            }
+        });
+
+        // Xử lý nút đóng chat
+        $('.close-btn').click(function() {
+            $('#chat-box').slideUp(300);
+        });
+    }
+
+    function getEmailUsername(email) {
+        return email.split('\x40')[0].toLowerCase();
+    }
+
+    // Xử lý khi nhân viên chấp nhận chat
+    function handleChatAccepted(staffEmail) {
+        console.log('✅ Chat được chấp nhận bởi:', staffEmail);
+        isStaffChat = true;
+        isDialogFlowEnabled = false;
+        currentStaffName = staffEmail;
+
+        // Set currentRoomId
+        const userId = '@User.Identity.Name';
+        const userUsername = getEmailUsername(userId);
+        const staffUsername = getEmailUsername(staffEmail);
+        currentRoomId = 'chat_' + userUsername + '_' + staffUsername;
+
+        $('#end-chat-btn').show().prop('disabled', false);
+
+        console.log('Chat state after acceptance:', {
+            isStaffChat,
+            currentStaffName,
+            currentRoomId
+        });
+
+        // Cập nhật UI với email nhân viên
+        appendSystemMessage(`Đã kết nối với nhân viên ${staffEmail}`);
+        $('#chat-with-agent').prop('disabled', true).text('Đã kết nối với nhân viên');
+        $('.bot-info h5').text(staffEmail);
+        $('.status').text('Đang trò chuyện');
+
+        $('#end-chat-btn').show();
+    }
+
+    // Xử lý khi nhận tin nhắn
+    function handleReceiveMessage(sender, message, role, timestamp) {
+        appendMessage(sender, message, role, timestamp);
+    }
+
+    // Xử lý khi kết thúc chat
+    function handleChatEnded() {
+        isStaffChat = false;
+        isDialogFlowEnabled = true;
+        currentStaffName = null;
+        currentRoomId = null;
+        appendSystemMessage('Cuộc trò chuyện đã kết thúc');
+        $('#chat-with-agent').text('Trò chuyện với nhân viên');
+        updateChatStatus('Trực tuyến');
+    }
+
+
+
+    // Xử lý gửi tin nhắn
+    function handleMessageSend() {
+    const messageInput = $('#message-input');
+    const message = messageInput.val().trim();
+
+    if (!message) return;
+
+    console.log('Current chat state:', {
+        isStaffChat,
+        currentRoomId,
+        currentStaffName
+    });
+
+    if (isStaffChat && currentRoomId) {
+        chatHub.server.sendMessage(
+            currentRoomId,
+            '@User.Identity.Name',
+            message,
+            'Customer'
+        ).done(function() {
+            console.log('✅ Tin nhắn đã gửi thành công');
+            messageInput.val('');
+            // Append tin nhắn của mình ngay khi gửi thành công
+            appendMessage('Bạn', message, 'Customer', new Date());
+        }).fail(function(error) {
+            console.error('❌ Lỗi gửi tin nhắn:', error);
+            appendSystemMessage('Không thể gửi tin nhắn. Vui lòng thử lại.');
+        });
+    } else if (isDialogFlowEnabled) {
+        // Gửi tin nhắn tới DialogFlow
+        appendMessage('Bạn', message, 'Customer', new Date());
+        messageInput.val('');
+
+        sendToDialogFlow(message);
+    }
+}
+
+    function resetChatState() {
+        isStaffChat = false;
+        isDialogFlowEnabled = true;
+        currentStaffName = null;
+        currentRoomId = null;
+
+        // Ẩn nút kết thúc chat
+        $('#end-chat-btn').hide();
+
+        // Reset UI
+        $('#chat-with-agent').prop('disabled', false).text('Trò chuyện với nhân viên');
+        $('.bot-info h5').text('Sonata Bot');
+        $('.status').text('Trực tuyến');
+    }
+
+
+    // Gửi tin nhắn tới DialogFlow
+    async function sendToDialogFlow(message) {
+    try {
+        const response = await fetch('/Chat/SendMessage', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            },
+            body: JSON.stringify({ message: message })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            // Đảm bảo role là 'Bot' cho tin nhắn từ DialogFlow
+            appendMessage('Bot', data.message, 'Bot', new Date());
+        } else {
+            throw new Error(data.message || 'Unknown error');
+        }
+    } catch (error) {
+        console.error('DialogFlow Error:', error);
+        appendSystemMessage('Không thể kết nối với bot. Vui lòng thử lại sau.');
+    }
+}
+
+
+    // Yêu cầu chat với nhân viên
+    function requestStaffChat() {
+    if (!isStaffChat) {
+        const userId = '@User.Identity.Name';
+        const userName = '@ViewBag.CustomerName' || userId;
+
+        console.log('Requesting staff chat:', { userId, userName });
+
+        chatHub.server.requestStaffChat(userId, userName)
+            .done(function() {
+                console.log('Staff chat request sent successfully');
+                appendSystemMessage('Đang kết nối với nhân viên...');
+                $('#chat-with-agent').prop('disabled', true);
+            })
+            .fail(function(error) {
+                console.error('Error requesting staff chat:', error);
+                appendSystemMessage('Không thể kết nối với nhân viên. Vui lòng thử lại sau.');
+                $('#chat-with-agent').prop('disabled', false);
+            });
+    } else {
+        // Kết thúc chat
+        chatHub.server.endChat(currentRoomId, '@User.Identity.Name', null)
+            .done(function() {
+                isStaffChat = false;
+                isDialogFlowEnabled = true;
+                currentStaffName = null;
+                appendSystemMessage('Cuộc trò chuyện đã kết thúc');
+                $('#chat-with-agent').prop('disabled', false).text('Trò chuyện với nhân viên');
+                $('.bot-info h5').text('Sonata Bot');
+                $('.status').text('Trực tuyến');
+            })
+            .fail(function(error) {
+                console.error('Error ending chat:', error);
+                appendSystemMessage('Không thể kết thúc cuộc trò chuyện. Vui lòng thử lại.');
+            });
+    }
+}
+
+
+
+    // Thêm tin nhắn vào chat box
+    function appendMessage(sender, message, role, timestamp) {
+        const messageDiv = document.createElement('div');
+        // Phân biệt class dựa vào role
+        messageDiv.className = (role === 'Customer') ? 'user-message' : 'bot-message';
+
+        const messageHtml = `
+        <div class="message-content">${message}</div>
+        <div class="message-time">
+            <span class="sender">${role === 'Staff' ? sender : (role === 'Bot' ? 'Sonata Bot' : 'Bạn')}</span> • ${timestamp.toLocaleTimeString()}
+        </div>
+    `;
+
+        messageDiv.innerHTML = messageHtml;
+        $('#chat-messages').append(messageDiv);
+        scrollToBottom();
+    }
+
+    chatHub.client.chatEnded = function (userId, reason) {
+        console.log('Chat ended by:', userId);
+        isStaffChat = false;
+        currentStaffName = null;
+        currentRoomId = null;
+
+        // Cập nhật UI
+        $('#end-chat-btn').hide();
+        $('#chat-with-agent').prop('disabled', false).text('Trò chuyện với nhân viên');
+        $('.bot-info h5').text('Sonata Bot');
+        $('.status').text('Trực tuyến');
+
+        // Hiển thị thông báo
+        const message = reason
+            ? `Cuộc trò chuyện đã kết thúc: ${reason}`
+            : 'Cuộc trò chuyện đã kết thúc';
+        appendSystemMessage(message);
+    };
+
+    // hàm kết thúc chat
+    function endChat() {
+    if (isStaffChat && currentRoomId) {
+        chatHub.server.endChat(currentRoomId, '@User.Identity.Name', 'Khách hàng kết thúc')
+            .done(function() {
+                console.log('Successfully ended chat');
+                resetChatState();
+            })
+            .fail(function(error) {
+                console.error('Error ending chat:', error);
+                appendSystemMessage('Không thể kết thúc cuộc trò chuyện. Vui lòng thử lại.');
+            });
+    }
+}
+
+    // Thêm tin nhắn hệ thống
+    function appendSystemMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'system-message';
+        messageDiv.innerHTML = message;
+        $('#chat-messages').append(messageDiv);
+        scrollToBottom();
+    }
+
+    // Cuộn xuống cuối chat box
+    function scrollToBottom() {
+        const messagesDiv = document.getElementById('chat-messages');
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Cập nhật trạng thái chat
+    function updateChatStatus(status) {
+        $('.status').text(status);
+    }
+
+    // Xử lý khi người dùng rời trang
+    $(window).on('beforeunload', function() {
+        if (isStaffChat) {
+            chatHub.invoke('EndChat', currentRoomId, '@User.Identity.Name', null);
+        }
+    });
+
+    // Thêm style động
+    $('<style>')
+        .text(`
+            .system-message {
+                text-align: center;
+                color: #666;
+                margin: 10px 0;
+                font-style: italic;
+                font-size: 12px;
+                padding: 5px 10px;
+                background: #f8f9fa;
+                border-radius: 10px;
+            }
+
+            .message-time {
+                font-size: 11px;
+                color: #999;
+                margin-top: 4px;
+            }
+
+            .message-time .sender {
+                font-weight: 600;
+                color: #666;
+            }
+
+            #chat-with-agent:disabled {
+                opacity: 0.7;
+                cursor: not-allowed;
+            }
+        `)
+        .appendTo('head');
+    $.connection.hub.logging = true;
+    $.connection.hub.error(function (error) {
+        console.error('SignalR error:', error);
+    });
+</script>
+

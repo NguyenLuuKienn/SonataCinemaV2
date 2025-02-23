@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "newagent-vnks",
+  "private_key_id": "78bf30b8b9bd249db63da2f92922e417865b023a",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzxxUmLNf2ODnH\ngpMRu/61yAZFVYYet8UFqIXznA3/xoq2Xl76dfhkgWY5RGzepJIYJ87s+zBIIrBo\nIiC4pfUBTg9K2rebvmCtA1iM4g3SlxTe3gwCkGhIC5gT72zuSKHYP1FylQmbrIy1\nzQJMHLg4ecmsYj7qqQbZaQUbS9rzL3SJ90eZi9f8A9Hxdf85bVUGdNB4SvHyCHNZ\ndzGeFLSDv0uXGhZWbjLni5oDEFMFlH/3NNuIdGqUjrrTAsNSmjds0dA059Re/9zY\nW3X6YLtjJ1nUx7l1BGq5kdZHnUteHrpcBqmk2g7ZHZlzwhQOUm/h1khSZQnI38Lz\n1bc02d7LAgMBAAECggEADHH43VUtDW7z/63i3M9CVowxHvCeNxcqrPXEcXT5T8kL\nRjep5IsbyxKyzxO/uPlJ4cveWm/DIQ3sX1u+yc7h80QCRqt1xXLRl3iL/ei84zoG\nkwJqcMJVbb4GZO7mABLdcq5jcYaut8JOAAc1TwE39t+QyKhedE6HhQUXpOhEkSFh\n5KTLaacr4ng74xyEo4muC/vJczmT01DYRjM82orLDHM9vjIPVg8wt6a4X3TzjO0s\nyH+I2JOimsNNb3Hvp4gvGaWAmSH3vcjlT8HWWKDo8sYqOuSVgE1CIeA9e5c6vaTq\nJ/PrVE4iU/Hj79K+D8g0AHic0Oxmay1uMuHocPqG1QKBgQDpvTgD7gPS4RLYXbMx\nyYMaPD/YQmTCycS9efiRFjS9XP9z+sn+e8gdopnxTvCwWn7A7eCvt0W2xWvlHiH4\nMUCc9wLPMlx+gRxC/uuiTzcIx4LaufUvgAPUGuj0H/UYknLV+QDKeBu9PJwl/b1V\npNrv8jikTAvxDPv5ZAZVy5tM9QKBgQDE5jttxucw/1xRDDzstqDVBh976Rm1aaAm\n0Y52Eoue55KHo2VrueQxkSb2XYvVdaLGFH4pYm05AsgNJDwTz2FMVk6gyOtOW2wL\npQbKn5cdYFc8/0vo9VhToiC0a8MJ+k8b8lpMhIbybIVetkdfLjtQT6hTq7H6ZAD5\n/JhpZuUkvwKBgQCTUZlukKOEVCumh1gb9yBUdsjequoLA1Sm/6s09sQC3gx7swOB\nC89TLlrMhq6Y2FCvlL5awa6ExeV9IQLUBWbuB5mTsfAuI34Gk9k8EaVkOSs2ZKIu\ncAb5toRA6at280bBqhFfi1gga4UXRNgClMcRGJ+uneeg5EgkJXEAvjWByQKBgCRB\n0Qex7LiVDUbPXhiouI0Bh6KlldpWDOuZAway+4rTUaQwbmib3m1SMT6Ek09HTiXz\neBfezAYHgRcKaRWsxlnsOqZY2RugshCi3tFI+eaq6uWMjUnkg9NCs4sFnPClaxPW\nWNJmRQM3AIgkQJhCRyHOyUw+/ZMB/zwJS3d9Pwy5AoGAP8D26ltvuNnX1UOlJ0kt\nJhZcNFpNOVSkfceMRmqZmPQTnZNUiM2Lmn1deJBf12hKbBipn+ZB3P6B84sV4sJg\nyZnI+PE/2vLNFG8qztwVTNQ+7RwUM03Jn3w/Ptn1GsCsObDY25//XbNm2PqGV/i0\nUMDjElJaafoxiF5VUCVCFI8=\n-----END PRIVATE KEY-----\n",
+  "client_email": "sonatacinemav2@newagent-vnks.iam.gserviceaccount.com",
+  "client_id": "107453611961299198788",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/sonatacinemav2%40newagent-vnks.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

@@ -1,0 +1,72 @@
+﻿@model List<dynamic>
+
+<div class="report-management">
+    <h2>Báo cáo Doanh Thu</h2>
+
+    <!-- Form lọc thống kê -->
+    <form id="filterForm">
+        <label for="loaiThongKe">Loại thống kê:</label>
+        <select id="loaiThongKe" name="loaiThongKe">
+            <option value="Phim">Theo Phim</option>
+            <option value="PhongChieu">Theo Phòng Chiếu</option>
+            <option value="ToanRap">Toàn Rạp</option>
+        </select>
+
+        <label for="khoangThoiGian">Khoảng thời gian:</label>
+        <select id="khoangThoiGian" name="khoangThoiGian">
+            <option value="Tuan">Tuần</option>
+            <option value="Thang">Tháng</option>
+            <option value="Nam">Năm</option>
+        </select>
+
+        <button type="submit" class="btn btn-primary">Lọc</button>
+    </form>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Tên</th>
+                <th>Ngày</th>
+                <th>Doanh Thu</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                int stt = 1;
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@stt</td>
+                        <td>@item.Ten</td>
+                        <td>@item.Ngay</td>
+                        <td>@item.DoanhThu.ToString("N0") VNĐ</td>
+                    </tr>
+                    stt++;
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4" class="text-center">Không có dữ liệu</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Nút xuất file Excel -->
+    <button id="exportExcel" class="btn btn-success">
+        Xuất file Excel
+    </button>
+</div>
+
+<script>
+    document.getElementById("exportExcel").addEventListener("click", function () {
+        var loaiThongKe = document.getElementById("loaiThongKe").value;
+        var khoangThoiGian = document.getElementById("khoangThoiGian").value;
+        var url = `/Admin/ExportExcel?loaiThongKe=${loaiThongKe}&khoangThoiGian=${khoangThoiGian}`;
+        window.location.href = url;
+    });
+</script>
+

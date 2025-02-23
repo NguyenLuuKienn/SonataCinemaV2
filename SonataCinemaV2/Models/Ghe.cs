@@ -14,11 +14,18 @@ namespace SonataCinemaV2.Models
     
     public partial class Ghe
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Ghe()
+        {
+            this.Ghe_TrangThai = new HashSet<Ghe_TrangThai>();
+        }
+    
         public int ID_Ghe { get; set; }
         public int ID_Phong { get; set; }
         public string TenGhe { get; set; }
-        public string TrangThai { get; set; }
     
         public virtual PhongChieu PhongChieu { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Ghe_TrangThai> Ghe_TrangThai { get; set; }
     }
 }
