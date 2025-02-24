@@ -55,5 +55,30 @@ namespace SonataCinema.Controllers
             return View(listPhim);
 
         }
+
+        public ActionResult RatingPhim(int idPhim, int rating)
+        {
+            try
+            {
+                var phim = db.Phims.Find(idPhim);
+                if (phim == null)
+                {
+                    return Json(new { succes = false, massage = "Không tìm thấy phim" });
+                }
+
+                double diemHienTai = phim.DanhGia ?? 0;
+                double diemMoi = diemHienTai == 0 ?
+                    rating : Math.Round((diemHienTai + rating) / 2, 1);
+                phim.DanhGia = diemMoi;
+                db.SaveChanges();
+
+                return Json(new { succes = true, newRating = phim.DanhGia, message = "Cảm ơn bạn đã đánh giá phim" });
+
+            }
+            catch (Exception ex)
+            {
+                return Json(new { succes = false, message = "Lỗi khi đánh giá phim" });
+            }
+        }
     }
 }

@@ -19,10 +19,24 @@
                         <div class="movie-info">
                             <h1>@Model.TenPhim</h1>
                             <div class="meta-info">
-                                <span class="rating">
-                                    <i class="fas fa-star"></i>
-                                    @Model.DanhGia
+                                <span class="rating" id="ratingTrigger" style="cursor: pointer;">
+                                    <i class="fas fa-star" style="color: #ffd700;"></i>
+                                    <span id="currentRating">@(Model.DanhGia?.ToString("0.0") ?? "0.0")</span>/10
                                 </span>
+                                <div class="rating-modal" id="ratingModal" style="display: none;">
+                                    <div class="modal-content">
+                                        <span class="close-modal">&times;</span>
+                                        <h4>Đánh giá phim "@Model.TenPhim"</h4>
+                                        <div class="rating-stars">
+                                            @for (int i = 10; i >= 1; i--)
+                                            {
+                                                <input type="radio" name="rating" id="star@(i)" value="@i" />
+                                                <label for="star@(i)" title="@i sao"></label>
+                                            }
+                                        </div>
+                                        <div class="rating-message" id="ratingMessage"></div>
+                                    </div>
+                                </div>
                                 <span class="duration">
                                     <i class="far fa-clock"></i>
                                     @Model.ThoiLuong phút
@@ -129,3 +143,143 @@
     </div>
 </div>
 
+<style>
+    /* Modal đánh giá */
+    .rating-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 300px;
+        position: relative;
+        text-align: center;
+    }
+
+    .close-modal {
+        position: absolute;
+        right: 10px;
+        top: 5px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #aaa;
+    }
+
+        .close-modal:hover {
+            color: #555;
+        }
+
+    /* Rating stars */
+    .rating-stars {
+        display: inline-flex;
+        flex-direction: row-reverse;
+        gap: 5px;
+        margin: 20px 0;
+    }
+
+        .rating-stars input {
+            display: none;
+        }
+
+        .rating-stars label {
+            cursor: pointer;
+            font-size: 30px;
+            color: #ddd;
+            transition: color 0.2s;
+        }
+
+            .rating-stars label:before {
+                content: '★';
+            }
+
+            .rating-stars input:checked ~ label,
+            .rating-stars label:hover,
+            .rating-stars label:hover ~ label {
+                color: #ffd700;
+            }
+
+    /* Rating message */
+    .rating-message {
+        margin-top: 10px;
+        padding: 8px;
+        border-radius: 4px;
+        display: none;
+    }
+
+        .rating-message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .rating-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+</style>
+
+<script>
+$(document).ready(function() {
+    // Mở modal đánh giá
+    $('#ratingTrigger').click(function() {
+        $('#ratingModal').fadeIn();
+    });
+
+    // Đóng modal
+    $('.close-modal').click(function() {
+        $('#ratingModal').fadeOut();
+    });
+
+    // Đóng modal khi click bên ngoài
+    $(window).click(function(e) {
+        if ($(e.target).is('.rating-modal')) {
+            $('#ratingModal').fadeOut();
+        }
+    });
+
+    // Xử lý đánh giá
+    $('.rating-stars input').change(function() {
+        var rating = $(this).val();
+        var idPhim = @Model.ID_Phim;
+        
+        $.ajax({
+            url: '@Url.Action("RatingPhim", "Details")',
+            type: 'POST',
+            data: { idPhim: idPhim, rating: rating },
+            success: function(response) {
+                if (response.success) {
+                    $('#currentRating').text(response.newRating.toFixed(1));
+                    showMessage(response.message, true);
+                    setTimeout(function() {
+                        $('#ratingModal').fadeOut();
+                    }, 2000);
+                } else {
+                    showMessage(response.message, false);
+                }
+            },
+            error: function() {
+                showMessage("Có lỗi xảy ra khi đánh giá", false);
+            }
+        });
+    });
+
+    function showMessage(message, isSuccess) {
+        var messageDiv = $('#ratingMessage');
+        messageDiv.removeClass('success error')
+                 .addClass(isSuccess ? 'success' : 'error')
+                 .text(message)
+                 .fadeIn()
+                 .delay(2000)
+                 .fadeOut();
+    }
+});
+</script>
