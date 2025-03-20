@@ -33,7 +33,7 @@
             <div class="custom-form-group-partial">
                 <div class="remember-me-wrapper">
                     <label class="remember-me-label">
-                        <input type="checkbox" name="RememberMe" id="rememberMe" />
+                        <input type="checkbox" name="RememberMe" id="rememberMe" value="true" @(Model.RememberMe ? "checked" : "") />
                         <span class="checkmark"></span>
                         Nhớ mật khẩu
                     </label>
@@ -50,15 +50,11 @@
             </div>
 
             <div class="text-center-partial">
-                <a href="/Account/ForgotPassword" class="custom-link">Quên mật khẩu?</a>
+                <a href="#" id="btnForgotPassword" class="custom-link">Quên mật khẩu?</a>
             </div>
-
-
         }
     </div>
 </div>
-
-
 
 <script>
     $(document).ready(function () {
@@ -101,5 +97,39 @@
                 }
             });
         });
+
+        $('#forgotPasswordLink').on('click', function (e) {
+            e.preventDefault();
+            console.log('Forgot password link clicked');
+
+            $.ajax({
+                url: '/Account/ForgotPasswordPartial',
+                type: 'GET',
+                success: function (result) {
+                    console.log('Loading forgot password form');
+                    $('#loginModal .modal-body').html(result);
+                    $('#loginModal .modal-title').text('Quên mật khẩu');
+                    initializeForgotPasswordForm();
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
     });
+
+    function togglePassword() {
+        var passwordInput = document.getElementById('passwordInput');
+        var toggleIcon = document.getElementById('togglePassword');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
 </script>

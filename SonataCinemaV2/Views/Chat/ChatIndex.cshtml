@@ -19,12 +19,21 @@
                         <!-- Messages will appear here -->
                     </div>
                     <div class="input-group">
-                        <input type="text" id="message-input" class="form-control"
-                               placeholder="Nhập câu hỏi của bạn...">
+                        <div class="input-actions">
+                            <button class="btn btn-light" id="emoji-button" title="Chọn biểu cảm">
+                                <i class="far fa-smile"></i>
+                            </button>
+                            <label for="file-input" class="btn btn-light" title="Gửi hình ảnh">
+                                <i class="fas fa-image"></i>
+                            </label>
+                            <input type="file" id="file-input" accept="image/*" style="display: none">
+                        </div>
+                        <input type="text" id="message-input" class="form-control" placeholder="Nhập tin nhắn...">
                         <button class="btn btn-primary" onclick="sendMessage()">
                             <i class="fas fa-paper-plane"></i> Gửi
                         </button>
                     </div>
+                    <div id="emoji-picker" style="display: none; position: absolute; bottom: 70px; left: 0;"></div>
                 </div>
             </div>
         </div>
@@ -59,6 +68,39 @@
         padding: 10px;
         display: none;
     }
+    .chat-image {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 8px;
+        margin: 5px 0;
+    }
+
+    .message img.chat-image {
+        display: block;
+        margin: 5px 0;
+    }
+
+    .input-actions {
+        display: flex;
+        gap: 8px;
+        margin-right: 10px;
+    }
+
+        .input-actions button {
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: none;
+            background: #f0f2f5;
+            cursor: pointer;
+        }
+
+            .input-actions button:hover {
+                background: #e4e6eb;
+            }
+
+    #emoji-picker {
+        z-index: 1000;
+    }
 </style>
 
 
@@ -66,7 +108,63 @@
     $(document).ready(function() {
         // Add welcome message
         appendMessage('bot', 'Xin chào! Tôi là trợ lý ảo của Sonata Cinema. Tôi có thể giúp gì cho bạn?');
+        const picker = new EmojiMart.Picker({
+            onSelect: (emoji) => {
+                const input = document.getElementById('message-input');
+                input.value += emoji.native;
+                $('#emoji-picker').hide();
+            }
+        });
+        document.getElementById('emoji-picker').appendChild(picker);
+
+        // Toggle emoji picker
+        $('#emoji-button').click(function (e) {
+            e.stopPropagation();
+            $('#emoji-picker').toggle();
+        });
+
+        // Đóng emoji picker khi click ngoài
+        $(document).click(function (e) {
+            if (!$(e.target).closest('#emoji-picker, #emoji-button').length) {
+                $('#emoji-picker').hide();
+            }
+        });
+
+        // Xử lý upload hình ảnh
+        $('#file-input').change(function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    sendImageMessage(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     });
+
+    function sendImageMessage(imageData) {
+    appendMessage('user', `<img src="${imageData}" class="chat-image" alt="Uploaded image">`);
+
+    $.ajax({
+        url: '@Url.Action("SendMessage", "Chat")',
+        type: 'POST',
+        data: {
+            message: '[IMAGE]',
+            imageData: imageData
+        },
+        success: function(response) {
+            if (response.success) {
+                appendMessage('bot', response.message);
+            } else {
+                appendMessage('bot', 'Xin lỗi, có lỗi xảy ra khi gửi hình ảnh.');
+            }
+        },
+        error: function() {
+            appendMessage('bot', 'Xin lỗi, có lỗi xảy ra khi gửi hình ảnh.');
+        }
+    });
+    }
 
     function sendMessage() {
         var message = $('#message-input').val().trim();
@@ -104,12 +202,19 @@
     function appendMessage(sender, message) {
         var time = new Date().toLocaleTimeString();
         var messageClass = sender === 'user' ? 'user-message' : 'bot-message';
+
+        // Kiểm tra nếu tin nhắn là hình ảnh
+        if (message.startsWith('[IMAGE]')) {
+            var imagePath = message.substring(7);
+            message = `<img src="${imagePath}" class="chat-image" alt="Chat image">`;
+        }
+
         var html = `
-            <div class="message ${messageClass}">
-                <div class="message-content">${message}</div>
-                <div class="message-time">${time}</div>
-            </div>
-        `;
+        <div class="message ${messageClass}">
+            <div class="message-content">${message}</div>
+            <div class="message-time">${time}</div>
+        </div>
+    `;
         $('#chat-messages').append(html);
         scrollToBottom();
     }

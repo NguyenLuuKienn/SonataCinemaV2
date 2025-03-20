@@ -1,88 +1,325 @@
 ﻿<div class="report-management">
-    <h2>Thống kê doanh thu và hoạt động</h2>
 
-    @using (Html.BeginForm("ExportExcel", "Admin", FormMethod.Get))
-    {
-        <div class="form-group mb-3">
-            <label>Chọn loại thống kê:</label>
-            <select name="loaiThongKe" class="form-control" id="loaiThongKe" required>
-                <option value="">-- Chọn loại thống kê --</option>
-                <option value="Phim">Theo Phim</option>
-                <option value="PhongChieu">Theo Phòng Chiếu</option>
-                <option value="ToanRap">Toàn Rạp</option>
-                <option value="Blog">Thống kê Blog</option>
-            </select>
-        </div>
-
-        <div class="form-group mb-3" id="phimSelect" style="display:none;">
-            <label>Chọn Phim:</label>
-            @Html.DropDownList("ID_Phim", (SelectList)ViewBag.DanhSachPhim, "-- Chọn phim --", new { @class = "form-control" })
-        </div>
-
-        <div class="form-group mb-3" id="phongSelect" style="display:none;">
-            <label>Chọn Phòng:</label>
-            @Html.DropDownList("ID_Phong", (SelectList)ViewBag.DanhSachPhong, "-- Chọn phòng --", new { @class = "form-control" })
-        </div>
-
-        <div class="form-group mb-3">
-            <label>Chọn khoảng thời gian:</label>
-            <select name="khoangThoiGian" class="form-control" id="khoangThoiGian">
-                <option value="Ngay">Tùy chọn ngày</option>
-                <option value="Tuan">Theo tuần</option>
-                <option value="Thang">Theo tháng</option>
-                <option value="Nam">Theo năm</option>
-            </select>
-        </div>
-
-        <div id="dateInputs">
-            <!-- Các trường nhập ngày sẽ được động thay đổi dựa trên khoảng thời gian -->
-            <div class="date-range mb-3" id="customDateRange">
-                <div class="form-group">
-                    <label>Từ ngày:</label>
-                    <input type="date" name="startDate" class="form-control">
-                </div>
-                <div class="form-group mt-2">
-                    <label>Đến ngày:</label>
-                    <input type="date" name="endDate" class="form-control">
-                </div>
-            </div>
-
-            <div class="form-group mb-3" id="weekSelect" style="display:none;">
-                <label>Chọn tuần:</label>
-                <input type="week" name="weekInput" class="form-control">
-            </div>
-
-            <div class="form-group mb-3" id="monthSelect" style="display:none;">
-                <label>Chọn tháng:</label>
-                <input type="month" name="monthInput" class="form-control">
-            </div>
-
-            <div class="form-group mb-3" id="yearSelect" style="display:none;">
-                <label>Chọn năm:</label>
-                <select name="yearInput" class="form-control">
-                    @for (int year = DateTime.Now.Year; year >= 2020; year--)
-                    {
-                        <option value="@year">@year</option>
+    <!-- Phần hiển thị thống kê -->
+    <div class="report-sections mb-4">
+        <!-- Thống kê theo phim -->
+        <div class="report-section">
+            <h3>Thống Kê Theo Phim</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên Phim</th>
+                        <th>Số Vé Đã Bán</th>
+                        <th>Doanh Thu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var movieStats = ViewBag.MovieStats as IEnumerable<dynamic>;
+                        if (movieStats != null)
+                        {
+                            int stt = 1;
+                            foreach (var item in movieStats)
+                            {
+                                <tr>
+                                    <td>@stt</td>
+                                    <td>@item.TenPhim</td>
+                                    <td class="">@item.SoVe.ToString("#,##0")</td>
+                                    <td class="">@item.DoanhThu.ToString("#,##0") VNĐ</td>
+                                </tr>
+                                stt++;
+                            }
+                        }
                     }
-                </select>
-            </div>
+                </tbody>
+            </table>
         </div>
 
-        <button type="submit" class="btn btn-success">
-            <i class="fas fa-file-excel me-2"></i> Xuất Báo Cáo
-        </button>
-    }
+        <!-- Thống kê theo phòng chiếu -->
+        <div class="report-section">
+            <h3>Thống Kê Theo Phòng Chiếu</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Phòng Chiếu</th>
+                        <th>Số Suất Chiếu</th>
+                        <th>Doanh Thu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var roomStats = ViewBag.RoomStats as IEnumerable<dynamic>;
+                        if (roomStats != null)
+                        {
+                            int stt = 1;
+                            foreach (var item in roomStats)
+                            {
+                                <tr>
+                                    <td>@stt</td>
+                                    <td>@item.TenPhong</td>
+                                    <td class="">@item.SoSuatChieu.ToString("#,##0")</td>
+                                    <td class="">@item.DoanhThu.ToString("#,##0") VNĐ</td>
+                                </tr>
+                                stt++;
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Thống kê doanh thu theo thời gian -->
+        <div class="report-section">
+            <h3>Thống Kê Doanh Thu Theo Thời Gian</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Thời Gian</th>
+                        <th>Doanh Thu</th>
+                        <th>Số Vé Bán Ra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Hôm nay</td>
+                        <td>@ViewBag.DoanhThuHomNay.ToString("N0") VNĐ</td>
+                        <td>@ViewBag.VeHomNay</td>
+                    </tr>
+                    <tr>
+                        <td>Tuần này</td>
+                        <td>@ViewBag.DoanhThuTuan.ToString("N0") VNĐ</td>
+                        <td>@ViewBag.VeTuan</td>
+                    </tr>
+                    <tr>
+                        <td>Tháng này</td>
+                        <td>@ViewBag.DoanhThuThang.ToString("N0") VNĐ</td>
+                        <td>@ViewBag.VeThang</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Phần form xuất báo cáo -->
+    <div class="export-section">
+        <h3>Xuất Báo Cáo</h3>
+        @using (Html.BeginForm("ExportExcel", "Admin", FormMethod.Get))
+        {
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label>Chọn loại thống kê:</label>
+                        <select name="loaiThongKe" class="form-control" id="loaiThongKe" required>
+                            <option value="">-- Chọn loại thống kê --</option>
+                            <option value="Phim">Theo Phim</option>
+                            <option value="PhongChieu">Theo Phòng Chiếu</option>
+                            <option value="ToanRap">Toàn Rạp</option>
+                            <option value="Blog">Thống kê Blog</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group mb-3" id="phimSelect" style="display:none;">
+                        <label>Chọn Phim:</label>
+                        @Html.DropDownList("ID_Phim", (SelectList)ViewBag.DanhSachPhim, "-- Chọn phim --", new { @class = "form-control" })
+                    </div>
+
+                    <div class="form-group mb-3" id="phongSelect" style="display:none;">
+                        <label>Chọn Phòng:</label>
+                        @Html.DropDownList("ID_Phong", (SelectList)ViewBag.DanhSachPhong, "-- Chọn phòng --", new { @class = "form-control" })
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label>Chọn khoảng thời gian:</label>
+                        <select name="khoangThoiGian" class="form-control" id="khoangThoiGian">
+                            <option value="Ngay">Tùy chọn ngày</option>
+                            <option value="Tuan">Theo tuần</option>
+                            <option value="Thang">Theo tháng</option>
+                            <option value="Nam">Theo năm</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dateInputs" class="row">
+                <div class="col-md-12">
+                    <div class="date-range mb-3" id="customDateRange">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Từ ngày:</label>
+                                    <input type="date" name="startDate" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Đến ngày:</label>
+                                    <input type="date" name="endDate" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3" id="weekSelect" style="display:none;">
+                        <label>Chọn tuần:</label>
+                        <input type="week" name="weekInput" class="form-control">
+                    </div>
+
+                    <div class="form-group mb-3" id="monthSelect" style="display:none;">
+                        <label>Chọn tháng:</label>
+                        <input type="month" name="monthInput" class="form-control">
+                    </div>
+
+                    <div class="form-group mb-3" id="yearSelect" style="display:none;">
+                        <label>Chọn năm:</label>
+                        <select name="yearInput" class="form-control">
+                            @for (int year = DateTime.Now.Year; year >= 2020; year--)
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-end">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-file-excel me-2"></i> Xuất Báo Cáo
+                </button>
+            </div>
+        }
+    </div>
 </div>
 
 <style>
+    .report-management {
+        padding: 20px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .report-header {
+        margin-bottom: 30px;
+    }
+
+        .report-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+        }
+
+    .report-sections {
+        display: grid;
+        gap: 30px;
+    }
+
+    .report-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+        .report-section h3 {
+            margin-bottom: 20px;
+            color: #444;
+            font-size: 1.2rem;
+        }
+
+    .table {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+        .table th {
+            background: #f1f1f1;
+            font-weight: 600;
+        }
+
+    .export-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 30px;
+    }
+
+        .export-section h3 {
+            margin-bottom: 20px;
+            color: #444;
+            font-size: 1.2rem;
+        }
+
     .form-group {
         margin-bottom: 15px;
     }
 
     .date-range {
-        background-color: #f8f9fa;
+        background-color: #fff;
         padding: 15px;
         border-radius: 5px;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        padding: 8px 20px;
+    }
+
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        margin-bottom: 1rem;
+        background-color: transparent;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        padding: 12px 8px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .table td {
+        padding: 12px 8px;
+        vertical-align: middle;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .text-end {
+        text-align: right !important;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0,0,0,.02);
+    }
+
+    .report-section {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .report-section h3 {
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 1.2rem;
+        font-weight: 600;
     }
 </style>
 

@@ -28,6 +28,15 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <!-- Thêm vào phần head của layout hoặc đầu file -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-mart@latest/css/emoji-mart.css">
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/emoji-mart.js"></script>
+    <!-- Thêm vào phần head của layout -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
     <title>@ViewBag.Title</title>
 </head>
@@ -99,6 +108,11 @@
         </div>
     </nav>
 
+    <div class="modal-forgot-password" id="modalForgotPassword" style="display: none;">
+        <div id="forgotPasswordPartialContainer">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
 
     <div class="blur-overlay" id="blurOverlay" style="display: none;"></div>
     <div class="modal-login" id="modalLogin" style="display: none;">

@@ -16,6 +16,9 @@ namespace SonataCinemaV2.ViewModel
         [Display(Name = "Mật Khẩu")]
         [Required(ErrorMessage = "Mật khẩu không được để trống.")]
         [DataType(DataType.Password)]
+        
         public string Password { get; set; }
+
+        public bool RememberMe { get; set; }
     }
 }

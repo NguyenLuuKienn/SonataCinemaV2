@@ -231,6 +231,10 @@
 $(document).ready(function() {
     // Mở modal đánh giá
     $('#ratingTrigger').click(function() {
+        if (!@User.Identity.IsAuthenticated.ToString().ToLower()) {
+            window.location.href = '/Account/DangNhap';
+            return;
+        }
         $('#ratingModal').fadeIn();
     });
 
@@ -246,40 +250,58 @@ $(document).ready(function() {
         }
     });
 
-    // Xử lý đánh giá
+    // Xử lý đánh giá khi click vào sao
     $('.rating-stars input').change(function() {
         var rating = $(this).val();
-        var idPhim = @Model.ID_Phim;
-        
+        rateMovie(rating);
+    });
+
+    function rateMovie(rating) {
         $.ajax({
-            url: '@Url.Action("RatingPhim", "Details")',
+            url: '/Details/RatingPhim',
             type: 'POST',
-            data: { idPhim: idPhim, rating: rating },
+            data: {
+                idPhim: '@Model.ID_Phim',
+                rating: rating
+            },
             success: function(response) {
                 if (response.success) {
-                    $('#currentRating').text(response.newRating.toFixed(1));
+                    // Cập nhật hiển thị rating trên trang
+                    $('#currentRating').text(response.newRating);
+
+                    // Hiển thị thông báo thành công
                     showMessage(response.message, true);
+
+                    // Đóng modal sau 1 giây
                     setTimeout(function() {
                         $('#ratingModal').fadeOut();
-                    }, 2000);
+                    }, 1000);
                 } else {
                     showMessage(response.message, false);
+                    if (response.message.includes("đăng nhập")) {
+                        setTimeout(function() {
+                            window.location.href = '/Account/DangNhap';
+                        }, 2000);
+                    }
                 }
             },
             error: function() {
-                showMessage("Có lỗi xảy ra khi đánh giá", false);
+                showMessage("Có lỗi xảy ra khi đánh giá phim", false);
             }
         });
-    });
+    }
 
     function showMessage(message, isSuccess) {
         var messageDiv = $('#ratingMessage');
         messageDiv.removeClass('success error')
                  .addClass(isSuccess ? 'success' : 'error')
                  .text(message)
-                 .fadeIn()
-                 .delay(2000)
-                 .fadeOut();
+                 .fadeIn();
+
+        // Tự động ẩn thông báo sau 3 giây
+        setTimeout(function() {
+            messageDiv.fadeOut();
+        }, 3000);
     }
 });
 </script>

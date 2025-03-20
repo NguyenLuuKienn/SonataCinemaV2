@@ -421,6 +421,12 @@ namespace SonataCinema.Controllers
                             totalAmount
                         );
 
+                        Session["BookingSuccess_MovieName"] = lichChieu.Phim.TenPhim;
+                        Session["BookingSuccess_ShowDate"] = lichChieu.NgayChieu.ToString("dd/MM/yyyy");
+                        Session["BookingSuccess_ShowTime"] = lichChieu.GioChieu.ToString(@"hh\:mm");
+                        Session["BookingSuccess_SeatNumbers"] = string.Join(", ", model.ChonGhe.Select(g => g.TenGhe));
+                        Session["BookingSuccess_TotalAmount"] = model.TongTien.ToString("#,##0 VNĐ");
+                        Session["BookingSuccess_RoomName"] = lichChieu.PhongChieu.TenPhong;
 
                         transaction.Commit();
 
@@ -471,10 +477,24 @@ namespace SonataCinema.Controllers
 
         public ActionResult BookingSuccess()
         {
-            ViewBag.MovieName = TempData["MovieName"];
-            ViewBag.ShowDate = TempData["ShowDate"];
-            ViewBag.ShowTime = TempData["ShowTime"];
-            ViewBag.SeatNumbers = TempData["SeatNumbers"];
+            ViewBag.MovieName = Session["BookingSuccess_MovieName"];
+            ViewBag.ShowDate = Session["BookingSuccess_ShowDate"];
+            ViewBag.ShowTime = Session["BookingSuccess_ShowTime"];
+            ViewBag.SeatNumbers = Session["BookingSuccess_SeatNumbers"];
+            ViewBag.TotalAmount = Session["BookingSuccess_TotalAmount"];
+            ViewBag.RoomName = Session["BookingSuccess_RoomName"];
+
+            if (ViewBag.MovieName == null)
+            {
+                return RedirectToAction("BookingTicket");
+            }
+            Session.Remove("BookingSuccess_MovieName");
+            Session.Remove("BookingSuccess_ShowDate");
+            Session.Remove("BookingSuccess_ShowTime");
+            Session.Remove("BookingSuccess_SeatNumbers");
+            Session.Remove("BookingSuccess_TotalAmount");
+            Session.Remove("BookingSuccess_RoomName");
+
             return View();
         }
     }

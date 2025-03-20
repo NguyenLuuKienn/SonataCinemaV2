@@ -18,6 +18,7 @@ namespace SonataCinemaV2.Models
         public Phim()
         {
             this.LichChieux = new HashSet<LichChieu>();
+            this.DanhGias = new HashSet<DanhGia>();
         }
     
         public int ID_Phim { get; set; }
@@ -35,5 +36,7 @@ namespace SonataCinemaV2.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<LichChieu> LichChieux { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<DanhGia> DanhGias { get; set; }
     }
 }

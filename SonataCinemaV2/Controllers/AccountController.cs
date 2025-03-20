@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
 using System.Web.UI.WebControls;
 using CaptchaMvc.HtmlHelpers;
 using Newtonsoft.Json.Linq;
+using SonataCinemaV2.Helper;
 using SonataCinemaV2.Models;
 using SonataCinemaV2.ViewModel;
 
@@ -26,6 +29,12 @@ namespace SonataCinemaV2.Controllers
         {
             ViewBag.ReturnUrl = ReturnUrl;
             var model = new UserLogin();
+            HttpCookie emailCookie = Request.Cookies["UserEmail"];
+            if (emailCookie != null && !string.IsNullOrEmpty(emailCookie.Value))
+            {
+                model.Email = emailCookie.Value;
+                model.RememberMe = true;
+            }
             return View(model);
         }
 
@@ -33,6 +42,12 @@ namespace SonataCinemaV2.Controllers
         public ActionResult LoginPartial()
         {
             var model = new UserLogin();
+            HttpCookie emailCookie = Request.Cookies["UserEmail"];
+            if (emailCookie != null && !string.IsNullOrEmpty(emailCookie.Value))
+            {
+                model.Email = emailCookie.Value;
+                model.RememberMe = true;
+            }
             return PartialView("_LoginPartial", model);
         }
 
@@ -67,7 +82,7 @@ namespace SonataCinemaV2.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public ActionResult DangNhap(UserLogin model, string ReturnUrl)
+        public ActionResult DangNhap(UserLogin model, string ReturnUrl, bool RememberMe = false)
         {
             if (ModelState.IsValid)
             {
@@ -112,7 +127,27 @@ namespace SonataCinemaV2.Controllers
                             bool isValidPassword = BCrypt.Net.BCrypt.Verify(model.Password, userKH.MatKhau);
                             if (isValidPassword)
                             {
-                                FormsAuthentication.SetAuthCookie(userKH.Email, false);
+                                FormsAuthentication.SetAuthCookie(userKH.Email, RememberMe);
+                                if(RememberMe)
+                                {
+                                    HttpCookie emailCookie = new HttpCookie("UserEmail")
+                                    {
+                                        Value = userKH.Email,
+                                        Expires = DateTime.Now.AddDays(30)
+                                    };
+                                    Response.Cookies.Add(emailCookie);
+                                }    
+                                else
+                                {
+                                    if (Request.Cookies["UserEmail"] != null)
+                                    {
+                                        HttpCookie emailCookie = new HttpCookie("UserEmail")
+                                        {
+                                            Expires = DateTime.Now.AddDays(-1)
+                                        };
+                                        Response.Cookies.Add(emailCookie);
+                                    }    
+                                }    
                                 Session["Admin"] = false;
                                 Session["Staff"] = false;
                                 Session["Customer"] = true;
@@ -166,7 +201,27 @@ namespace SonataCinemaV2.Controllers
                         bool isValidPassword = BCrypt.Net.BCrypt.Verify(model.Password, userNV.MatKhau);
                         if (isValidPassword)
                         {
-                            FormsAuthentication.SetAuthCookie(userNV.Email, false);
+                            FormsAuthentication.SetAuthCookie(userNV.Email, RememberMe);
+                            if (RememberMe)
+                            {
+                                HttpCookie emailCookie = new HttpCookie("UserEmail")
+                                {
+                                    Value = userNV.Email,
+                                    Expires = DateTime.Now.AddDays(30)
+                                };
+                                Response.Cookies.Add(emailCookie);
+                            }
+                            else
+                            {
+                                if (Request.Cookies["UserEmail"] != null)
+                                {
+                                    HttpCookie emailCookie = new HttpCookie("UserEmail")
+                                    {
+                                        Expires = DateTime.Now.AddDays(-1)
+                                    };
+                                    Response.Cookies.Add(emailCookie);
+                                }
+                            }
                             if (userNV.QuyenHan == "Admin")
                             {
                                 Session["Admin"] = true;
@@ -261,6 +316,183 @@ namespace SonataCinemaV2.Controllers
 
                 return sw.GetStringBuilder().ToString();
             }
+        }
+
+        [HttpGet]
+        public ActionResult ForgotPasswordPartial()
+        {
+            if (Request.IsAjaxRequest())
+            {
+                return PartialView("_ForgotPasswordPartial", new ForgotPasswordViewModel());
+            }
+            return RedirectToAction("DangNhap");
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Kiểm tra email và gửi link reset password
+                    var userKH = db.KhachHangs.FirstOrDefault(k => k.Email == model.Email);
+                    var userNV = db.NhanViens.FirstOrDefault(n => n.Email == model.Email);
+
+                    if (userKH != null || userNV != null)
+                    {
+                        using (var transaction = db.Database.BeginTransaction())
+                        {
+                            try
+                            {
+                                string token = Guid.NewGuid().ToString();
+                                var expiryTime = DateTime.Now.AddHours(24);
+
+                                if (userKH != null)
+                                {
+                                    userKH.ResetPasswordToken = token;
+                                    userKH.ResetPasswordExpiry = expiryTime;
+                                    db.Entry(userKH).State = EntityState.Modified;
+                                }
+                                else
+                                {
+                                    userNV.ResetPasswordToken = token;
+                                    userNV.ResetPasswordExpiry = expiryTime;
+                                    db.Entry(userNV).State = EntityState.Modified;
+                                }
+
+                                await db.SaveChangesAsync();
+
+                                var resetLink = Url.Action("ResetPassword", "Account",
+                                    new { email = model.Email, token = token }, protocol: Request.Url.Scheme);
+
+                                await EmailHelper.SendResetPasswordEmail(model.Email, resetLink);
+
+                                transaction.Commit();
+                                return Json(new { success = true });
+                            }
+                            catch (Exception ex)
+                            {
+                                transaction.Rollback();
+                                System.Diagnostics.Debug.WriteLine($"Error in ForgotPassword: {ex.Message}");
+                                ModelState.AddModelError("", "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.");
+                            }
+                        }
+                    }
+
+                    // Không tìm thấy email nhưng vẫn trả về thành công để tránh lộ thông tin
+                    return Json(new { success = true });
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error in ForgotPassword: {ex.Message}");
+                    ModelState.AddModelError("", "Có lỗi xảy ra. Vui lòng thử lại sau.");
+                }
+            }
+
+            if (Request.IsAjaxRequest())
+            {
+                return PartialView("_ForgotPasswordPartial", model);
+            }
+            return View(model);
+        }
+
+        [AllowAnonymous]
+        public ActionResult ResetPassword(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("DangNhap");
+            }
+
+            var model = new ResetPasswordViewModel
+            {
+                Email = email,
+                Token = token
+            };
+
+            // Kiểm tra token có hợp lệ không
+            var userKH = db.KhachHangs.FirstOrDefault(k => k.Email == email && k.ResetPasswordToken == token);
+            var userNV = db.NhanViens.FirstOrDefault(n => n.Email == email && n.ResetPasswordToken == token);
+
+            if (userKH == null && userNV == null)
+            {
+                // Token không hợp lệ
+                return RedirectToAction("DangNhap");
+            }
+
+            // Kiểm tra token còn hạn không
+            if (userKH != null && userKH.ResetPasswordExpiry < DateTime.Now)
+            {
+                ModelState.AddModelError("", "Link đặt lại mật khẩu đã hết hạn.");
+                return RedirectToAction("DangNhap");
+            }
+            if (userNV != null && userNV.ResetPasswordExpiry < DateTime.Now)
+            {
+                ModelState.AddModelError("", "Link đặt lại mật khẩu đã hết hạn.");
+                return RedirectToAction("DangNhap");
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var userKH = db.KhachHangs.FirstOrDefault(k => k.Email == model.Email && k.ResetPasswordToken == model.Token);
+                var userNV = db.NhanViens.FirstOrDefault(n => n.Email == model.Email && n.ResetPasswordToken == model.Token);
+
+                if (userKH != null)
+                {
+                    if (userKH.ResetPasswordExpiry < DateTime.Now)
+                    {
+                        ModelState.AddModelError("", "Link đặt lại mật khẩu đã hết hạn.");
+                        return View(model);
+                    }
+
+                    userKH.MatKhau = BCrypt.Net.BCrypt.HashPassword(model.Password);
+                    userKH.ResetPasswordToken = null;
+                    userKH.ResetPasswordExpiry = null;
+                    db.Entry(userKH).State = EntityState.Modified;
+                    await db.SaveChangesAsync();
+
+                    return RedirectToAction("ResetPasswordConfirmation");
+                }
+                else if (userNV != null)
+                {
+                    if (userNV.ResetPasswordExpiry < DateTime.Now)
+                    {
+                        ModelState.AddModelError("", "Link đặt lại mật khẩu đã hết hạn.");
+                        return View(model);
+                    }
+
+                    userNV.MatKhau = BCrypt.Net.BCrypt.HashPassword(model.Password);
+                    userNV.ResetPasswordToken = null;
+                    userNV.ResetPasswordExpiry = null;
+                    db.Entry(userNV).State = EntityState.Modified;
+                    await db.SaveChangesAsync();
+
+                    return RedirectToAction("ResetPasswordConfirmation");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Token không hợp lệ.");
+                }
+            }
+
+            return View(model);
+        }
+
+        [AllowAnonymous]
+        public ActionResult ResetPasswordConfirmation()
+        {
+            return View();
         }
 
         public ActionResult DangXuat()

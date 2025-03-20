@@ -624,9 +624,19 @@ footer a:hover {
     z-index: 1001;
     display: none;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 1200px; /* Tăng kích thước tối đa */
+    width: 95%; /* Tăng width để form rộng hơn */
+    height: auto;
+    max-height: 90vh; /* Giới hạn chiều cao tối đa */
+    overflow-y: auto; /* Cho phép cuộn nếu nội dung dài */
+}
+.modal-register {
+    background: linear-gradient(135deg, #fff, #f8f9fa);
+    border-radius: 20px;
+    padding: 30px;
 }
 
-.modal-login, .modal-register {
+.modal-login{
     max-width: 400px;
     width: 90%;
     background: linear-gradient(135deg, #fff, #f8f9fa);
@@ -1757,4 +1767,32 @@ footer a:hover {
         padding-left: 15px;
         padding-right: 15px;
     }
+    @keyframes dateSelected {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.02);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .date-selected {
+        animation: dateSelected 0.5s ease;
+    }
+
+    .form-control-custom.date-picker {
+        padding-right: 35px; /* Để icon không đè lên text */
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .form-control-custom.date-picker:hover {
+            border-color: #df9a2c;
+            background-color: #fff9f0;
+        }
 }

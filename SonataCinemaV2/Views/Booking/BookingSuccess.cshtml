@@ -10,24 +10,64 @@
         </div>
         <h1>Đặt Vé Thành Công!</h1>
         <p class="message">Cảm ơn bạn đã đặt vé tại Sonata Cinema</p>
+        <p class="sub-message">Thông tin chi tiết đã được gửi vào email của bạn</p>
+
         <div class="ticket-info">
-            <div class="ticket-detail">
-                <i class="fas fa-film"></i>
-                <span>@ViewBag.MovieName</span>
-            </div>
-            <div class="ticket-detail">
-                <i class="fas fa-calendar-alt"></i>
-                <span>@ViewBag.ShowDate</span>
-            </div>
-            <div class="ticket-detail">
-                <i class="fas fa-clock"></i>
-                <span>@ViewBag.ShowTime</span>
-            </div>
-            <div class="ticket-detail">
-                <i class="fas fa-couch"></i>
-                <span>@ViewBag.SeatNumbers</span>
-            </div>
+            @if (ViewBag.MovieName != null)
+            {
+                <div class="ticket-detail">
+                    <i class="fas fa-film"></i>
+                    <label>Phim:</label>
+                    <span>@ViewBag.MovieName</span>
+                </div>
+            }
+
+            @if (ViewBag.RoomName != null)
+            {
+                <div class="ticket-detail">
+                    <i class="fas fa-door-open"></i>
+                    <label>Phòng:</label>
+                    <span>@ViewBag.RoomName</span>
+                </div>
+            }
+
+            @if (ViewBag.ShowDate != null)
+            {
+                <div class="ticket-detail">
+                    <i class="fas fa-calendar-alt"></i>
+                    <label>Ngày chiếu:</label>
+                    <span>@ViewBag.ShowDate</span>
+                </div>
+            }
+
+            @if (ViewBag.ShowTime != null)
+            {
+                <div class="ticket-detail">
+                    <i class="fas fa-clock"></i>
+                    <label>Giờ chiếu:</label>
+                    <span>@ViewBag.ShowTime</span>
+                </div>
+            }
+
+            @if (ViewBag.SeatNumbers != null)
+            {
+                <div class="ticket-detail">
+                    <i class="fas fa-couch"></i>
+                    <label>Ghế:</label>
+                    <span>@ViewBag.SeatNumbers</span>
+                </div>
+            }
+
+            @if (ViewBag.TotalAmount != null)
+            {
+                <div class="ticket-detail">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <label>Tổng tiền:</label>
+                    <span>@ViewBag.TotalAmount</span>
+                </div>
+            }
         </div>
+
         <div class="action-buttons">
             <a href="@Url.Action("Index", "Home")" class="btn-home">
                 <i class="fas fa-home"></i>
@@ -42,5 +82,119 @@
 </div>
 
 <style>
-    
+.booking-success {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.success-content {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 600px;
+    width: 100%;
+}
+
+.success-icon {
+    color: #28a745;
+    font-size: 80px;
+    margin-bottom: 20px;
+}
+
+.success-content h1 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 28px;
+}
+
+.message {
+    color: #666;
+    margin-bottom: 5px;
+    font-size: 18px;
+}
+
+.sub-message {
+    color: #888;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.ticket-info {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.ticket-detail {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.ticket-detail i {
+    color: #df9a2c;
+    font-size: 20px;
+    margin-right: 15px;
+    width: 24px;
+}
+
+.ticket-detail label {
+    font-weight: 600;
+    color: #555;
+    margin-right: 10px;
+    min-width: 100px;
+}
+
+.ticket-detail span {
+    color: #333;
+    flex: 1;
+    text-align: left;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.btn-home, .btn-tickets {
+    padding: 12px 25px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-home {
+    background: #df9a2c;
+    color: white;
+}
+
+.btn-tickets {
+    background: #f8f9fa;
+    color: #df9a2c;
+    border: 2px solid #df9a2c;
+}
+
+.btn-home:hover, .btn-tickets:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-home i, .btn-tickets i {
+    margin-right: 8px;
+}
+
+
 </style>

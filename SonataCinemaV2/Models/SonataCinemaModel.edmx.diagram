@@ -33,6 +33,9 @@
         <EntityTypeShape EntityType="CinemaV3Model.Ghe_TrangThai" Width="1.5" PointX="8.625" PointY="12.375" />
         <AssociationConnector Association="CinemaV3Model.FK_Ghe_TrangThai_Ghe" />
         <AssociationConnector Association="CinemaV3Model.FK_Ghe_TrangThai_LichChieu" />
+        <EntityTypeShape EntityType="CinemaV3Model.DanhGia" Width="1.5" PointX="9" PointY="9.25" />
+        <AssociationConnector Association="CinemaV3Model.FK__DanhGia__ID_Khac__55BFB948" />
+        <AssociationConnector Association="CinemaV3Model.FK__DanhGia__ID_Phim__56B3DD81" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

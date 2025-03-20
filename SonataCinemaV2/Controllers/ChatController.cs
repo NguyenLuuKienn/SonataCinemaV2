@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using SonataCinemaV2.Quyen;
 using SonataCinemaV2.Models;
 using System.Net;
+using System.IO;
 
 
 namespace SonataCinemaV2.Controllers
@@ -27,11 +28,10 @@ namespace SonataCinemaV2.Controllers
         }
 
         [HttpPost]
-        public async Task<JsonResult> SendMessage(string message)
+        public async Task<JsonResult> SendMessage(string message, string imageData = null)
         {
             try
             {
-                // Tạo session ID từ cookie hoặc tạo mới
                 string sessionId = Request.Cookies["chat_session_id"]?.Value;
                 if (string.IsNullOrEmpty(sessionId))
                 {
@@ -41,6 +41,26 @@ namespace SonataCinemaV2.Controllers
                         Expires = DateTime.Now.AddDays(1)
                     };
                     Response.Cookies.Add(cookie);
+                }
+
+                if (!string.IsNullOrEmpty(imageData))
+                {
+                    // Lưu hình ảnh vào thư mục uploads
+                    string fileName = $"chat_image_{DateTime.Now.Ticks}.jpg";
+                    string path = Server.MapPath("~/Uploads/ChatImages/");
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+
+                    // Xử lý base64 image
+                    string base64Data = imageData.Substring(imageData.IndexOf(",") + 1);
+                    byte[] imageBytes = Convert.FromBase64String(base64Data);
+                    string filePath = Path.Combine(path, fileName);
+                    System.IO.File.WriteAllBytes(filePath, imageBytes);
+
+                    // Lưu đường dẫn hình ảnh vào database
+                    message = $"[IMAGE]/Uploads/ChatImages/{fileName}";
                 }
 
                 var response = await DialogflowHelper.GetResponseFromDialogflow(message, sessionId);

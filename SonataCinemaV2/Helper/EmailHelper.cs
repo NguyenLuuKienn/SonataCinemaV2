@@ -16,6 +16,7 @@ namespace SonataCinemaV2.Helper
         private static readonly int SmtpPort = 587;
         private static readonly string FromEmail = "nguyenluukien.d23ctc4@muce.edu.vn"; // Email của rạp
         private static readonly string Password = "uabjenvfrctxmjox"; // App password từ Google
+        private static readonly string FromName = "Sonata Cinema";
 
         public static async Task SendBookingConfirmationEmail(string toEmail, string customerName, string movieName, string showTime, string seats, decimal totalAmount)
         {
@@ -90,31 +91,44 @@ namespace SonataCinemaV2.Helper
 
         private static async Task SendEmailAsync(string toEmail, string subject, string body)
         {
-            try
+            using (var client = new SmtpClient(SmtpHost, SmtpPort))
             {
-                using (var client = new SmtpClient(SmtpHost, SmtpPort))
+                client.EnableSsl = true;
+                client.Credentials = new NetworkCredential(FromEmail, Password);
+
+                using (var message = new MailMessage())
                 {
-                    client.EnableSsl = true;
-                    client.Credentials = new NetworkCredential(FromEmail, Password);
+                    message.From = new MailAddress(FromEmail, FromName);
+                    message.To.Add(toEmail);
+                    message.Subject = subject;
+                    message.Body = body;
+                    message.IsBodyHtml = true;
 
-                    using (var message = new MailMessage())
-                    {
-                        message.From = new MailAddress(FromEmail, "Sonata Cinema");
-                        message.To.Add(toEmail);
-                        message.Subject = subject;
-                        message.Body = body;
-                        message.IsBodyHtml = true;
-
-                        await client.SendMailAsync(message);
-                    }
+                    await client.SendMailAsync(message);
                 }
             }
-            catch (Exception ex)
-            {
-                // Log error
-                System.Diagnostics.Debug.WriteLine($"Email Error: {ex.Message}");
-                throw;
-            }
+        }
+        public static async Task SendResetPasswordEmail(string email, string resetLink)
+        {
+            string subject = "Đặt lại mật khẩu Sonata Cinema";
+            var body = new StringBuilder();
+            body.AppendLine("<html><body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>");
+            body.AppendLine("<div style='background-color: #f8f9fa; padding: 20px; text-align: center;'>");
+            body.AppendLine("<h1 style='color: #df9a2c;'>Sonata Cinema</h1>");
+            body.AppendLine("</div>");
+            body.AppendLine("<div style='padding: 20px; background-color: white;'>");
+            body.AppendLine("<h2>Yêu cầu đặt lại mật khẩu</h2>");
+            body.AppendLine("<p>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Vui lòng nhấp vào liên kết bên dưới để tiếp tục:</p>");
+            body.AppendLine($"<p style='text-align: center; margin: 30px 0;'><a href='{resetLink}' style='background-color: #df9a2c; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Đặt lại mật khẩu</a></p>");
+            body.AppendLine("<p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>");
+            body.AppendLine("<p>Lưu ý: Liên kết này sẽ hết hạn sau 24 giờ.</p>");
+            body.AppendLine("</div>");
+            body.AppendLine("<div style='background-color: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px;'>");
+            body.AppendLine("<p>© 2023 Sonata Cinema. Tất cả các quyền được bảo lưu.</p>");
+            body.AppendLine("</div>");
+            body.AppendLine("</body></html>");
+
+            await SendEmailAsync(email, subject, body.ToString());
         }
         public static async Task SendChatLogEmail(string toEmail, string customerName, List<ChatMessage> messages)
         {

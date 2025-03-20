@@ -39,6 +39,16 @@
           <Property Name="Role" Type="nvarchar" MaxLength="20" />
           <Property Name="Status" Type="nvarchar" MaxLength="20" />
         </EntityType>
+        <EntityType Name="DanhGia">
+          <Key>
+            <PropertyRef Name="ID_DanhGia" />
+          </Key>
+          <Property Name="ID_DanhGia" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ID_KhachHang" Type="int" Nullable="false" />
+          <Property Name="ID_Phim" Type="int" Nullable="false" />
+          <Property Name="DiemDanhGia" Type="float" />
+          <Property Name="ThoiGianDanhGia" Type="datetime" />
+        </EntityType>
         <EntityType Name="DiemThuong">
           <Key>
             <PropertyRef Name="ID_KhachHang" />
@@ -81,6 +91,8 @@
           <Property Name="MatKhau" Type="nvarchar" MaxLength="100" Nullable="false" />
           <Property Name="QuyenHan" Type="nvarchar" MaxLength="50" />
           <Property Name="TrangThai" Type="nvarchar" MaxLength="100" />
+          <Property Name="ResetPasswordToken" Type="nvarchar" MaxLength="100" />
+          <Property Name="ResetPasswordExpiry" Type="datetime" />
         </EntityType>
         <EntityType Name="LichChieu">
           <Key>
@@ -106,6 +118,8 @@
           <Property Name="QuyenHan" Type="nvarchar" MaxLength="50" />
           <Property Name="CaLamViec" Type="nvarchar" MaxLength="50" />
           <Property Name="TrangThai" Type="nvarchar" MaxLength="100" />
+          <Property Name="ResetPasswordToken" Type="nvarchar" MaxLength="100" />
+          <Property Name="ResetPasswordExpiry" Type="datetime" />
         </EntityType>
         <EntityType Name="Phim">
           <Key>
@@ -190,6 +204,30 @@
             </Principal>
             <Dependent Role="ChatMessages">
               <PropertyRef Name="ID_NhanVien" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__DanhGia__ID_Khac__55BFB948">
+          <End Role="KhachHang" Type="Self.KhachHang" Multiplicity="1" />
+          <End Role="DanhGia" Type="Self.DanhGia" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="KhachHang">
+              <PropertyRef Name="ID_KhachHang" />
+            </Principal>
+            <Dependent Role="DanhGia">
+              <PropertyRef Name="ID_KhachHang" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__DanhGia__ID_Phim__56B3DD81">
+          <End Role="Phim" Type="Self.Phim" Multiplicity="1" />
+          <End Role="DanhGia" Type="Self.DanhGia" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Phim">
+              <PropertyRef Name="ID_Phim" />
+            </Principal>
+            <Dependent Role="DanhGia">
+              <PropertyRef Name="ID_Phim" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -372,6 +410,7 @@
           <EntitySet Name="__EFMigrationsHistory" EntityType="Self.__EFMigrationsHistory" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Blog" EntityType="Self.Blog" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ChatMessages" EntityType="Self.ChatMessages" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="DanhGia" EntityType="Self.DanhGia" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DiemThuong" EntityType="Self.DiemThuong" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Ghe" EntityType="Self.Ghe" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Ghe_TrangThai" EntityType="Self.Ghe_TrangThai" Schema="dbo" store:Type="Tables" />
@@ -390,6 +429,14 @@
           <AssociationSet Name="FK__ChatMessa__ID_Nh__2057CCD0" Association="Self.FK__ChatMessa__ID_Nh__2057CCD0">
             <End Role="NhanVien" EntitySet="NhanVien" />
             <End Role="ChatMessages" EntitySet="ChatMessages" />
+          </AssociationSet>
+          <AssociationSet Name="FK__DanhGia__ID_Khac__55BFB948" Association="Self.FK__DanhGia__ID_Khac__55BFB948">
+            <End Role="KhachHang" EntitySet="KhachHang" />
+            <End Role="DanhGia" EntitySet="DanhGia" />
+          </AssociationSet>
+          <AssociationSet Name="FK__DanhGia__ID_Phim__56B3DD81" Association="Self.FK__DanhGia__ID_Phim__56B3DD81">
+            <End Role="Phim" EntitySet="Phim" />
+            <End Role="DanhGia" EntitySet="DanhGia" />
           </AssociationSet>
           <AssociationSet Name="FK_Blog_NhanVien" Association="Self.FK_Blog_NhanVien">
             <End Role="NhanVien" EntitySet="NhanVien" />
@@ -483,6 +530,9 @@
           <NavigationProperty Name="Ves" Relationship="Self.FK_Ve_KhachHang" FromRole="KhachHang" ToRole="Ve" />
           <Property Name="TrangThai" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="ChatMessages" Relationship="CinemaV3Model.FK__ChatMessa__ID_Kh__1F63A897" FromRole="KhachHang" ToRole="ChatMessage" />
+          <NavigationProperty Name="DanhGias" Relationship="CinemaV3Model.FK__DanhGia__ID_Khac__55BFB948" FromRole="KhachHang" ToRole="DanhGia" />
+          <Property Name="ResetPasswordToken" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="ResetPasswordExpiry" Type="DateTime" Precision="3" />
         </EntityType>
         <EntityType Name="LichChieu">
           <Key>
@@ -515,6 +565,8 @@
           <NavigationProperty Name="Blogs" Relationship="CinemaV3Model.FK_Blog_NhanVien" FromRole="NhanVien" ToRole="Blog" />
           <Property Name="TrangThai" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="ChatMessages" Relationship="CinemaV3Model.FK__ChatMessa__ID_Nh__2057CCD0" FromRole="NhanVien" ToRole="ChatMessage" />
+          <Property Name="ResetPasswordToken" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="ResetPasswordExpiry" Type="DateTime" Precision="3" />
         </EntityType>
         <EntityType Name="Phim">
           <Key>
@@ -532,6 +584,7 @@
           <Property Name="Banner" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="Trailer" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="LichChieux" Relationship="Self.FK_LichChieu_Phim" FromRole="Phim" ToRole="LichChieu" />
+          <NavigationProperty Name="DanhGias" Relationship="CinemaV3Model.FK__DanhGia__ID_Phim__56B3DD81" FromRole="Phim" ToRole="DanhGia" />
         </EntityType>
         <EntityType Name="PhongChieu">
           <Key>
@@ -796,6 +849,15 @@
             <End Role="LichChieu" EntitySet="LichChieux" />
             <End Role="Ghe_TrangThai" EntitySet="Ghe_TrangThai" />
           </AssociationSet>
+          <EntitySet Name="DanhGias" EntityType="CinemaV3Model.DanhGia" />
+          <AssociationSet Name="FK__DanhGia__ID_Khac__55BFB948" Association="CinemaV3Model.FK__DanhGia__ID_Khac__55BFB948">
+            <End Role="KhachHang" EntitySet="KhachHangs" />
+            <End Role="DanhGia" EntitySet="DanhGias" />
+          </AssociationSet>
+          <AssociationSet Name="FK__DanhGia__ID_Phim__56B3DD81" Association="CinemaV3Model.FK__DanhGia__ID_Phim__56B3DD81">
+            <End Role="Phim" EntitySet="Phims" />
+            <End Role="DanhGia" EntitySet="DanhGias" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="sp_helpdiagramdefinition_Result">
           <Property Type="Int32" Name="version" Nullable="true" />
@@ -917,6 +979,42 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="DanhGia">
+          <Key>
+            <PropertyRef Name="ID_DanhGia" />
+          </Key>
+          <Property Name="ID_DanhGia" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ID_KhachHang" Type="Int32" Nullable="false" />
+          <Property Name="ID_Phim" Type="Int32" Nullable="false" />
+          <Property Name="DiemDanhGia" Type="Double" />
+          <Property Name="ThoiGianDanhGia" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="KhachHang" Relationship="CinemaV3Model.FK__DanhGia__ID_Khac__55BFB948" FromRole="DanhGia" ToRole="KhachHang" />
+          <NavigationProperty Name="Phim" Relationship="CinemaV3Model.FK__DanhGia__ID_Phim__56B3DD81" FromRole="DanhGia" ToRole="Phim" />
+        </EntityType>
+        <Association Name="FK__DanhGia__ID_Khac__55BFB948">
+          <End Type="CinemaV3Model.KhachHang" Role="KhachHang" Multiplicity="1" />
+          <End Type="CinemaV3Model.DanhGia" Role="DanhGia" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="KhachHang">
+              <PropertyRef Name="ID_KhachHang" />
+            </Principal>
+            <Dependent Role="DanhGia">
+              <PropertyRef Name="ID_KhachHang" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__DanhGia__ID_Phim__56B3DD81">
+          <End Type="CinemaV3Model.Phim" Role="Phim" Multiplicity="1" />
+          <End Type="CinemaV3Model.DanhGia" Role="DanhGia" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Phim">
+              <PropertyRef Name="ID_Phim" />
+            </Principal>
+            <Dependent Role="DanhGia">
+              <PropertyRef Name="ID_Phim" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -946,6 +1044,8 @@
           <EntitySetMapping Name="KhachHangs">
             <EntityTypeMapping TypeName="CinemaV3Model.KhachHang">
               <MappingFragment StoreEntitySet="KhachHang">
+                <ScalarProperty Name="ResetPasswordExpiry" ColumnName="ResetPasswordExpiry" />
+                <ScalarProperty Name="ResetPasswordToken" ColumnName="ResetPasswordToken" />
                 <ScalarProperty Name="TrangThai" ColumnName="TrangThai" />
                 <ScalarProperty Name="ID_KhachHang" ColumnName="ID_KhachHang" />
                 <ScalarProperty Name="TenKhachHang" ColumnName="TenKhachHang" />
@@ -975,6 +1075,8 @@
           <EntitySetMapping Name="NhanViens">
             <EntityTypeMapping TypeName="CinemaV3Model.NhanVien">
               <MappingFragment StoreEntitySet="NhanVien">
+                <ScalarProperty Name="ResetPasswordExpiry" ColumnName="ResetPasswordExpiry" />
+                <ScalarProperty Name="ResetPasswordToken" ColumnName="ResetPasswordToken" />
                 <ScalarProperty Name="TrangThai" ColumnName="TrangThai" />
                 <ScalarProperty Name="ViTri" ColumnName="ViTri" />
                 <ScalarProperty Name="ID_NhanVien" ColumnName="ID_NhanVien" />
@@ -1122,6 +1224,17 @@
                 <ScalarProperty Name="ID_Ghe" ColumnName="ID_Ghe" />
                 <ScalarProperty Name="ID_LichChieu" ColumnName="ID_LichChieu" />
                 <ScalarProperty Name="ID_TrangThai" ColumnName="ID_TrangThai" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DanhGias">
+            <EntityTypeMapping TypeName="CinemaV3Model.DanhGia">
+              <MappingFragment StoreEntitySet="DanhGia">
+                <ScalarProperty Name="ThoiGianDanhGia" ColumnName="ThoiGianDanhGia" />
+                <ScalarProperty Name="DiemDanhGia" ColumnName="DiemDanhGia" />
+                <ScalarProperty Name="ID_Phim" ColumnName="ID_Phim" />
+                <ScalarProperty Name="ID_KhachHang" ColumnName="ID_KhachHang" />
+                <ScalarProperty Name="ID_DanhGia" ColumnName="ID_DanhGia" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

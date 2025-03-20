@@ -1,72 +1,188 @@
 ﻿@model List<dynamic>
 
 <div class="report-management">
-    <h2>Báo cáo Doanh Thu</h2>
+    <div class="report-header">
+        <h2>Báo Cáo Thống Kê</h2>
+        <div class="report-actions">
+            <button id="exportAllExcel" class="btn btn-success">
+                <i class="fas fa-file-excel"></i> Xuất Báo Cáo
+            </button>
+        </div>
+    </div>
 
-    <!-- Form lọc thống kê -->
-    <form id="filterForm">
-        <label for="loaiThongKe">Loại thống kê:</label>
-        <select id="loaiThongKe" name="loaiThongKe">
-            <option value="Phim">Theo Phim</option>
-            <option value="PhongChieu">Theo Phòng Chiếu</option>
-            <option value="ToanRap">Toàn Rạp</option>
-        </select>
-
-        <label for="khoangThoiGian">Khoảng thời gian:</label>
-        <select id="khoangThoiGian" name="khoangThoiGian">
-            <option value="Tuan">Tuần</option>
-            <option value="Thang">Tháng</option>
-            <option value="Nam">Năm</option>
-        </select>
-
-        <button type="submit" class="btn btn-primary">Lọc</button>
-    </form>
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>STT</th>
-                <th>Tên</th>
-                <th>Ngày</th>
-                <th>Doanh Thu</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Any())
-            {
-                int stt = 1;
-                foreach (var item in Model)
-                {
+    <div class="report-sections">
+        <!-- Thống kê theo phim -->
+        <div class="report-section">
+            <h3>Thống Kê Theo Phim</h3>
+            <table class="table table-striped">
+                <thead>
                     <tr>
-                        <td>@stt</td>
-                        <td>@item.Ten</td>
-                        <td>@item.Ngay</td>
-                        <td>@item.DoanhThu.ToString("N0") VNĐ</td>
+                        <th>STT</th>
+                        <th>Tên Phim</th>
+                        <th>Số Vé Đã Bán</th>
+                        <th>Doanh Thu</th>
                     </tr>
-                    stt++;
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="4" class="text-center">Không có dữ liệu</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                </thead>
+                <tbody id="movieStats">
+                    @{
+                        var movieStats = ViewBag.MovieStats as List<dynamic>;
+                        if (movieStats != null && movieStats.Any())
+                        {
+                            int stt = 1;
+                            foreach (var item in movieStats)
+                            {
+                                <tr>
+                                    <td>@stt</td>
+                                    <td>@item.TenPhim</td>
+                                    <td>@item.SoVe.ToString("N0")</td>
+                                    <td>@item.DoanhThu.ToString("N0") VNĐ</td>
+                                </tr>
+                                stt++;
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
 
-    <!-- Nút xuất file Excel -->
-    <button id="exportExcel" class="btn btn-success">
-        Xuất file Excel
-    </button>
+        <!-- Thống kê theo phòng chiếu -->
+        <div class="report-section">
+            <h3>Thống Kê Theo Phòng Chiếu</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Phòng Chiếu</th>
+                        <th>Số Suất Chiếu</th>
+                        <th>Doanh Thu</th>
+                    </tr>
+                </thead>
+                <tbody id="roomStats">
+                    @{
+                        var roomStats = ViewBag.RoomStats as List<dynamic>;
+                        if (roomStats != null && roomStats.Any())
+                        {
+                            int stt = 1;
+                            foreach (var item in roomStats)
+                            {
+                                <tr>
+                                    <td>@stt</td>
+                                    <td>@item.TenPhong</td>
+                                    <td>@item.SoSuatChieu.ToString("N0")</td>
+                                    <td>@item.DoanhThu.ToString("N0") VNĐ</td>
+                                </tr>
+                                stt++;
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Thống kê doanh thu theo thời gian -->
+        <div class="report-section">
+            <h3>Thống Kê Doanh Thu Theo Thời Gian</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Thời Gian</th>
+                        <th>Doanh Thu</th>
+                        <th>Số Vé Bán Ra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Hôm nay</td>
+                        <td>@ViewBag.DoanhThuHomNay.ToString("N0") VNĐ</td>
+                        <td>@ViewBag.VeHomNay</td>
+                    </tr>
+                    <tr>
+                        <td>Tuần này</td>
+                        <td>@ViewBag.DoanhThuTuan.ToString("N0") VNĐ</td>
+                        <td>@ViewBag.VeTuan</td>
+                    </tr>
+                    <tr>
+                        <td>Tháng này</td>
+                        <td>@ViewBag.DoanhThuThang.ToString("N0") VNĐ</td>
+                        <td>@ViewBag.VeThang</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<script>
-    document.getElementById("exportExcel").addEventListener("click", function () {
-        var loaiThongKe = document.getElementById("loaiThongKe").value;
-        var khoangThoiGian = document.getElementById("khoangThoiGian").value;
-        var url = `/Admin/ExportExcel?loaiThongKe=${loaiThongKe}&khoangThoiGian=${khoangThoiGian}`;
-        window.location.href = url;
-    });
-</script>
+<style>
+    .report-management {
+        padding: 20px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
 
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+        .report-header h2 {
+            margin: 0;
+            color: #333;
+        }
+
+    .report-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .report-sections {
+        display: grid;
+        gap: 30px;
+    }
+
+    .report-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+    }
+
+        .report-section h3 {
+            margin-bottom: 20px;
+            color: #444;
+            font-size: 1.2rem;
+        }
+
+    .table {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+        .table th {
+            background: #f1f1f1;
+            font-weight: 600;
+        }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+</style>
+
+<script>
+$(document).ready(function() {
+    $('#exportAllExcel').click(function() {
+        window.location.href = '@Url.Action("ExportExcel", "Admin", new { loaiThongKe = "TatCa" })';
+    });
+});
+</script>

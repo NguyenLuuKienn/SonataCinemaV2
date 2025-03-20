@@ -49,38 +49,51 @@ namespace SonataCinemaV2.Controllers
         [HttpPost]
         public ActionResult ChangePassword(string currentPassword, string newPassword, string confirmPassword)
         {
-            if (Session["MaKhachHang"] == null)
-            {
-                return Json(new { success = false, message = "Vui lòng đăng nhập lại!" });
-            }
-
-            int userId = (int)Session["MaKhachHang"];
-            var khachHang = db.KhachHangs.Find(userId);
-
-            if (khachHang == null)
-            {
-                return Json(new { success = false, message = "Không tìm thấy tài khoản!" });
-            }
-
-            if (khachHang.MatKhau != currentPassword)
-            {
-                return Json(new { success = false, message = "Mật khẩu hiện tại không đúng!" });
-            }
-
-            if (newPassword != confirmPassword)
-            {
-                return Json(new { success = false, message = "Mật khẩu mới không khớp!" });
-            }
-
             try
             {
-                khachHang.MatKhau = newPassword;
+                if (Session["MaKhachHang"] == null)
+                {
+                    return Json(new { success = false, message = "Vui lòng đăng nhập lại!" });
+                }
+
+                int userId = (int)Session["MaKhachHang"];
+                var khachHang = db.KhachHangs.Find(userId);
+
+                if (khachHang == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy tài khoản!" });
+                }
+
+                // Kiểm tra mật khẩu hiện tại bằng BCrypt
+                bool isValidPassword = BCrypt.Net.BCrypt.Verify(currentPassword, khachHang.MatKhau);
+                if (!isValidPassword)
+                {
+                    return Json(new { success = false, message = "Mật khẩu hiện tại không đúng!" });
+                }
+
+                if (newPassword != confirmPassword)
+                {
+                    return Json(new { success = false, message = "Mật khẩu mới không khớp!" });
+                }
+
+                // Kiểm tra độ dài mật khẩu mới
+                if (newPassword.Length < 6)
+                {
+                    return Json(new { success = false, message = "Mật khẩu mới phải có ít nhất 6 ký tự!" });
+                }
+
+                // Mã hóa mật khẩu mới bằng BCrypt
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                khachHang.MatKhau = hashedPassword;
                 db.SaveChanges();
+
+                System.Diagnostics.Debug.WriteLine($"Password changed successfully for user {userId}");
                 return Json(new { success = true, message = "Đổi mật khẩu thành công!" });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+                System.Diagnostics.Debug.WriteLine($"Error changing password: {ex.Message}");
+                return Json(new { success = false, message = "Có lỗi xảy ra khi đổi mật khẩu: " + ex.Message });
             }
         }
 

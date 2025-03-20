@@ -30,6 +30,8 @@ namespace SonataCinemaV2.Models
         public string QuyenHan { get; set; }
         public string CaLamViec { get; set; }
         public string TrangThai { get; set; }
+        public string ResetPasswordToken { get; set; }
+        public Nullable<System.DateTime> ResetPasswordExpiry { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ThanhToan> ThanhToans { get; set; }

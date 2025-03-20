@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Web;
 using System.Web.Mvc;
 using SonataCinemaV2.Models;
+using SonataCinemaV2.Services;
 using SonataCinemaV2.ViewModel;
 
 namespace SonataCinema.Controllers
@@ -13,19 +14,34 @@ namespace SonataCinema.Controllers
     {
         // GET: Details
         CinemaV3Entities db = new CinemaV3Entities();
+
+        private readonly MovieRecommenderService _recommenderService;
+
+        public DetailsController()
+        {
+            _recommenderService = new MovieRecommenderService(db);
+        }
+
+
         public ActionResult DetailsPage(int id)
         {
             var phim = db.Phims.FirstOrDefault(p => p.ID_Phim == id);
             if (phim == null)
             {
-                return Redirect("Error");
+                return RedirectToAction("Error");
             }
-            var randomPhim = db.Phims.OrderBy(r => Guid.NewGuid()).Take(3).ToList();
-            if (randomPhim == null || randomPhim.Count == 0)
+
+            if (Session["MaKhachHang"] != null)
             {
-                randomPhim = new List<Phim>();
+                var userId = (int)Session["MaKhachHang"];
+                var recommender = new MovieRecommenderService(db);
+                phim.RandomMovie = recommender.GetMovieRecommendations(userId, 3);
             }
-            phim.RandomMovie = randomPhim;
+            else
+            {
+                phim.RandomMovie = db.Phims.OrderBy(r => Guid.NewGuid()).Take(3).ToList();
+            }
+
             return View(phim);
         }
 
@@ -60,23 +76,61 @@ namespace SonataCinema.Controllers
         {
             try
             {
+                if(!User.Identity.IsAuthenticated)
+                {
+                    return Json(new { succes = false, message = "Vui lòng đăng nhập" });
+                }
+
+                var userId = (int)Session["MaKhachHang"];
                 var phim = db.Phims.Find(idPhim);
                 if (phim == null)
                 {
                     return Json(new { succes = false, massage = "Không tìm thấy phim" });
                 }
 
-                double diemHienTai = phim.DanhGia ?? 0;
-                double diemMoi = diemHienTai == 0 ?
-                    rating : Math.Round((diemHienTai + rating) / 2, 1);
-                phim.DanhGia = diemMoi;
+                var existingRating = db.DanhGias.FirstOrDefault(d => d.ID_KhachHang == userId && d.ID_Phim == idPhim);
+                if(existingRating != null)
+                {
+                    existingRating.DiemDanhGia = rating;
+                    existingRating.ThoiGianDanhGia = DateTime.Now;
+                }
+                else
+                {
+                    var newRating = new DanhGia
+                    {
+                        ID_KhachHang = userId,
+                        ID_Phim = idPhim,
+                        DiemDanhGia = rating,
+                        ThoiGianDanhGia = DateTime.Now
+                    };
+                    db.DanhGias.Add(newRating);
+                }
+
+                var allRatings = db.DanhGias.Where(d => d.ID_Phim == idPhim).Select(d => (double?)d.DiemDanhGia);
+
+                if (allRatings.Any())
+                {
+                    var averageRating = allRatings.Average();
+                    phim.DanhGia = (float?)averageRating;
+                }
+                else
+                {
+                    phim.DanhGia = rating;
+                }
+
                 db.SaveChanges();
 
-                return Json(new { succes = true, newRating = phim.DanhGia, message = "Cảm ơn bạn đã đánh giá phim" });
+                return Json(new
+                {
+                    success = true,
+                    newRating = phim.DanhGia.HasValue ? Math.Round(phim.DanhGia.Value, 1) : rating,
+                    message = "Cảm ơn bạn đã đánh giá phim"
+                });
 
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Lỗi đánh giá phim: {ex.Message}");
                 return Json(new { succes = false, message = "Lỗi khi đánh giá phim" });
             }
         }

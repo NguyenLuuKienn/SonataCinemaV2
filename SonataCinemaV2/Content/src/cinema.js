@@ -180,6 +180,7 @@ $(document).ready(function () {
             url: this.action,
             type: this.method,
             data: $(this).serialize(),
+            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
             success: function (response) {
                 if (response.success) {
                     if (response.redirectUrl) {
@@ -188,20 +189,24 @@ $(document).ready(function () {
                         window.location.href = '/';
                     }
                 } else {
-                    if (typeof response === 'string') {
+                    // Sửa phần này để hiển thị lỗi validation
+                    if (typeof response === 'string' && response.includes('<')) {
                         $('#modalRegister').html(response);
                     } else {
-                        alert('Đăng ký thất bại. Vui lòng thử lại.');
+                        // Hiển thị thông báo lỗi cụ thể nếu có
+                        var errorMessage = response.message || 'Đăng ký thất bại. Vui lòng thử lại.';
+                        alert(errorMessage);
                     }
                 }
             },
             error: function (xhr, status, error) {
                 console.error('Error:', error);
-                alert('Có lỗi xảy ra trong quá trình đăng ký.');
+                console.log('Response:', xhr.responseText); // Thêm log để debug
+                alert('Có lỗi xảy ra trong quá trình đăng ký. Vui lòng kiểm tra lại thông tin.');
             }
         });
     });
-});
+    });
 
 // xem mật khẩu
 function togglePassword() {
@@ -218,3 +223,167 @@ function togglePassword() {
         toggleIcon.classList.add('fa-eye');
     }
 }
+$(document).on('submit', '#forgotPasswordForm', function (e) {
+    e.preventDefault();
+    console.log('Submitting forgot password form...'); // Debug log
+
+    var form = $(this);
+    $.ajax({
+        url: form.attr('action'),
+        type: 'POST',
+        data: form.serialize(),
+        success: function (response) {
+            console.log('Form submission response:', response); // Debug log
+            if (response.success) {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: 'Vui lòng kiểm tra email của bạn để nhận hướng dẫn đặt lại mật khẩu.',
+                    icon: 'success',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#df9a2c'
+                }).then((result) => {
+                    $('#loginModal').modal('hide');
+                });
+            } else {
+                $('#loginModal .modal-body').html(response);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error submitting form:', error); // Debug log
+            Swal.fire({
+                title: 'Lỗi!',
+                text: 'Đã có lỗi xảy ra. Vui lòng thử lại sau.',
+                icon: 'error',
+                confirmButtonText: 'Đóng',
+                confirmButtonColor: '#df9a2c'
+            });
+        }
+    });
+});
+
+// Thêm function này nếu chưa có
+function initializeForgotPasswordForm() {
+    $('#forgotPasswordForm').off('submit').on('submit', function (e) {
+        e.preventDefault();
+        console.log('Submitting forgot password form...');
+
+        var form = $(this);
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: form.serialize(),
+            success: function (response) {
+                console.log('Response:', response);
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Thành công!',
+                        text: 'Vui lòng kiểm tra email của bạn để nhận hướng dẫn đặt lại mật khẩu.',
+                        icon: 'success',
+                        confirmButtonText: 'Đóng',
+                        confirmButtonColor: '#df9a2c'
+                    }).then((result) => {
+                        $('#loginModal').modal('hide');
+                    });
+                } else {
+                    $('#loginModal .modal-body').html(response);
+                    initializeForgotPasswordForm();
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: 'Đã có lỗi xảy ra. Vui lòng thử lại sau.',
+                    icon: 'error',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#df9a2c'
+                });
+            }
+        });
+    });
+}
+
+function showLoginForm() {
+    $.ajax({
+        url: '/Account/LoginPartial',
+        type: 'GET',
+        success: function (result) {
+            $('#loginModal .modal-body').html(result);
+            $('#loginModal .modal-title').text('Đăng nhập');
+            // Khởi tạo lại các event handlers
+            initializeLoginValidation();
+        }
+    });
+}
+$(document).ready(function () {
+    // Xử lý click nút quên mật khẩu
+    $(document).on('click', '#btnForgotPassword', function (e) {
+        e.preventDefault();
+        console.log('Forgot password button clicked');
+
+        // Ẩn modal login
+        $('#modalLogin').hide();
+
+        // Hiển thị overlay và modal quên mật khẩu
+        $('#blurOverlay').show();
+
+        // Load form quên mật khẩu
+        $.ajax({
+            url: '/Account/ForgotPasswordPartial',
+            type: 'GET',
+            success: function (result) {
+                $('#forgotPasswordPartialContainer').html(result);
+                $('#modalForgotPassword').show();
+            },
+            error: function (xhr, status, error) {
+                console.error('Error loading forgot password form:', error);
+            }
+        });
+    });
+
+    // Xử lý submit form quên mật khẩu
+    $(document).on('submit', '#forgotPasswordForm', function (e) {
+        e.preventDefault();
+        console.log('Submitting forgot password form');
+
+        var form = $(this);
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: form.serialize(),
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Thành công!',
+                        text: 'Vui lòng kiểm tra email của bạn để nhận hướng dẫn đặt lại mật khẩu.',
+                        icon: 'success',
+                        confirmButtonText: 'Đóng',
+                        confirmButtonColor: '#df9a2c'
+                    }).then((result) => {
+                        $('#modalForgotPassword').hide();
+                        $('#blurOverlay').hide();
+                    });
+                } else {
+                    $('#forgotPasswordPartialContainer').html(response);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: 'Đã có lỗi xảy ra. Vui lòng thử lại sau.',
+                    icon: 'error',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#df9a2c'
+                });
+            }
+        });
+    });
+
+    // Xử lý nút quay lại đăng nhập
+    $(document).on('click', '#btnBackToLogin', function (e) {
+        e.preventDefault();
+        $('#modalForgotPassword').hide();
+        $('#modalLogin').show();
+    });
+});
