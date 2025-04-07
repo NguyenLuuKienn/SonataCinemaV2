@@ -304,7 +304,6 @@
     let currentRoomId;
     let isStaffChat = false;
     let currentStaffName = null;
-    let isDialogFlowEnabled = true;
 
     // Khởi tạo khi document ready
     $(document).ready(function() {
@@ -438,33 +437,41 @@
 
     if (!message) return;
 
-    console.log('Current chat state:', {
-        isStaffChat,
-        currentRoomId,
-        currentStaffName
-    });
-
     if (isStaffChat && currentRoomId) {
+        // Xử lý chat với nhân viên
         chatHub.server.sendMessage(
             currentRoomId,
             '@User.Identity.Name',
             message,
             'Customer'
         ).done(function() {
-            console.log('✅ Tin nhắn đã gửi thành công');
             messageInput.val('');
-            // Append tin nhắn của mình ngay khi gửi thành công
             appendMessage('Bạn', message, 'Customer', new Date());
         }).fail(function(error) {
             console.error('❌ Lỗi gửi tin nhắn:', error);
             appendSystemMessage('Không thể gửi tin nhắn. Vui lòng thử lại.');
         });
-    } else if (isDialogFlowEnabled) {
-        // Gửi tin nhắn tới DialogFlow
+    } else {
+        // Gửi tin nhắn tới Gemini API
         appendMessage('Bạn', message, 'Customer', new Date());
         messageInput.val('');
 
-        sendToDialogFlow(message);
+        // Gọi API Gemini
+        $.ajax({
+            url: '/Chat/SendMessage',
+            type: 'POST',
+            data: { message: message },
+            success: function(response) {
+                if (response.success) {
+                    appendMessage('Sonata Bot', response.message, 'Bot', new Date());
+                } else {
+                    appendSystemMessage('Không thể kết nối với bot. Vui lòng thử lại sau.');
+                }
+            },
+            error: function() {
+                appendSystemMessage('Không thể kết nối với bot. Vui lòng thử lại sau.');
+            }
+        });
     }
 }
 
@@ -484,34 +491,6 @@
     }
 
 
-    // Gửi tin nhắn tới DialogFlow
-    async function sendToDialogFlow(message) {
-    try {
-        const response = await fetch('/Chat/SendMessage', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-            },
-            body: JSON.stringify({ message: message })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.success) {
-            // Đảm bảo role là 'Bot' cho tin nhắn từ DialogFlow
-            appendMessage('Bot', data.message, 'Bot', new Date());
-        } else {
-            throw new Error(data.message || 'Unknown error');
-        }
-    } catch (error) {
-        console.error('DialogFlow Error:', error);
-        appendSystemMessage('Không thể kết nối với bot. Vui lòng thử lại sau.');
-    }
-}
 
 
     // Yêu cầu chat với nhân viên

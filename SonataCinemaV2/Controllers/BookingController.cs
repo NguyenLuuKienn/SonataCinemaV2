@@ -23,10 +23,10 @@ namespace SonataCinema.Controllers
         // GET: Booking
         public ActionResult BookingTicket()
         {
-                
-            var phim = db.LichChieux.Where(p => p.TrangThai == "Đang chiếu").Select(p => p.Phim.TenPhim).ToList();
+            var today = DateTime.Today;
+            var phim = db.LichChieux.Where(p => p.TrangThai == "Chưa chiếu" && p.NgayChieu >= today).Select(p => p.Phim.TenPhim).Distinct().ToList();
             var phong = db.PhongChieux.Select(pc => pc.TenPhong).ToList();
-            var ngay = db.LichChieux.Select(lc => lc.NgayChieu).ToList().Select(d => d.ToString("dd-MM-yyyy")).ToList();
+            var ngay = db.LichChieux.Select(lc => lc.NgayChieu).Distinct().ToList().Select(d => d.ToString("dd-MM-yyyy")).ToList();
             var gio = db.LichChieux.Select(lc => lc.GioChieu).ToList().Select(t => t.ToString(@"hh\:mm")).ToList();
 
             var ghe = db.Ghes.Select(g => new GheViewModel { IDGhe = g.ID_Ghe, TenGhe = g.TenGhe }).ToList();
@@ -278,34 +278,62 @@ namespace SonataCinema.Controllers
         [HttpPost]
         public ActionResult ConfirmBooking(ConfirmViewModel model)
         {
-            if (ModelState.IsValid)
+            try
             {
-                try
+                System.Diagnostics.Debug.WriteLine("ConfirmBooking received data:");
+                System.Diagnostics.Debug.WriteLine($"TongTienVe: {model.TongTienVe}");
+                System.Diagnostics.Debug.WriteLine($"TongTienCombo: {model.TongTienCombo}");
+                System.Diagnostics.Debug.WriteLine($"Combos count: {model.Combos?.Count ?? 0}");
+                if (!ModelState.IsValid)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Received IDLichChieu: {model.IDLichChieu}");
-
-                    var lichChieu = db.LichChieux.Find(model.IDLichChieu);
-                    if (lichChieu == null)
-                    {
-                        throw new Exception("Không tìm thấy lịch chiếu");
-                    }
-                    model.GiaVe = lichChieu.GiaVe ?? 0;
-                    model.TongTien = model.GiaVe * model.ChonGhe.Count;
-                    TempData["BookingInfo"] = model;
-
-                    return Json(new { redirectUrl = Url.Action("ConfirmBooking") });
+                    var errors = string.Join("; ", ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage));
+                    return Json(new { success = false, error = errors });
                 }
-                catch (Exception ex)
+
+                // Lấy thông tin lịch chiếu
+                var lichChieu = db.LichChieux
+                    .Include(lc => lc.Phim)
+                    .Include(lc => lc.PhongChieu)
+                    .FirstOrDefault(lc => lc.ID_LichChieu == model.IDLichChieu);
+
+                if (lichChieu == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
-                    return Json(new { error = ex.Message });
+                    return Json(new { success = false, error = "Không tìm thấy lịch chiếu" });
                 }
+
+                // Tạo model với đầy đủ thông tin
+                var confirmModel = new ConfirmViewModel
+                {
+                    IDLichChieu = model.IDLichChieu,
+                    IDKhachHang = model.IDKhachHang,
+                    TenPhim = lichChieu.Phim.TenPhim,
+                    TenPhong = lichChieu.PhongChieu.TenPhong,
+                    Ngay = lichChieu.NgayChieu.ToString("dd-MM-yyyy"),
+                    GioChieu = lichChieu.GioChieu.ToString(@"hh\:mm"),
+                    GiaVe = lichChieu.GiaVe ?? 0,
+                    ChonGhe = model.ChonGhe,
+                    Combos = model.Combos,
+                    TongTien = model.ChonGhe.Count * (lichChieu.GiaVe ?? 0),
+                    TongTienCombo = model.TongTienCombo
+                };
+
+                confirmModel.TongTien = confirmModel.TongTien + confirmModel.TongTienCombo;
+
+                // Debug log
+                System.Diagnostics.Debug.WriteLine($"Saving to TempData: {confirmModel.TenPhim}, {confirmModel.TenPhong}, {confirmModel.Ngay}");
+
+                // Lưu vào TempData
+                TempData["BookingInfo"] = confirmModel;
+
+                return Json(new { success = true, redirectUrl = Url.Action("ConfirmBooking") });
             }
-
-            var errors = string.Join("; ", ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage));
-            return Json(new { error = errors });
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in ConfirmBooking: {ex.Message}");
+                return Json(new { success = false, error = ex.Message });
+            }
         }
 
         [HttpGet]
@@ -317,8 +345,8 @@ namespace SonataCinema.Controllers
                 return RedirectToAction("BookingTicket");
             }
 
-            // Log để kiểm tra
-            System.Diagnostics.Debug.WriteLine($"Retrieved IDLichChieu: {model.IDLichChieu}");
+            // Debug log
+            System.Diagnostics.Debug.WriteLine($"Retrieved from TempData: {model.TenPhim}, {model.TenPhong}, {model.Ngay}");
 
             return View(model);
         }
@@ -332,42 +360,55 @@ namespace SonataCinema.Controllers
                 {
                     try
                     {
+                        // Debug log
                         System.Diagnostics.Debug.WriteLine($"Start processing payment:");
                         System.Diagnostics.Debug.WriteLine($"IDLichChieu: {model.IDLichChieu}");
                         System.Diagnostics.Debug.WriteLine($"IDKhachHang: {model.IDKhachHang}");
                         System.Diagnostics.Debug.WriteLine($"TongTien: {model.TongTien}");
                         System.Diagnostics.Debug.WriteLine($"Số ghế đã chọn: {model.ChonGhe?.Count ?? 0}");
+                        System.Diagnostics.Debug.WriteLine($"Số combo đã chọn: {model.Combos?.Count ?? 0}");
 
-                        // Kiểm tra lịch chiếu
+                        // 1. Kiểm tra dữ liệu
                         var lichChieu = db.LichChieux.Find(model.IDLichChieu);
                         if (lichChieu == null)
                         {
                             throw new Exception($"Không tìm thấy lịch chiếu với ID: {model.IDLichChieu}");
                         }
 
-                        // Kiểm tra khách hàng
                         var khachHang = db.KhachHangs.Find(model.IDKhachHang);
                         if (khachHang == null)
                         {
                             throw new Exception($"Không tìm thấy khách hàng với ID: {model.IDKhachHang}");
                         }
 
-                        // Thêm thanh toán 
+                        // 2. Tính tổng tiền
+                        decimal tongTienVe = model.ChonGhe.Count * (lichChieu.GiaVe ?? 0);
+                        decimal tongTienCombo = 0;
+                        string comboInfo = "Không có combo";
+                        if (model.Combos != null && model.Combos.Any())
+                        {
+                            tongTienCombo = model.Combos.Sum(c => c.SoLuong * c.Gia);
+                            comboInfo = string.Join(", ", model.Combos.Select(c => $"{c.TenCombo} x{c.SoLuong}"));
+                        }
+                        decimal tongTienThanhToan = tongTienVe + tongTienCombo;
+
+                        // 3. Tạo thanh toán
                         var newThanhToan = new ThanhToan
                         {
                             ID_KhachHang = model.IDKhachHang,
-                            TongTienGoc = model.TongTien,
-                            SoTienGiam = 0,
+                            TongTienGoc = tongTienThanhToan,
+                            SoTienGiam = 0, 
+                            TongTienCombo = tongTienCombo,
                             ID_NhanVien = null,
                             NgayThanhToan = DateTime.Now
                         };
                         db.ThanhToans.Add(newThanhToan);
-                        db.SaveChanges();
+                        await db.SaveChangesAsync();
 
-                        // Thêm vé
+                        // 4. Tạo vé
                         foreach (var ghe in model.ChonGhe)
                         {
-                            // Kiểm tra xem ghế đã được đặt chưa
+                            // Kiểm tra ghế đã đặt
                             var existingVe = db.Ves.FirstOrDefault(v =>
                                 v.ID_LichChieu == model.IDLichChieu &&
                                 v.ChoNgoi == ghe.TenGhe);
@@ -381,13 +422,15 @@ namespace SonataCinema.Controllers
                             {
                                 ID_LichChieu = model.IDLichChieu,
                                 ID_KhachHang = model.IDKhachHang,
-                                ID_ThanhToan = newThanhToan.ID_ThanhToan, 
-                                Gia = lichChieu.GiaVe?? 0,
+                                ID_ThanhToan = newThanhToan.ID_ThanhToan,
+                                Gia = lichChieu.GiaVe ?? 0,
                                 ChoNgoi = ghe.TenGhe,
                                 NgayDat = DateTime.Now,
                                 TrangThai = "Thành Công"
                             };
                             db.Ves.Add(newVe);
+
+                            // Xóa trạng thái giữ ghế
                             var gheTrangThai = await db.Ghe_TrangThai.FirstOrDefaultAsync(gt =>
                                 gt.ID_LichChieu == model.IDLichChieu &&
                                 gt.ID_Ghe == ghe.IDGhe);
@@ -397,12 +440,30 @@ namespace SonataCinema.Controllers
                                 db.Ghe_TrangThai.Remove(gheTrangThai);
                             }
                         }
+
+                        // 5. Tạo combo orders
+                        if (model.Combos != null && model.Combos.Any())
+                        {
+                            foreach (var combo in model.Combos)
+                            {
+                                var comboOrder = new ComboOrder
+                                {
+                                    ID_ThanhToan = newThanhToan.ID_ThanhToan,
+                                    ID_Combo = combo.IDCombo,
+                                    SoLuong = combo.SoLuong,
+                                    GiaTien = combo.Gia * combo.SoLuong
+                                };
+                                db.ComboOrders.Add(comboOrder);
+                            }
+                        }
+
+                        // 6. Cập nhật điểm thưởng
                         khachHang.DiemThuong += 1;
                         db.Entry(khachHang).State = EntityState.Modified;
 
                         await db.SaveChangesAsync();
 
-                        // Gửi email xác nhận
+                        // 7. Gửi email xác nhận
                         var email = khachHang.Email;
                         var customerName = khachHang.TenKhachHang;
                         var movieName = lichChieu.Phim?.TenPhim;
@@ -410,7 +471,9 @@ namespace SonataCinema.Controllers
                         var formattedTime = lichChieu.GioChieu.ToString(@"hh\:mm");
                         var showTime = $"{formattedDate} {formattedTime}";
                         var seats = string.Join(", ", model.ChonGhe.Select(g => g.TenGhe));
-                        var totalAmount = model.TongTien;
+                        var combos = model.Combos != null && model.Combos.Any()
+                            ? string.Join(", ", model.Combos.Select(c => $"{c.TenCombo} x{c.SoLuong}"))
+                            : "Không có combo";
 
                         await EmailHelper.SendBookingConfirmationEmail(
                             email,
@@ -418,15 +481,20 @@ namespace SonataCinema.Controllers
                             movieName,
                             showTime,
                             seats,
-                            totalAmount
+                            combos,
+                            tongTienThanhToan
                         );
 
+                        // 8. Lưu thông tin cho trang success
                         Session["BookingSuccess_MovieName"] = lichChieu.Phim.TenPhim;
                         Session["BookingSuccess_ShowDate"] = lichChieu.NgayChieu.ToString("dd/MM/yyyy");
                         Session["BookingSuccess_ShowTime"] = lichChieu.GioChieu.ToString(@"hh\:mm");
                         Session["BookingSuccess_SeatNumbers"] = string.Join(", ", model.ChonGhe.Select(g => g.TenGhe));
-                        Session["BookingSuccess_TotalAmount"] = model.TongTien.ToString("#,##0 VNĐ");
                         Session["BookingSuccess_RoomName"] = lichChieu.PhongChieu.TenPhong;
+                        Session["BookingSuccess_Combos"] = comboInfo;
+                        Session["BookingSuccess_TotalAmount"] = tongTienThanhToan.ToString("#,##0 VNĐ");
+                        Session["BookingSuccess_TicketPrice"] = tongTienVe.ToString("#,##0 VNĐ");
+                        Session["BookingSuccess_ComboPrice"] = tongTienCombo.ToString("#,##0 VNĐ");
 
                         transaction.Commit();
 
@@ -436,30 +504,14 @@ namespace SonataCinema.Controllers
                     catch (DbUpdateException dbEx)
                     {
                         transaction.Rollback();
-                        // Log chi tiết lỗi 
-                        System.Diagnostics.Debug.WriteLine("DbUpdateException:");
-                        System.Diagnostics.Debug.WriteLine($"Message: {dbEx.Message}");
-                        if (dbEx.InnerException != null)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"Inner Exception: {dbEx.InnerException.Message}");
-                            if (dbEx.InnerException.InnerException != null)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"Inner Inner Exception: {dbEx.InnerException.InnerException.Message}");
-                            }
-                        }
+                        System.Diagnostics.Debug.WriteLine($"DbUpdateException: {dbEx.Message}");
                         TempData["Error"] = "Lỗi cập nhật dữ liệu: " + dbEx.InnerException?.Message ?? dbEx.Message;
                         return RedirectToAction("BookingTicket");
                     }
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        System.Diagnostics.Debug.WriteLine($"Error Details:");
-                        System.Diagnostics.Debug.WriteLine($"Message: {ex.Message}");
-                        System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
-                        if (ex.InnerException != null)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                        }
+                        System.Diagnostics.Debug.WriteLine($"Exception: {ex.Message}");
                         TempData["Error"] = "Đã có lỗi xảy ra: " + ex.Message;
                         return RedirectToAction("BookingTicket");
                     }
@@ -469,12 +521,49 @@ namespace SonataCinema.Controllers
             var errors = string.Join("; ", ModelState.Values
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage));
-            System.Diagnostics.Debug.WriteLine($"ModelState errors: {errors}");
             TempData["Error"] = "Dữ liệu không hợp lệ: " + errors;
             return RedirectToAction("BookingTicket");
         }
 
+        [HttpGet]
+        public ActionResult GetCombos()
+        {
+            try
+            {
+                var combos = db.Combos
+                    .Where(c => c.TrangThai == true)
+                    .ToList();
 
+                return PartialView("_ComboPartial", combos);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in GetCombos: {ex.Message}");
+                return new HttpStatusCodeResult(500, "Không thể tải danh sách combo");
+            }
+        }
+        [HttpPost]
+        public ActionResult ReleaseSeat(int lichChieuId, List<int> gheIds)
+        {
+            try
+            {
+                // Tìm các ghế cần giải phóng
+                var seatsToRelease = db.Ghe_TrangThai
+                    .Where(gt => gt.ID_LichChieu == lichChieuId &&
+                           gheIds.Contains(gt.ID_Ghe))
+                    .ToList();
+
+                // Xóa trạng thái giữ ghế
+                db.Ghe_TrangThai.RemoveRange(seatsToRelease);
+                db.SaveChanges();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
         public ActionResult BookingSuccess()
         {
             ViewBag.MovieName = Session["BookingSuccess_MovieName"];
@@ -483,6 +572,7 @@ namespace SonataCinema.Controllers
             ViewBag.SeatNumbers = Session["BookingSuccess_SeatNumbers"];
             ViewBag.TotalAmount = Session["BookingSuccess_TotalAmount"];
             ViewBag.RoomName = Session["BookingSuccess_RoomName"];
+            ViewBag.Combos = Session["BookingSuccess_Combos"];
 
             if (ViewBag.MovieName == null)
             {
@@ -494,6 +584,7 @@ namespace SonataCinema.Controllers
             Session.Remove("BookingSuccess_SeatNumbers");
             Session.Remove("BookingSuccess_TotalAmount");
             Session.Remove("BookingSuccess_RoomName");
+            Session.Remove("BookingSuccess_Combos");
 
             return View();
         }

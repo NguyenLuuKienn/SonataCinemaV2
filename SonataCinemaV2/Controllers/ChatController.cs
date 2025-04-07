@@ -1,5 +1,4 @@
-﻿using SonataCinemaV2.Helper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,6 +8,8 @@ using SonataCinemaV2.Quyen;
 using SonataCinemaV2.Models;
 using System.Net;
 using System.IO;
+using System.Diagnostics;
+using SonataCinemaV2.Helper;
 
 
 namespace SonataCinemaV2.Controllers
@@ -32,6 +33,7 @@ namespace SonataCinemaV2.Controllers
         {
             try
             {
+                Debug.WriteLine($"Received message: {message}");
                 string sessionId = Request.Cookies["chat_session_id"]?.Value;
                 if (string.IsNullOrEmpty(sessionId))
                 {
@@ -45,7 +47,7 @@ namespace SonataCinemaV2.Controllers
 
                 if (!string.IsNullOrEmpty(imageData))
                 {
-                    // Lưu hình ảnh vào thư mục uploads
+                    // Xử lý hình ảnh như cũ
                     string fileName = $"chat_image_{DateTime.Now.Ticks}.jpg";
                     string path = Server.MapPath("~/Uploads/ChatImages/");
                     if (!Directory.Exists(path))
@@ -53,22 +55,29 @@ namespace SonataCinemaV2.Controllers
                         Directory.CreateDirectory(path);
                     }
 
-                    // Xử lý base64 image
                     string base64Data = imageData.Substring(imageData.IndexOf(",") + 1);
                     byte[] imageBytes = Convert.FromBase64String(base64Data);
                     string filePath = Path.Combine(path, fileName);
                     System.IO.File.WriteAllBytes(filePath, imageBytes);
 
-                    // Lưu đường dẫn hình ảnh vào database
                     message = $"[IMAGE]/Uploads/ChatImages/{fileName}";
                 }
 
-                var response = await DialogflowHelper.GetResponseFromDialogflow(message, sessionId);
+                var googleAIHelper = new GeminiHelper();
+                var response = await googleAIHelper.GetResponseFromGemini(message);
+                Debug.WriteLine($"Bot response: {response}");
                 return Json(new { success = true, message = response });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau." });
+                Debug.WriteLine($"Error in SendMessage: {ex.Message}");
+                Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+                return Json(new
+                {
+                    success = false,
+                    message = "Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.",
+                    error = ex.Message
+                });
             }
         }
 

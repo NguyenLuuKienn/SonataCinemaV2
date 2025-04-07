@@ -12,16 +12,15 @@ namespace SonataCinemaV2.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class Ghe_TrangThai
+    public partial class ComboOrder
     {
-        public int ID_TrangThai { get; set; }
-        public int ID_LichChieu { get; set; }
-        public int ID_Ghe { get; set; }
-        public string TrangThai { get; set; }
-        public Nullable<System.DateTime> ThoiGianGiu { get; set; }
-        public Nullable<int> ID_KhachHang { get; set; }
+        public int ID_ComboOrder { get; set; }
+        public int ID_ThanhToan { get; set; }
+        public int ID_Combo { get; set; }
+        public int SoLuong { get; set; }
+        public decimal GiaTien { get; set; }
     
-        public virtual Ghe Ghe { get; set; }
-        public virtual LichChieu LichChieu { get; set; }
+        public virtual Combo Combo { get; set; }
+        public virtual ThanhToan ThanhToan { get; set; }
     }
 }

@@ -2,6 +2,8 @@
     let selectedSeats = [];
     let allLichChieu = [];
     let currentTicketPrice = 0;
+    let selectedCombos = [];
+    let comboTotalPrice = 0;
 
     const movieSelect = $("#movieSelect");
     const dateSelect = $("#dateSelect");
@@ -10,6 +12,7 @@
 
     const nextStepButton = $("#next-step");
     const seatSelectionContainer = $("#seatSelectionContainer");
+    const comboSelectionContainer = $("#comboSelectionContainer");
     const bookingForm = $("#booking-form");
 
     const selectedMovie = $("#selected-movie");
@@ -48,6 +51,101 @@
                 });
                 return false;
             });
+    }
+
+    function loadCombos() {
+        $.ajax({
+            url: '/Booking/GetCombos',
+            type: 'GET',
+            success: function (response) {
+                $('#combo-list').html(response);
+            },
+            error: function (xhr, status, error) {
+                console.error('Lỗi khi tải danh sách combo:', error);
+                Swal.fire('Lỗi', 'Không thể tải danh sách combo', 'error');
+            }
+        });
+    }
+    // Xử lý sự kiện khi click nút +/- combo
+    $(document).on('click', '.btn-quantity', function () {
+        const button = $(this);
+        const comboItem = button.closest('.combo-item');
+        const input = comboItem.find('input');
+        const currentValue = parseInt(input.val());
+
+        if (button.hasClass('plus') && currentValue < 10) {
+            input.val(currentValue + 1);
+            comboItem.find('.minus').prop('disabled', false);
+            if (currentValue + 1 === 10) {
+                button.prop('disabled', true);
+            }
+        } else if (button.hasClass('minus') && currentValue > 0) {
+            input.val(currentValue - 1);
+            comboItem.find('.plus').prop('disabled', false);
+            if (currentValue - 1 === 0) {
+                button.prop('disabled', true);
+            }
+        }
+
+        updateComboSummary();
+    });
+
+    // Cập nhật thông tin combo đã chọn
+    function updateComboSummary() {
+        selectedCombos = [];
+        comboTotalPrice = 0;
+
+        $('.combo-item').each(function () {
+            const quantity = parseInt($(this).find('input').val());
+            if (quantity > 0) {
+                const comboId = $(this).data('id');
+                const comboName = $(this).find('.combo-name').text();
+                const comboPrice = parseInt($(this).find('.combo-price').text().replace(/[^\d]/g, ''));
+
+                selectedCombos.push({
+                    id: comboId,
+                    name: comboName,
+                    quantity: quantity,
+                    price: comboPrice
+                });
+
+                comboTotalPrice += quantity * comboPrice;
+            }
+        });
+
+        // Cập nhật hiển thị combo đã chọn
+        const selectedCombosList = $('#selected-combos-list');
+        selectedCombosList.empty();
+
+        if (selectedCombos.length > 0) {
+            selectedCombos.forEach(combo => {
+                selectedCombosList.append(`
+                <div class="selected-combo-item">
+                    <span>${combo.name} x ${combo.quantity}</span>
+                    <span>${new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND'
+                }).format(combo.price * combo.quantity)}</span>
+                </div>
+            `);
+            });
+
+            $('#selected-combo-summary').text(
+                selectedCombos.map(c => `${c.name} x${c.quantity}`).join(', ')
+            );
+        } else {
+            $('#selected-combo-summary').text('-');
+        }
+
+        // Cập nhật tổng tiền combo
+        $('#combo-total-price, #combo-total').text(
+            new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(comboTotalPrice)
+        );
+
+        updateTotalPrice();
     }
 
     // Xử lý QuickBooking data
@@ -295,7 +393,28 @@
         bookingForm.hide();
         seatSelectionContainer.show();
     });
+    // Nút quay lại từ chọn ghế về form đặt vé
+    $("#back-to-booking").click(function () {
+        seatSelectionContainer.hide();
+        bookingForm.show();
+    });
 
+    // Nút tiếp tục từ chọn ghế đến chọn combo
+    $("#next-to-combo").click(function () {
+        if (selectedSeats.length === 0) {
+            Swal.fire('Thông báo', 'Vui lòng chọn ít nhất một ghế', 'warning');
+            return;
+        }
+        seatSelectionContainer.hide();
+        comboSelectionContainer.show();
+        loadCombos();
+    });
+
+    // Nút quay lại từ chọn combo về chọn ghế
+    $("#back-to-seats").click(function () {
+        comboSelectionContainer.hide();
+        seatSelectionContainer.show();
+    });
     $("#back").click(function () {
         seatSelectionContainer.hide();
         bookingForm.show();
@@ -317,7 +436,7 @@
         $("#ticket-count").text(selectedSeats.length);
 
         updateTicketInfo();
-        $("#confirm-booking").prop("disabled", selectedSeats.length === 0);
+        $("#next-to-combo").prop("disabled", selectedSeats.length === 0);
     });
     // lấy giá vé
     function updateTicketPrice(lichChieuId) {
@@ -338,12 +457,30 @@
     }
     // Hàm cập nhật tổng tiền
     function updateTotalPrice() {
-        const totalPrice = selectedSeats.length * currentTicketPrice;
-        $('#total-price').text(new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(totalPrice));
-        console.log('Tổng tiền:', totalPrice); // Debug
+        const ticketTotal = selectedSeats.length * currentTicketPrice;
+        const totalPrice = ticketTotal + comboTotalPrice;
+
+        // Cập nhật hiển thị tổng tiền vé
+        $('#ticket-total').text(
+            new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(ticketTotal)
+        );
+        // Cập nhật tổng tiền combo
+        $('#combo-total').text(
+            new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(comboTotalPrice)
+        );
+        // Cập nhật tổng tiền cuối cùng
+        $('#total-price').text(
+            new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(totalPrice)
+        );
     }
 
 
@@ -359,14 +496,48 @@
     }
 
     // Xác nhận đặt vé
-    $("#confirm-booking").click(function (e) {
+    // Thêm debug logs
+    $("#bookingForm").on("submit", function (e) {
         e.preventDefault();
+        console.log("Form submitted");
 
         const idLichChieu = $("#IDLichChieu").val();
         const idKhachHang = $("#maKH").val();
-        const tongTien = selectedSeats.length * currentTicketPrice;
+        const tongTienVe = selectedSeats.length * currentTicketPrice;
 
-        // Gọi API giữ ghế trước
+        console.log("Form data:", {
+            idLichChieu,
+            idKhachHang,
+            selectedSeats,
+            selectedCombos,
+            tongTienVe,
+            comboTotalPrice
+        });
+
+        // Tạo form data
+        const formData = {
+            IDLichChieu: parseInt(idLichChieu),
+            IDKhachHang: idKhachHang.trim(),
+            GiaVe: currentTicketPrice,
+            TongTienVe: tongTienVe,
+            TongTienCombo: comboTotalPrice,
+            TongTien: tongTienVe + comboTotalPrice,
+            ChonGhe: selectedSeats.map(seat => ({
+                IDGhe: seat.id,
+                TenGhe: seat.name
+            })),
+            Combos: selectedCombos.map(combo => ({
+                IDCombo: combo.id,
+                TenCombo: combo.name,
+                SoLuong: combo.quantity,
+                Gia: combo.price
+            }))
+        };
+
+
+        console.log("Sending formData:", formData);
+
+        // Gọi API giữ ghế và xử lý đặt vé
         $.ajax({
             url: '/Booking/HoldSelectedSeats',
             type: 'POST',
@@ -375,51 +546,40 @@
                 selectedSeatIds: selectedSeats.map(seat => seat.id)
             },
             success: function (holdResponse) {
+                console.log("HoldSelectedSeats response:", holdResponse);
                 if (holdResponse.success) {
-                    // Nếu giữ ghế thành công, tiếp tục xác nhận đặt vé
-                    const formData = {
-                        IDLichChieu: parseInt(idLichChieu),
-                        IDKhachHang: idKhachHang,
-                        TongTien: tongTien,
-                        TenPhim: selectedMovie.text(),
-                        TenPhong: selectedRoom.text(),
-                        Ngay: selectedDate.text(),
-                        GioChieu: selectedTime.text(),
-                        ChonGhe: selectedSeats.map(seat => ({
-                            IDGhe: seat.id,
-                            TenGhe: seat.name
-                        }))
-                    };
-
                     $.ajax({
                         url: '/Booking/ConfirmBooking',
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify(formData),
                         success: function (response) {
-                            if (response.redirectUrl) {
-                                // Chuyển hướng đến trang xác nhận
+                            console.log("ConfirmBooking response:", response);
+                            if (response.success && response.redirectUrl) {
                                 window.location.href = response.redirectUrl;
-                            } else if (response.error) {
+                            } else {
                                 releaseHeldSeats(idLichChieu, selectedSeats.map(seat => seat.id));
-                                alert(response.error);
+                                Swal.fire('Lỗi!', response.error || 'Có lỗi xảy ra khi xử lý đặt vé', 'error');
                             }
                         },
                         error: function (xhr, status, error) {
+                            console.error("Booking error:", { xhr, status, error });
                             releaseHeldSeats(idLichChieu, selectedSeats.map(seat => seat.id));
-                            console.error('Error:', error);
-                            alert('Có lỗi xảy ra khi xử lý đặt vé!');
+                            Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xử lý đặt vé!', 'error');
                         }
                     });
                 } else {
-                    alert('Không thể giữ ghế: ' + (holdResponse.message || 'Có lỗi xảy ra'));
+                    Swal.fire('Lỗi!', 'Không thể giữ ghế: ' + (holdResponse.message || 'Có lỗi xảy ra'), 'error');
                 }
             },
-            error: function () {
-                alert('Có lỗi xảy ra khi giữ ghế');
+            error: function (xhr, status, error) {
+                console.error("Hold seats error:", { xhr, status, error });
+                Swal.fire('Lỗi!', 'Có lỗi xảy ra khi giữ ghế', 'error');
             }
         });
     });
+
+
     // Thêm hàm giải phóng ghế
     function releaseHeldSeats(lichChieuId, seatIds) {
         $.ajax({

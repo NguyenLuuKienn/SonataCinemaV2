@@ -56,6 +56,18 @@
                                 </div>
 
                                 <div class="info-item">
+                                    <i class="fas fa-hamburger"></i>
+                                    <div class="info-content">
+                                        <label>Combo</label>
+                                        <p>
+                                            @(Model.Combos != null && Model.Combos.Any()
+                                            ? string.Join(", ", Model.Combos.Select(c => $"{c.TenCombo} x{c.SoLuong}"))
+                                            : "Không có combo")
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="info-item">
                                     <i class="fas fa-chair"></i>
                                     <div class="info-content">
                                         <label>Ghế Đã Chọn</label>
@@ -96,10 +108,24 @@
                                 <input type="hidden" name="IDLichChieu" value="@Model.IDLichChieu" />
                                 <input type="hidden" name="IDKhachHang" value="@Model.IDKhachHang" />
                                 <input type="hidden" name="TongTien" value="@Model.TongTien" />
+                                <input type="hidden" name="TongTienVe" value="@(Model.ChonGhe.Count * Model.GiaVe)" />
+                                <input type="hidden" name="TongTienCombo" value="@Model.TongTienCombo" />
+                                <input type="hidden" name="GiaVe" value="@Model.GiaVe" />
                                 <input type="hidden" name="TenPhim" value="@Model.TenPhim" />
                                 <input type="hidden" name="TenPhong" value="@Model.TenPhong" />
                                 <input type="hidden" name="Ngay" value="@Model.Ngay" />
                                 <input type="hidden" name="GioChieu" value="@Model.GioChieu" />
+
+                                if (Model.Combos != null && Model.Combos.Any())
+                                {
+                                    for (int i = 0; i < Model.Combos.Count; i++)
+                                    {
+                                        <input type="hidden" name="Combos[@i].IDCombo" value="@Model.Combos[i].IDCombo" />
+                                        <input type="hidden" name="Combos[@i].TenCombo" value="@Model.Combos[i].TenCombo" />
+                                        <input type="hidden" name="Combos[@i].SoLuong" value="@Model.Combos[i].SoLuong" />
+                                        <input type="hidden" name="Combos[@i].Gia" value="@Model.Combos[i].Gia" />
+                                    }
+                                }
 
                                 for (int i = 0; i < Model.ChonGhe.Count; i++)
                                 {

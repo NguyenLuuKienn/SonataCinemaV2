@@ -73,20 +73,23 @@
     <Reference Include="Google.Api.CommonProtos, Version=2.16.0.0, Culture=neutral, PublicKeyToken=3ec5ea7f18953e47, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.Api.CommonProtos.2.16.0\lib\net461\Google.Api.CommonProtos.dll</HintPath>
     </Reference>
-    <Reference Include="Google.Api.Gax, Version=4.9.0.0, Culture=neutral, PublicKeyToken=3ec5ea7f18953e47, processorArchitecture=MSIL">
-      <HintPath>..\packages\Google.Api.Gax.4.9.0\lib\net462\Google.Api.Gax.dll</HintPath>
+    <Reference Include="Google.Api.Gax, Version=4.10.0.0, Culture=neutral, PublicKeyToken=3ec5ea7f18953e47, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Api.Gax.4.10.0\lib\net462\Google.Api.Gax.dll</HintPath>
     </Reference>
     <Reference Include="Google.Api.Gax.Grpc, Version=4.9.0.0, Culture=neutral, PublicKeyToken=3ec5ea7f18953e47, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.Api.Gax.Grpc.4.9.0\lib\net462\Google.Api.Gax.Grpc.dll</HintPath>
     </Reference>
-    <Reference Include="Google.Apis, Version=1.68.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
-      <HintPath>..\packages\Google.Apis.1.68.0\lib\net462\Google.Apis.dll</HintPath>
+    <Reference Include="Google.Api.Gax.Rest, Version=4.10.0.0, Culture=neutral, PublicKeyToken=3ec5ea7f18953e47, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Api.Gax.Rest.4.10.0\lib\net462\Google.Api.Gax.Rest.dll</HintPath>
     </Reference>
-    <Reference Include="Google.Apis.Auth, Version=1.68.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
-      <HintPath>..\packages\Google.Apis.Auth.1.68.0\lib\net462\Google.Apis.Auth.dll</HintPath>
+    <Reference Include="Google.Apis, Version=1.69.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Apis.1.69.0\lib\net462\Google.Apis.dll</HintPath>
     </Reference>
-    <Reference Include="Google.Apis.Core, Version=1.68.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
-      <HintPath>..\packages\Google.Apis.Core.1.68.0\lib\net462\Google.Apis.Core.dll</HintPath>
+    <Reference Include="Google.Apis.Auth, Version=1.69.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Apis.Auth.1.69.0\lib\net462\Google.Apis.Auth.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Apis.Core, Version=1.69.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Apis.Core.1.69.0\lib\net462\Google.Apis.Core.dll</HintPath>
     </Reference>
     <Reference Include="Google.Cloud.Dialogflow.V2, Version=4.25.0.0, Culture=neutral, PublicKeyToken=185c282632e132a0, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.Cloud.Dialogflow.V2.4.25.0\lib\net462\Google.Cloud.Dialogflow.V2.dll</HintPath>
@@ -308,6 +311,7 @@
     <Compile Include="Controllers\BlogController.cs" />
     <Compile Include="Controllers\BookingController.cs" />
     <Compile Include="Controllers\ChatController.cs" />
+    <Compile Include="Controllers\ComboController.cs" />
     <Compile Include="Controllers\DetailsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\KhachHangController.cs" />
@@ -324,6 +328,7 @@
     <Compile Include="Helper\ChatGPTHelper.cs" />
     <Compile Include="Helper\DialogflowHelper.cs" />
     <Compile Include="Helper\EmailHelper.cs" />
+    <Compile Include="Helper\GeminiHelper.cs" />
     <Compile Include="Helper\SimpleBoHelper.cs" />
     <Compile Include="Hubs\ChatHubs.cs" />
     <Compile Include="ML\MovieRecommenderModel.cs" />
@@ -331,6 +336,12 @@
       <DependentUpon>SonataCinemaModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\ChatMessage.cs">
+      <DependentUpon>SonataCinemaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Combo.cs">
+      <DependentUpon>SonataCinemaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ComboOrder.cs">
       <DependentUpon>SonataCinemaModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\C__EFMigrationsHistory.cs">
@@ -400,6 +411,7 @@
     <Compile Include="Startup.cs" />
     <Compile Include="ViewModel\BookingTicket.cs" />
     <Compile Include="ViewModel\BookingViewModel.cs" />
+    <Compile Include="ViewModel\ComboOrderViewModel.cs" />
     <Compile Include="ViewModel\ConfirmViewModel.cs" />
     <Compile Include="ViewModel\DanhSachShow.cs" />
     <Compile Include="ViewModel\ForgotPasswordViewModel.cs" />
@@ -769,6 +781,7 @@
     <Content Include="Content\src\Ticket.js" />
     <Content Include="Content\src\vendor\bootstrap\css\bootstrap.min.css" />
     <Content Include="Content\src\vendor\bootstrap\js\bootstrap.min.js" />
+    <Content Include="Content\src\combo.js" />
     <Content Include="Content\src\vendor\jquery\jquery.js" />
     <Content Include="Content\src\vendor\jquery\jquery.min.js" />
     <Content Include="Content\src\vendor\jquery\jquery.slim.js" />
@@ -963,6 +976,8 @@
     <Content Include="Views\Account\_ForgotPasswordPartial.cshtml" />
     <Content Include="Views\Account\ResetPassword.cshtml" />
     <Content Include="Views\Account\ResetPasswordConfirmation.cshtml" />
+    <Content Include="Views\Combo\_QuanLyComboPartial.cshtml" />
+    <Content Include="Views\Booking\_ComboPartial.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

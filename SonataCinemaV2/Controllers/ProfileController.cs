@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Data.Entity;
 
 namespace SonataCinemaV2.Controllers
 {
@@ -182,7 +183,10 @@ namespace SonataCinemaV2.Controllers
 
             try
             {
-                var ve = db.Ves.Find(ticketId);
+                var ve = db.Ves
+                    .Include(v => v.LichChieu) // Đảm bảo load thông tin lịch chiếu
+                    .FirstOrDefault(v => v.ID_Ve == ticketId);
+
                 if (ve == null)
                 {
                     return Json(new { success = false, message = "Không tìm thấy vé!" });
@@ -198,10 +202,47 @@ namespace SonataCinemaV2.Controllers
                     return Json(new { success = false, message = "Vé không thể huỷ!" });
                 }
 
+                // Lấy thời gian hiện tại
+                var now = DateTime.Now;
+
+                // Tính thời gian chiếu phim
+                var showTime = ve.LichChieu.NgayChieu.Date + ve.LichChieu.GioChieu;
+
+                // Kiểm tra xem phim đã chiếu chưa
+                if (showTime < now)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Không thể huỷ vé cho phim đã chiếu!"
+                    });
+                }
+
+                // Tính thời gian còn lại đến lúc chiếu
+                var timeUntilShow = showTime - now;
+
+                // Kiểm tra xem còn ít nhất 30 phút trước khi chiếu
+                if (timeUntilShow.TotalMinutes < 30)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Chỉ có thể huỷ vé trước giờ chiếu 30 phút!"
+                    });
+                }
+
+                // Nếu thoả mãn tất cả điều kiện thì mới cho phép yêu cầu huỷ vé
                 ve.TrangThai = "Chờ huỷ";
                 db.SaveChanges();
 
-                return Json(new { success = true, message = "Yêu cầu huỷ vé đã được gửi!" });
+                // Tính số tiền sẽ được hoàn (80%)
+                decimal refundAmount = ve.Gia * 0.8m;
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Yêu cầu huỷ vé đã được gửi! Bạn sẽ được hoàn lại {refundAmount:N0} VNĐ sau khi yêu cầu được duyệt."
+                });
             }
             catch (Exception ex)
             {

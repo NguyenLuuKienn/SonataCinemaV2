@@ -42,6 +42,9 @@
                                         </span>
                                     </td>
                                     <td style="display:flex; gap: 5px;">
+                                        <button class="btn btn-info btn-sm" onclick="xemThongTinGhe(@item.ID_LichChieu)" title="Xem thông tin ghế">
+                                            <i class="bi bi-info-circle"></i>
+                                        </button>
                                         <button class="btn btn-warning btn-sm" onclick="loadLichChieuEdit(@item.ID_LichChieu)">
                                             <i class="bi bi-pencil"></i>
                                         </button>
@@ -78,17 +81,20 @@
                 {
                     <div class="form-group mb-3">
                         <label>Phim</label>
-                        <select class="form-select" name="IDPhim" required>
+                        <select class="form-select" name="IDPhim" id="selectPhim" required>
+                            <option value="">Chọn phim...</option>
                             @foreach (var phim in ViewBag.DanhSachPhim)
                             {
-                                <option value="@phim.ID_Phim">@phim.TenPhim</option>
+                                <option value="@phim.ID_Phim" data-thoiluong="@phim.ThoiLuong">@phim.TenPhim</option>
                             }
                         </select>
+                        <small class="text-muted" id="thoiLuongPhim"></small>
                     </div>
 
                     <div class="form-group mb-3">
                         <label>Phòng</label>
-                        <select class="form-select" name="IDPhong" required>
+                        <select class="form-select" name="IDPhong" id="selectPhong" required>
+                            <option value="">Chọn phòng...</option>
                             @foreach (var phong in ViewBag.DanhSachPhong)
                             {
                                 <option value="@phong.ID_Phong">@phong.TenPhong</option>
@@ -100,21 +106,41 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label>Từ Ngày</label>
-                                <input type="date" class="form-control" name="TuNgay" required>
+                                <input type="date" class="form-control" name="TuNgay" id="tuNgay" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label>Đến Ngày</label>
-                                <input type="date" class="form-control" name="DenNgay" required>
+                                <input type="date" class="form-control" name="DenNgay" id="denNgay" required>
                             </div>
                         </div>
                     </div>
 
                     <div class="form-group mb-3">
                         <label>Giờ Chiếu</label>
-                        <input type="time" class="form-control" name="GioChieu" required>
+                        <select class="form-select" name="GioChieu" id="selectGioChieu" required>
+                            <option value="">Chọn giờ chiếu...</option>
+                        </select>
                     </div>
+
+                    <div id="lichChieuHienTai" class="mb-3" style="display:none;">
+                        <label>Lịch chiếu đã tồn tại trong ngày:</label>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Giờ chiếu</th>
+                                        <th>Phim</th>
+                                        <th>Thời lượng</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lichChieuBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <div class="form-group mb-3">
                         <label>Giá Vé</label>
                         <input type="number" class="form-control" name="GiaVe" required min="0" step="1000">
@@ -184,6 +210,105 @@
     </div>
 </div>
 
+<!-- Modal Thông Tin Ghế -->
+<div class="modal fade" id="thongTinGheModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thông Tin Ghế</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Phim:</strong> <span id="tenPhimGhe"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Phòng:</strong> <span id="tenPhongGhe"></span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Ngày chiếu:</strong> <span id="ngayChieuGhe"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Giờ chiếu:</strong> <span id="gioChieuGhe"></span>
+                    </div>
+                </div>
+                <div class="seat-info-container">
+                    <div class="seat-status mb-3">
+                        <span class="seat-indicator available"></span> Ghế trống
+                        <span class="seat-indicator occupied"></span> Ghế đã đặt
+                    </div>
+                    <div id="danhSachGhe" class="seat-grid">
+                        <!-- Danh sách ghế sẽ được thêm vào đây -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .seat-info-container {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .seat-status {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .seat-indicator {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        margin-right: 5px;
+    }
+
+    .seat-indicator.available {
+        background-color: #28a745;
+    }
+
+    .seat-indicator.occupied {
+        background-color: #dc3545;
+    }
+
+    .seat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        gap: 10px;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+    }
+
+    .seat {
+        padding: 8px;
+        text-align: center;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .seat.available {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .seat.occupied {
+        background-color: #dc3545;
+        color: white;
+    }
+</style>
+
 @if (TempData["Message"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -202,6 +327,22 @@
 
 <script>
     $(document).ready(function () {
+        // Xử lý khi chọn phim
+        $('#selectPhim').change(function () {
+            var thoiLuong = $(this).find(':selected').data('thoiluong');
+            if (thoiLuong) {
+                $('#thoiLuongPhim').text(`Thời lượng: ${thoiLuong} phút`);
+            } else {
+                $('#thoiLuongPhim').text('');
+            }
+        });
+
+        // Xử lý khi thay đổi ngày hoặc phòng
+        $('#tuNgay, #selectPhong').change(function () {
+            loadLichChieuTrongNgay();
+        });
+
+        
         // Xử lý form thêm mới
         $('.them-form').on('submit', function (e) {
             e.preventDefault();
@@ -262,6 +403,62 @@
                     Swal.fire('Lỗi!', 'Có lỗi xảy ra khi cập nhật lịch chiếu', 'error');
                 }
             });
+        });
+    });
+    function loadLichChieuTrongNgay() {
+        var phongId = $('#selectPhong').val();
+        var ngay = $('#tuNgay').val();
+        var selectedPhim = $('#selectPhim option:selected');
+        var thoiLuongPhim = selectedPhim.data('thoiluong');
+
+        if (!phongId || !ngay || !thoiLuongPhim) return;
+
+        $.ajax({
+            url: '/LichChieu/GetLichChieuTrongNgay',
+            type: 'GET',
+            data: {
+                phongId: phongId,
+                ngay: ngay
+            },
+            success: function (response) {
+                if (response.success) {
+                    // Cập nhật dropdown giờ chiếu
+                    var selectGioChieu = $('#selectGioChieu');
+                    selectGioChieu.empty();
+                    selectGioChieu.append('<option value="">Chọn giờ chiếu...</option>');
+
+                    // Thêm các khung giờ khả dụng
+                    response.khungGioKhaDung.forEach(function (gio) {
+                        selectGioChieu.append(`<option value="${gio}">${gio}</option>`);
+                    });
+
+                    // Hiển thị lịch chiếu hiện tại
+                    var lichChieuBody = $('#lichChieuBody');
+                    lichChieuBody.empty();
+
+                    if (response.lichChieuHienTai.length > 0) {
+                        response.lichChieuHienTai.forEach(function (lich) {
+                            lichChieuBody.append(`
+                            <tr>
+                                <td>${lich.gioChieu} - ${lich.ketThuc}</td>
+                                <td>${lich.tenPhim}</td>
+                                <td>${lich.thoiLuong} phút</td>
+                            </tr>
+                        `);
+                        });
+                        $('#lichChieuHienTai').show();
+                    } else {
+                        $('#lichChieuHienTai').hide();
+                    }
+                }
+            }
+        });
+    }
+
+    // Thêm event listeners
+    $(document).ready(function () {
+        $('#selectPhim, #selectPhong, #tuNgay').change(function () {
+            loadLichChieuTrongNgay();
         });
     });
     function loadLichChieuEdit(maLichChieu) {
@@ -400,5 +597,41 @@
             element.classList.remove('bg-success');
             element.classList.add('bg-danger');
         }
+    }
+
+    function xemThongTinGhe(lichChieuId) {
+        $.ajax({
+            url: '/LichChieu/GetThongTinGhe',
+            type: 'GET',
+            data: { lichChieuId: lichChieuId },
+            success: function (response) {
+                if (response.success) {
+                    // Cập nhật thông tin lịch chiếu
+                    $('#tenPhimGhe').text(response.thongTinLichChieu.tenPhim);
+                    $('#tenPhongGhe').text(response.thongTinLichChieu.tenPhong);
+                    $('#ngayChieuGhe').text(response.thongTinLichChieu.ngayChieu);
+                    $('#gioChieuGhe').text(response.thongTinLichChieu.gioChieu);
+
+                    // Hiển thị danh sách ghế
+                    var danhSachGheHtml = '';
+                    response.danhSachGhe.forEach(function(ghe) {
+                        danhSachGheHtml += `
+                            <div class="seat ${ghe.trangThai === 'Trống' ? 'available' : 'occupied'}" 
+                                 title="${ghe.trangThai === 'Trống' ? 'Ghế trống' : 'Đã đặt'}">
+                                ${ghe.tenGhe}
+                            </div>`;
+                    });
+                    $('#danhSachGhe').html(danhSachGheHtml);
+
+                    // Hiển thị modal
+                    $('#thongTinGheModal').modal('show');
+                } else {
+                    Swal.fire('Lỗi!', response.message, 'error');
+                }
+            },
+            error: function () {
+                Swal.fire('Lỗi!', 'Không thể tải thông tin ghế', 'error');
+            }
+        });
     }
 </script>

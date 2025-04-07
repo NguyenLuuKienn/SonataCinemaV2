@@ -85,6 +85,14 @@
             </a>
         </li>
         <li>
+            <a href="#" class="nav-link text-white" onclick="showContent('manage-combo')">
+                <svg class="bi me-2" width="16" height="16">
+                    <use xlink:href="#file-text"></use>
+                </svg>
+                Quản lý Dịch vụ
+            </a>
+        </li>
+        <li>
             <a href="#" class="nav-link text-white" onclick="showContent('customer-helper')">
                 <svg class="bi me-2" width="16" height="16">
                     <use xlink:href="#file-text"></use>
@@ -196,6 +204,12 @@
     <div class="ticket-management d-none">
         <h2>Quản Lý Vé</h2>
         @Html.Action("DanhSachVePartial", "Ve")
+    </div>
+
+    <!-- Nội dung quản lý dịch vụ -->
+    <div class="combo-management d-none">
+        <h2>Quản Lý Dịch vụ</h2>
+        @Html.Action("QuanLyComboPartial", "Combo")
     </div>
 
     <!-- Hỗ trợ khách hàng -->

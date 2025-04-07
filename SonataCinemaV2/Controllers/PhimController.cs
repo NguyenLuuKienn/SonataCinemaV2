@@ -26,6 +26,9 @@ namespace SonataCinema.Controllers
                 IDPhim = p.ID_Phim,
                 TenPhim = p.TenPhim,
                 TheLoai = p.TheLoai,
+                DaoDien = p.DaoDien,
+                DienVien = p.DienVien,
+                NhaSanSuat = p.NhaSanSuat,
                 ThoiLuong = p.ThoiLuong ?? 0,
                 MoTa = p.MoTa,
                 TrangThai = p.TrangThai,
@@ -66,6 +69,9 @@ namespace SonataCinema.Controllers
                     {
                         TenPhim = phimMoi.TenPhim,
                         TheLoai = phimMoi.TheLoai,
+                        DaoDien = phimMoi.DaoDien,
+                        DienVien = phimMoi.DienVien,
+                        NhaSanSuat = phimMoi.NhaSanSuat,
                         ThoiLuong = phimMoi.ThoiLuong,
                         MoTa = phimMoi.MoTa,
                         TrangThai = phimMoi.TrangThai,
@@ -173,6 +179,9 @@ namespace SonataCinema.Controllers
                     IDPhim = phim.ID_Phim,
                     TenPhim = phim.TenPhim,
                     TheLoai = phim.TheLoai,
+                    DaoDien = phim.DaoDien,
+                    DienVien = phim.DienVien,
+                    NhaSanSuat = phim.NhaSanSuat,
                     ThoiLuong = phim.ThoiLuong ?? 0,
                     MoTa = phim.MoTa,
                     TrangThai = phim.TrangThai,
@@ -206,6 +215,9 @@ namespace SonataCinema.Controllers
                     // Cập nhật thông tin cơ bản
                     phim.TenPhim = phimMoi.TenPhim;
                     phim.TheLoai = phimMoi.TheLoai;
+                    phim.DaoDien = phimMoi.DaoDien;
+                    phim.DienVien = phimMoi.DienVien;
+                    phim.NhaSanSuat = phimMoi.NhaSanSuat;
                     phim.ThoiLuong = phimMoi.ThoiLuong;
                     phim.MoTa = phimMoi.MoTa;
                     phim.TrangThai = phimMoi.TrangThai;
@@ -272,6 +284,9 @@ namespace SonataCinema.Controllers
                         IDPhim = phim.ID_Phim,
                         TenPhim = phim.TenPhim ?? "",
                         TheLoai = phim.TheLoai ?? "",
+                        DaoDien = phim.DaoDien ?? "",
+                        DienVien = phim.DienVien ?? "",
+                        NhaSanSuat = phim.NhaSanSuat ?? "",
                         ThoiLuong = phim.ThoiLuong ?? 0,
                         MoTa = phim.MoTa ?? "",
                         TrangThai = phim.TrangThai ?? "",

@@ -35,6 +35,10 @@ namespace SonataCinema.Controllers
             {
                 try
                 {
+                    if (db.NhanViens.Any(nv => nv.Email == nhanvienMoi.Email))
+                    {
+                        return Json(new { success = false, message = "Email đã tồn tại!" });
+                    }
                     NhanVien nhanvien = new NhanVien
                     {
                         TenNhanVien = nhanvienMoi.TenNhanVien,

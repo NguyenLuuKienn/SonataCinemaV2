@@ -1,39 +1,179 @@
 ﻿@model List<SonataCinemaV2.ViewModel.GheViewModel>
 
 <div class="seat-layout">
-    <div class="seat-container">
-        @foreach (var ghe in Model.OrderBy(g => g.TenGhe))
-        {
-            var seatClass = ghe.TrangThai == "Đã đặt" ? "occupied" :
-                           ghe.TrangThai == "Đang giữ" ? "holding" : "empty";
+    <div class="screen">
+        <span>Màn hình</span>
+    </div>
 
-            <div class="seat @seatClass"
-                 data-id="@ghe.IDGhe"
-                 data-name="@ghe.TenGhe"
-                 @(ghe.TrangThai != "Trống" ? "disabled" : "")>
-                @ghe.TenGhe.Split('-')[1]
+    @{
+        var rows = new[] { "A", "B", "C", "D", "E" };
+        foreach (var row in rows)
+        {
+            <div class="seat-row">
+                <div class="row-label">@row</div>
+                <div class="seats">
+                    @for (int i = 1; i <= 17; i++)
+                    {
+                        var seatName = $"{row}-{i}";
+                        var seat = Model.FirstOrDefault(g => g.TenGhe == seatName);
+                        var seatClass = seat?.TrangThai == "Đã đặt" ? "occupied" :
+                                      seat?.TrangThai == "Đang giữ" ? "holding" : "empty";
+
+                        <div class="seat @seatClass"
+                             data-id="@(seat?.IDGhe ?? 0)"
+                             data-name="@seatName"
+                             @(seat?.TrangThai != "Trống" ? "disabled" : "")>
+                            @i
+                        </div>
+                    }
+                </div>
             </div>
         }
+    }
+
+    <div class="seat-legend">
+        <div class="legend-item">
+            <div class="seat empty"></div>
+            <span>Ghế trống</span>
+        </div>
+        <div class="legend-item">
+            <div class="seat selected"></div>
+            <span>Ghế đang chọn</span>
+        </div>
+        <div class="legend-item">
+            <div class="seat occupied"></div>
+            <span>Ghế đã đặt</span>
+        </div>
+        <div class="legend-item">
+            <div class="seat holding"></div>
+            <span>Ghế đang giữ</span>
+        </div>
     </div>
 </div>
-
-
 <style>
+    /* Thêm/cập nhật các styles sau */
     .seat-layout {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .screen {
+        height: 32px;
+        background: linear-gradient(to bottom, #666666, #333333);
+        color: white;
+        padding: 15px;
+        line-height: 4px;
+        text-align: center;
+        border-radius: 5px;
+        margin-bottom: 30px;
+        position: relative;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+
+        .screen::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
+        }
+
+    .seat-row {
         display: flex;
-        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+        gap: 20px;
     }
 
     .row-label {
+        width: 30px;
         font-weight: bold;
-        font-size: 16px;
+        font-size: 18px;
+        color: #2c3e50;
+        text-align: center;
     }
 
-    .seat-container {
-        flex: 1;
+    .seats {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
     }
-    .seat.holding {
-        background-color: #f39c12;
-        cursor: not-allowed;
+
+    .seat {
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: #fff;
+        border: 2px solid #e0e0e0;
+        color: #2c3e50;
     }
+
+        .seat.empty:hover:not([disabled]) {
+            transform: scale(1.1);
+            border-color: white;
+        }
+
+        .seat.selected {
+            background-color: #2ecc71;
+            border-color: #27ae60;
+            cursor: not-allowed;
+            color: white;
+        }
+
+        .seat.occupied {
+            background-color: #e74c3c;
+            border-color: #c0392b;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        .seat.holding {
+            background-color: #f39c12;
+            border-color: #d35400;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        .seat[disabled] {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+    .seat-legend {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 30px;
+        padding: 15px;
+        background: rgba(0,0,0,0.05);
+        border-radius: 8px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        pointer-events: none;
+    }
+
+        .legend-item .seat {
+            width: 25px;
+            height: 25px;
+            cursor: default;
+        }
+
+        .legend-item span {
+            font-size: 14px;
+            color: #2c3e50;
+        }
 </style>

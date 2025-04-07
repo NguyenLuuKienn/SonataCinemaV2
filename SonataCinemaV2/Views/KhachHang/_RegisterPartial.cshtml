@@ -10,32 +10,32 @@
             {
                 @Html.AntiForgeryToken()
                 <div class="form-row">
-                    <div class="form-group-custom">
-                        <label for="TenKhachHang" class="control-label-custom">Họ và Tên</label>
-                        <input type="text" name="TenKhachHang" class="form-control-custom" placeholder="Nhập họ và tên" value="@Model.TenKhachHang" />
-                        @Html.ValidationMessageFor(model => model.TenKhachHang, "", new { @class = "text-danger" })
-                    </div>
+                <div class="form-group-custom">
+                    <label for="TenKhachHang" class="control-label-custom">Họ và Tên</label>
+                    <input type="text" name="TenKhachHang" class="form-control-custom" placeholder="Nhập họ và tên" value="@Model.TenKhachHang" />
+                    @Html.ValidationMessageFor(model => model.TenKhachHang, "", new { @class = "text-danger" })
+                </div>
 
-                    <div class="form-group-custom">
-                        <label for="Email" class="control-label-custom">Email</label>
-                        <input type="email" name="Email" class="form-control-custom" placeholder="Nhập email" value="@Model.Email" />
-                        @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
-                    </div>
+                <div class="form-group-custom">
+                    <label for="Email" class="control-label-custom">Email</label>
+                    <input type="email" name="Email" class="form-control-custom" placeholder="Nhập email" value="@Model.Email" />
+                    @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                </div>
 
-                    <div class="form-group-custom">
-                        <label for="SoDienThoai" class="control-label-custom">Số Điện Thoại</label>
+                <div class="form-group-custom">
+                    <label for="SoDienThoai" class="control-label-custom">Số Điện Thoại</label>
                         <input type="tel" class="form-control" id="soDienThoai" name="SoDienThoai" pattern="[0-9]*" inputmode="numeric" maxlength="10"
                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                                value="@Model.SoDienThoai"
                                required>
-                        @Html.ValidationMessageFor(model => model.SoDienThoai, "", new { @class = "text-danger" })
-                    </div>
+                    @Html.ValidationMessageFor(model => model.SoDienThoai, "", new { @class = "text-danger" })
+                </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group-custom">
-                        <label for="NgaySinh" class="control-label-custom">Ngày Sinh</label>
+                <div class="form-group-custom">
+                    <label for="NgaySinh" class="control-label-custom">Ngày Sinh</label>
                         <div class="date-picker-wrapper">
                             <input type="text"
                                    class="form-control-custom date-picker"
@@ -44,20 +44,20 @@
                                    placeholder="dd/mm/yyyy"
                                    autocomplete="off">
                         </div>
-                        @Html.ValidationMessageFor(model => model.NgaySinh, "", new { @class = "text-danger" })
-                    </div>
+                    @Html.ValidationMessageFor(model => model.NgaySinh, "", new { @class = "text-danger" })
+                </div>
 
-                    <div class="form-group-custom">
-                        <label for="MatKhau" class="control-label-custom">Mật Khẩu</label>
-                        <input type="password" name="MatKhau" class="form-control-custom" placeholder="Nhập mật khẩu" />
-                        @Html.ValidationMessageFor(model => model.MatKhau, "", new { @class = "text-danger" })
-                    </div>
+                <div class="form-group-custom">
+                    <label for="MatKhau" class="control-label-custom">Mật Khẩu</label>
+                    <input type="password" name="MatKhau" class="form-control-custom" placeholder="Nhập mật khẩu" />
+                    @Html.ValidationMessageFor(model => model.MatKhau, "", new { @class = "text-danger" })
+                </div>
 
-                    <div class="form-group-custom">
-                        <label for="NhapLaiMatKhau" class="control-label-custom">Nhập Lại Mật Khẩu</label>
-                        <input type="password" name="NhapLaiMatKhau" class="form-control-custom" placeholder="Nhập lại mật khẩu" />
-                        @Html.ValidationMessageFor(model => model.NhapLaiMatKhau, "", new { @class = "text-danger" })
-                    </div>
+                <div class="form-group-custom">
+                    <label for="NhapLaiMatKhau" class="control-label-custom">Nhập Lại Mật Khẩu</label>
+                    <input type="password" name="NhapLaiMatKhau" class="form-control-custom" placeholder="Nhập lại mật khẩu" />
+                    @Html.ValidationMessageFor(model => model.NhapLaiMatKhau, "", new { @class = "text-danger" })
+                </div>
                 </div>
 
                 <div class="form-row">
@@ -75,8 +75,8 @@
                     </div>
 
                     <div class="form-group-custom captcha-group">
-                        <div class="g-recaptcha" data-sitekey="6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL"></div>
-                        @Html.ValidationMessage("ReCaptcha", new { @class = "text-danger" })
+                    <div class="g-recaptcha" data-sitekey="6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL"></div>
+                    @Html.ValidationMessage("ReCaptcha", new { @class = "text-danger" })
                     </div>
                 </div>
 

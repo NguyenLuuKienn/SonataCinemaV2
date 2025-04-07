@@ -12,29 +12,21 @@ namespace SonataCinemaV2.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class ThanhToan
+    public partial class Combo
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public ThanhToan()
+        public Combo()
         {
-            this.Ves = new HashSet<Ve>();
             this.ComboOrders = new HashSet<ComboOrder>();
         }
     
-        public int ID_ThanhToan { get; set; }
-        public int ID_KhachHang { get; set; }
-        public Nullable<int> ID_NhanVien { get; set; }
-        public Nullable<System.DateTime> NgayThanhToan { get; set; }
-        public Nullable<decimal> SoTienDaThanhToan { get; set; }
-        public string PhuongThucThanhToan { get; set; }
-        public Nullable<decimal> SoTienGiam { get; set; }
-        public decimal TongTienGoc { get; set; }
-        public Nullable<decimal> TongTienCombo { get; set; }
+        public int ID_Combo { get; set; }
+        public string TenCombo { get; set; }
+        public string MoTa { get; set; }
+        public decimal Gia { get; set; }
+        public string HinhAnh { get; set; }
+        public Nullable<bool> TrangThai { get; set; }
     
-        public virtual KhachHang KhachHang { get; set; }
-        public virtual NhanVien NhanVien { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Ve> Ves { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ComboOrder> ComboOrders { get; set; }
     }

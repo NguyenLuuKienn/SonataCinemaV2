@@ -33,6 +33,9 @@ namespace SonataCinemaV2.Models
         public string Poster { get; set; }
         public string Banner { get; set; }
         public string Trailer { get; set; }
+        public string DienVien { get; set; }
+        public string DaoDien { get; set; }
+        public string NhaSanSuat { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<LichChieu> LichChieux { get; set; }

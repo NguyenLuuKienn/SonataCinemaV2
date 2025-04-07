@@ -92,6 +92,18 @@
                                 <label class="form-label">Thể Loại <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="TheLoai" required>
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Đạo Diễn <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="DaoDien" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Diễn Viên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="DienVien" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nhà Sản Xuất <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="NhaSanSuat" required>
+                            </div>
                         </div>
 
                         <div class="row">
@@ -182,72 +194,84 @@
                                 <label class="form-label">Thể Loại <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control edit-the-loai" name="TheLoai" required>
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Thời Lượng (phút) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control edit-thoi-luong" name="ThoiLuong" min="1" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Trạng Thái</label>
-                                <select class="form-select edit-trang-thai" name="TrangThai">
-                                    <option value="Đang chiếu">Đang chiếu</option>
-                                    <option value="Sắp chiếu">Sắp chiếu</option>
-                                    <option value="Mới">Mới</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Nổi Bật</label>
-                                <select class="form-select edit-noi-bat" name="NoiBat">
-                                    <option value="1">Có</option>
-                                    <option value="2">Không</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Mô tả <span class="text-danger">*</span></label>
-                            <textarea class="form-control edit-mo-ta" name="MoTa" rows="3" required></textarea>
-                        </div>
-
-                        <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Poster</label>
-                                <input type="hidden" name="TenPoster" />
-                                <input type="file" class="form-control" name="Poster" accept="image/*">
-                                <small class="text-muted">Kích thước đề xuất: 300x450px</small>
-                                <div class="preview-container mt-2" style="display: none;">
-                                    <img src="" class="preview-poster img-thumbnail" style="max-height: 200px;" />
-                                </div>
+                                <label class="form-label">Đạo Diễn <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control edit-dao-dien" name="DaoDien" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Ảnh Thumbnail</label>
-                                <input type="hidden" name="TenBanner" />
-                                <input type="file" class="form-control" name="Banner" accept="image/*">
-                                <small class="text-muted">Kích thước đề xuất: 185x278px</small>
-                                <div class="preview-container mt-2" style="display: none;">
-                                    <img src="" class="preview-banner img-thumbnail" style="max-height: 200px;" />
+                                <label class="form-label">Diễn Viên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control edit-dien-vien" name="DienVien" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nhà Sản Xuất <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control edit-nha-san-suat" name="NhaSanSuat" required>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Thời Lượng (phút) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control edit-thoi-luong" name="ThoiLuong" min="1" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Trạng Thái</label>
+                                    <select class="form-select edit-trang-thai" name="TrangThai">
+                                        <option value="Đang chiếu">Đang chiếu</option>
+                                        <option value="Sắp chiếu">Sắp chiếu</option>
+                                        <option value="Mới">Mới</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Nổi Bật</label>
+                                    <select class="form-select edit-noi-bat" name="NoiBat">
+                                        <option value="1">Có</option>
+                                        <option value="2">Không</option>
+                                    </select>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Trailer URL</label>
-                            <input type="text" class="form-control edit-trailer" name="Trailer"
-                                   placeholder="Nhập URL trailer YouTube">
-                            <div class="preview-trailer mt-2" style="display: none;">
-                                <p>Trailer hiện tại: <a href="#" class="current-trailer" target="_blank"></a></p>
+                            <div class="mb-3">
+                                <label class="form-label">Mô tả <span class="text-danger">*</span></label>
+                                <textarea class="form-control edit-mo-ta" name="MoTa" rows="3" required></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Poster</label>
+                                    <input type="hidden" name="TenPoster" />
+                                    <input type="file" class="form-control" name="Poster" accept="image/*">
+                                    <small class="text-muted">Kích thước đề xuất: 300x450px</small>
+                                    <div class="preview-container mt-2" style="display: none;">
+                                        <img src="" class="preview-poster img-thumbnail" style="max-height: 200px;" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Ảnh Thumbnail</label>
+                                    <input type="hidden" name="TenBanner" />
+                                    <input type="file" class="form-control" name="Banner" accept="image/*">
+                                    <small class="text-muted">Kích thước đề xuất: 185x278px</small>
+                                    <div class="preview-container mt-2" style="display: none;">
+                                        <img src="" class="preview-banner img-thumbnail" style="max-height: 200px;" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Trailer URL</label>
+                                <input type="text" class="form-control edit-trailer" name="Trailer"
+                                       placeholder="Nhập URL trailer YouTube">
+                                <div class="preview-trailer mt-2" style="display: none;">
+                                    <p>Trailer hiện tại: <a href="#" class="current-trailer" target="_blank"></a></p>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Lưu Thay Đổi
+                                </button>
                             </div>
                         </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save"></i> Lưu Thay Đổi
-                            </button>
-                        </div>
-                    </form>
+</form>
                 </div>
             </div>
         </div>
@@ -351,6 +375,9 @@
             $('#editPhimForm .edit-ma-phim').val(data.IDPhim);
             $('#editPhimForm .edit-ten-phim').val(data.TenPhim);
             $('#editPhimForm .edit-the-loai').val(data.TheLoai);
+            $('#editPhimForm .edit-dao-dien').val(data.DaoDien);
+            $('#editPhimForm .edit-dien-vien').val(data.DienVien);
+            $('#editPhimForm .edit-nha-san-suat').val(data.NhaSanSuat);
             $('#editPhimForm .edit-thoi-luong').val(data.ThoiLuong);
             $('#editPhimForm .edit-mo-ta').val(data.MoTa);
             $('#editPhimForm .edit-trang-thai').val(data.TrangThai);
@@ -384,6 +411,9 @@
             originalData = {
                 TenPhim: data.TenPhim || '',
                 TheLoai: data.TheLoai || '',
+                DaoDien: data.DaoDien || '',
+                DienVien: data.DienVien || '',
+                NhaSanSuat: data.NhaSanSuat || '',
                 ThoiLuong: data.ThoiLuong?.toString() || '',
                 MoTa: data.MoTa || '',
                 TrangThai: data.TrangThai || '',
@@ -432,6 +462,9 @@
             const currentData = {
                 TenPhim: $('.edit-ten-phim').val(),
                 TheLoai: $('.edit-the-loai').val(),
+                DaoDien: $('.edit-dao-dien').val(),
+                DienVien: $('.edit-dien-vien').val(),
+                NhaSanSuat: $('.edit-nha-san-suat').val(),
                 ThoiLuong: $('.edit-thoi-luong').val(),
                 MoTa: $('.edit-mo-ta').val(),
                 TrangThai: $('.edit-trang-thai').val(),

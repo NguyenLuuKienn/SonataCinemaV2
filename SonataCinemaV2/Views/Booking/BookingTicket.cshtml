@@ -8,7 +8,7 @@
     <div class="booking-wrapper">
         <!-- Left Column - Booking Form -->
         <div class="booking-form-section">
-            <form method="post" action="/Booking/ConfirmBooking">
+            <form id="bookingForm" method="post">
                 <div id="booking-form">
                     <h2 class="section-title">Đặt Vé Xem Phim</h2>
 
@@ -73,35 +73,47 @@
                 <!-- Seat Selection Section -->
                 <div id="seatSelectionContainer" class="seat-selection-section" style="display: none;">
                     <h3 class="section-title">Chọn Chỗ Ngồi</h3>
-                    <div class="screen-container">
-                        <div class="screen">Màn Chiếu</div>
-                    </div>
                     <div class="seats-container" id="seat-selection"></div>
 
-                    <div class="legend">
-                        <div class="legend-item">
-                            <div class="seat-icon empty"></div>
-                            <span>Ghế trống</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="seat-icon selected"></div>
-                            <span>Ghế đã chọn</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="seat-icon occupied"></div>
-                            <span>Ghế đã đặt</span>
-                        </div>
-                    </div>
+
 
                     <div class="action-buttons">
                         <button class="btn btn-secondary" id="back">
                             <i class="fas fa-arrow-left"></i> Quay Lại
                         </button>
-                        <button id="confirm-booking" class="btn btn-success" type="submit" disabled>
+                        <button class="btn btn-primary" id="next-to-combo" type="button" disabled>
+                            <i class="fas fa-arrow-right"></i> Tiếp Tục
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Combo Selection Section -->
+                <div id="comboSelectionContainer" class="combo-selection-section" style="display: none;">
+                    <h3 class="section-title">
+                        <i class="fas fa-hamburger"></i>
+                        Chọn Combo
+                    </h3>
+                    <div class="combos-container">
+                        <div id="combo-list" class="combo-grid">
+                            <!-- Combos sẽ được load động từ JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Selected Combos Summary -->
+
+                    <input type="hidden" id="selectedCombosData" name="selectedCombosData" />
+                    <input type="hidden" id="comboTotalPrice" name="comboTotalPrice" />
+
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" id="back-to-seats">
+                            <i class="fas fa-arrow-left"></i> Quay Lại
+                        </button>
+                        <button id="confirm-booking" class="btn btn-success" type="submit">
                             <i class="fas fa-check"></i> Xác Nhận Đặt Vé
                         </button>
                     </div>
                 </div>
+
             </form>
         </div>
 
@@ -155,7 +167,27 @@
                             <span id="selected-seats">-</span>
                         </div>
                     </div>
-                    
+                    <div class="info-item">
+                        <i class="fas fa-hamburger"></i>
+                        <div class="info-content">
+                            <label>Combo đã chọn:</label>
+                            <span id="selected-combo-summary">-</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-money-bill"></i>
+                        <div class="info-content">
+                            <label>Giá vé:</label>
+                            <span id="ticket-total">0 VNĐ</span>
+                        </div>
+                    </div>
+                    <div class="info-item total-price">
+                        <i class="fas fa-money-check"></i>
+                        <div class="info-content">
+                            <label>Tổng thanh toán:</label>
+                            <span id="total-price">0 VNĐ</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

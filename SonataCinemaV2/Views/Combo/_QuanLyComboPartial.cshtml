@@ -1,0 +1,108 @@
+﻿@model IEnumerable<SonataCinemaV2.Models.Combo>
+
+<div class="combo-management">
+    <!-- Header -->
+    <div class="management-header">
+        <h2>Quản Lý Combo</h2>
+        <button type="button" class="btn btn-primary" onclick="showComboModal()">
+            <i class="fas fa-plus"></i> Thêm Combo
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="management-filters mb-3">
+        <div class="row">
+            <div class="col-md-6">
+                <input type="text" id="searchCombo" class="form-control" placeholder="Tìm kiếm...">
+            </div>
+            <div class="col-md-6">
+                <select id="statusFilter" class="form-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="true">Đang bán</option>
+                    <option value="false">Ngừng bán</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Combo Grid -->
+    <div class="row" id="comboGrid">
+        @foreach (var item in Model)
+        {
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card h-100">
+                    <img src="@item.HinhAnh" class="card-img-top" alt="@item.TenCombo" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">@item.TenCombo</h5>
+                        <p class="card-text">@item.MoTa</p>
+                        <h6 class="text-primary">@item.Gia.ToString("N0") đ</h6>
+                        <span class="badge @(item.TrangThai.HasValue && item.TrangThai.Value ? "bg-success" : "bg-secondary")">
+                            @(item.TrangThai.HasValue && item.TrangThai.Value ? "Đang bán" : "Ngừng bán")
+                        </span>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="btn-group w-100">
+                            <button class="btn btn-warning btn-sm" onclick="editCombo(@item.ID_Combo)">
+                                <i class="fas fa-edit"></i> Sửa
+                            </button>
+                            <button class="btn btn-info btn-sm" onclick="toggleComboStatus(@item.ID_Combo)">
+                                <i class="fas fa-power-off"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteCombo(@item.ID_Combo)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Combo Modal -->
+<!-- Phần modal -->
+<div class="modal fade" id="comboModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Thêm Combo Mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="comboForm" onsubmit="return false;">
+                    @Html.AntiForgeryToken() <!-- Thêm dòng này -->
+                    <input type="hidden" id="ID_Combo" name="ID_Combo" value="" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Tên Combo <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="TenCombo" name="TenCombo" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mô Tả <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="MoTa" name="MoTa" rows="3" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Giá <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="Gia" name="Gia" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Hình Ảnh</label>
+                        <input type="file" class="form-control" id="HinhAnh" name="HinhAnh" accept="image/*">
+                        <div id="imagePreview" class="mt-2"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Đóng
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveCombo()">
+                    <i class="fas fa-save"></i> Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

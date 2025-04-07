@@ -18,8 +18,9 @@ namespace SonataCinemaV2.Helper
         private static readonly string Password = "uabjenvfrctxmjox"; // App password từ Google
         private static readonly string FromName = "Sonata Cinema";
 
-        public static async Task SendBookingConfirmationEmail(string toEmail, string customerName, string movieName, string showTime, string seats, decimal totalAmount)
+        public static async Task SendBookingConfirmationEmail(string toEmail, string customerName, string movieName, string showTime, string seats,string combos, decimal totalAmount)
         {
+            var comboInfo = string.IsNullOrEmpty(combos) ? "Không có combo" : combos;
             string subject = "Xác nhận đặt vé - Sonata Cinema";
             string body = $@"
         <html>
@@ -33,7 +34,10 @@ namespace SonataCinemaV2.Helper
                     <p><strong>Phim:</strong> {movieName}</p>
                     <p><strong>Suất chiếu:</strong> {showTime}</p>
                     <p><strong>Ghế:</strong> {seats}</p>
-                    <p><strong>Tổng tiền:</strong> {totalAmount:N0} VNĐ</p>
+                    <p><strong>Combo đã chọn:</strong> {comboInfo}</p>
+                    <div style='margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px;'>
+                    <p style='font-size: 1.2em; color: #e74c3c;'><strong>Tổng tiền:</strong> {totalAmount:N0} VNĐ</p>
+                </div>
                     <p><strong>Điểm thưởng:</strong> +1</p>
                 </div>
 

@@ -17,6 +17,8 @@ namespace SonataCinema.Controllers
         // Lấy danh sách lịch chiếu
         public ActionResult DanhSachLichChieuPartial()
         {
+            CapNhatTrangThaiLichChieu();
+
             ViewBag.DanhSachPhim = db.Phims.Where(p => p.TrangThai == "Đang chiếu").ToList();
             ViewBag.DanhSachPhong = db.PhongChieux.ToList();
 
@@ -260,5 +262,161 @@ namespace SonataCinema.Controllers
                 return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
             }
         }
+
+
+
+        private void CapNhatTrangThaiLichChieu()
+        {
+            var lichChieus = db.LichChieux.Include(l => l.Phim).ToList();
+            DateTime now = DateTime.Now;
+
+            foreach (var lc in lichChieus)
+            {
+                DateTime thoiDiemBatDau = lc.NgayChieu.Date + lc.GioChieu;
+                DateTime thoiDiemKetThuc = thoiDiemBatDau.AddMinutes(lc.Phim.ThoiLuong ?? 0);
+
+                if (now > thoiDiemKetThuc && lc.TrangThai != "Đã chiếu")
+                {
+                    lc.TrangThai = "Đã chiếu";
+                    db.Entry(lc).State = EntityState.Modified;
+                }
+                else if (now >= thoiDiemBatDau && now <= thoiDiemKetThuc && lc.TrangThai != "Đang chiếu")
+                {
+                    lc.TrangThai = "Đang chiếu";
+                    db.Entry(lc).State = EntityState.Modified;
+                }
+                else if (now < thoiDiemBatDau && lc.TrangThai != "Chưa chiếu")
+                {
+                    lc.TrangThai = "Chưa chiếu";
+                    db.Entry(lc).State = EntityState.Modified;
+                }
+            }
+
+            db.SaveChanges();
+        }
+
+        [HttpGet]
+        public JsonResult GetLichChieuTrongNgay(int phongId, DateTime ngay)
+        {
+            try
+            {
+                // Lấy danh sách lịch chiếu trong ngày của phòng
+                var lichChieuTrongNgay = db.LichChieux
+                    .Where(lc => lc.ID_Phong == phongId &&
+                                DbFunctions.TruncateTime(lc.NgayChieu) == DbFunctions.TruncateTime(ngay))
+                    .Select(lc => new
+                    {
+                        gioChieu = lc.GioChieu,
+                        tenPhim = lc.Phim.TenPhim,
+                        thoiLuong = lc.Phim.ThoiLuong ?? 0
+                    })
+                    .ToList();
+
+                // Tạo danh sách tất cả các khung giờ từ 8h đến 22h, mỗi 30 phút
+                var tatCaKhungGio = new List<TimeSpan>();
+                var gioHienTai = new TimeSpan(8, 0, 0); // Bắt đầu từ 8:00
+                var gioKetThuc = new TimeSpan(22, 0, 0); // Kết thúc lúc 22:00
+
+                while (gioHienTai <= gioKetThuc)
+                {
+                    tatCaKhungGio.Add(gioHienTai);
+                    gioHienTai = gioHienTai.Add(TimeSpan.FromMinutes(30));
+                }
+
+                // Đánh dấu các khung giờ không khả dụng (đã có phim chiếu + 15 phút buffer)
+                var khungGioKhongKhaDung = new List<TimeSpan>();
+                foreach (var lichChieu in lichChieuTrongNgay)
+                {
+                    var batDau = lichChieu.gioChieu;
+                    var ketThuc = batDau.Add(TimeSpan.FromMinutes(lichChieu.thoiLuong + 15)); // Thêm 15 phút buffer
+
+                    // Đánh dấu tất cả các khung giờ nằm trong khoảng thời gian chiếu + buffer
+                    khungGioKhongKhaDung.AddRange(
+                        tatCaKhungGio.Where(kg =>
+                            kg >= batDau.Add(TimeSpan.FromMinutes(-15)) && // Thêm 15 phút buffer trước
+                            kg <= ketThuc
+                        )
+                    );
+                }
+
+                // Lọc ra các khung giờ còn khả dụng
+                var khungGioKhaDung = tatCaKhungGio
+                    .Except(khungGioKhongKhaDung)
+                    .Select(kg => kg.ToString(@"hh\:mm"))
+                    .ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    lichChieuHienTai = lichChieuTrongNgay.Select(l => new
+                    {
+                        gioChieu = l.gioChieu.ToString(@"hh\:mm"),
+                        tenPhim = l.tenPhim,
+                        thoiLuong = l.thoiLuong,
+                        ketThuc = l.gioChieu.Add(TimeSpan.FromMinutes(l.thoiLuong)).ToString(@"hh\:mm")
+                    }),
+                    khungGioKhaDung = khungGioKhaDung
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public JsonResult GetThongTinGhe(int lichChieuId)
+        {
+            try
+            {
+                // Lấy thông tin lịch chiếu
+                var lichChieu = db.LichChieux
+                    .Include(lc => lc.Phim)
+                    .Include(lc => lc.PhongChieu)
+                    .FirstOrDefault(lc => lc.ID_LichChieu == lichChieuId);
+
+                if (lichChieu == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy lịch chiếu" }, JsonRequestBehavior.AllowGet);
+                }
+
+                // Lấy danh sách ghế đã đặt
+                var ghesDaDat = db.Ves
+                    .Where(v => v.ID_LichChieu == lichChieuId)
+                    .Select(v => v.ChoNgoi)
+                    .ToList();
+
+                // Lấy tất cả ghế của phòng
+                var danhSachGhe = db.Ghes
+                    .Where(g => g.ID_Phong == lichChieu.ID_Phong)
+                    .OrderBy(g => g.TenGhe)
+                    .Select(g => new
+                    {
+                        tenGhe = g.TenGhe,
+                        trangThai = ghesDaDat.Contains(g.TenGhe) ? "Đã đặt" : "Trống"
+                    })
+                    .ToList();
+
+                var thongTinLichChieu = new
+                {
+                    tenPhim = lichChieu.Phim.TenPhim,
+                    tenPhong = lichChieu.PhongChieu.TenPhong,
+                    ngayChieu = lichChieu.NgayChieu.ToString("dd/MM/yyyy"),
+                    gioChieu = lichChieu.GioChieu.ToString(@"hh\:mm")
+                };
+
+                return Json(new
+                {
+                    success = true,
+                    thongTinLichChieu = thongTinLichChieu,
+                    danhSachGhe = danhSachGhe
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
     }
 }

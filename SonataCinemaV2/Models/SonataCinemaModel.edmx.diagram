@@ -36,6 +36,10 @@
         <EntityTypeShape EntityType="CinemaV3Model.DanhGia" Width="1.5" PointX="9" PointY="9.25" />
         <AssociationConnector Association="CinemaV3Model.FK__DanhGia__ID_Khac__55BFB948" />
         <AssociationConnector Association="CinemaV3Model.FK__DanhGia__ID_Phim__56B3DD81" />
+        <EntityTypeShape EntityType="CinemaV3Model.ComboOrder" Width="1.5" PointX="11.25" PointY="5" />
+        <EntityTypeShape EntityType="CinemaV3Model.Combo" Width="1.5" PointX="9" PointY="16" />
+        <AssociationConnector Association="CinemaV3Model.FK__ComboOrde__ID_Co__7EC1CEDB" />
+        <AssociationConnector Association="CinemaV3Model.FK__ComboOrde__ID_Th__7DCDAAA2" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

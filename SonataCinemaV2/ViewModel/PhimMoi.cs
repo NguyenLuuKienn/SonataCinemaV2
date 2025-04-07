@@ -23,6 +23,9 @@ namespace SonataCinemaV2.ViewModel
         public string TrangThai { get; set; }
 
         public byte NoiBat { get; set; }
+        public string DienVien { get; set; }
+        public string DaoDien { get; set; }
+        public string NhaSanSuat { get; set; }
 
         [NotMapped]
         public HttpPostedFileBase Poster { get; set; }

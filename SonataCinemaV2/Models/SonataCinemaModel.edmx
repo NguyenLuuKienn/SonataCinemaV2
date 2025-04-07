@@ -39,6 +39,27 @@
           <Property Name="Role" Type="nvarchar" MaxLength="20" />
           <Property Name="Status" Type="nvarchar" MaxLength="20" />
         </EntityType>
+        <EntityType Name="ComboOrders">
+          <Key>
+            <PropertyRef Name="ID_ComboOrder" />
+          </Key>
+          <Property Name="ID_ComboOrder" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ID_ThanhToan" Type="int" Nullable="false" />
+          <Property Name="ID_Combo" Type="int" Nullable="false" />
+          <Property Name="SoLuong" Type="int" Nullable="false" />
+          <Property Name="GiaTien" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Combos">
+          <Key>
+            <PropertyRef Name="ID_Combo" />
+          </Key>
+          <Property Name="ID_Combo" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TenCombo" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="MoTa" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Gia" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="HinhAnh" Type="nvarchar" MaxLength="255" />
+          <Property Name="TrangThai" Type="bit" />
+        </EntityType>
         <EntityType Name="DanhGia">
           <Key>
             <PropertyRef Name="ID_DanhGia" />
@@ -76,6 +97,7 @@
           <Property Name="ID_Ghe" Type="int" Nullable="false" />
           <Property Name="TrangThai" Type="nvarchar" MaxLength="20" Nullable="false" />
           <Property Name="ThoiGianGiu" Type="datetime" />
+          <Property Name="ID_KhachHang" Type="int" />
         </EntityType>
         <EntityType Name="KhachHang">
           <Key>
@@ -136,6 +158,9 @@
           <Property Name="Poster" Type="nvarchar(max)" />
           <Property Name="Banner" Type="nvarchar(max)" />
           <Property Name="Trailer" Type="nvarchar(max)" />
+          <Property Name="DienVien" Type="nvarchar" MaxLength="50" />
+          <Property Name="DaoDien" Type="nvarchar" MaxLength="50" />
+          <Property Name="NhaSanSuat" Type="nvarchar" MaxLength="50" />
         </EntityType>
         <EntityType Name="PhongChieu">
           <Key>
@@ -167,6 +192,7 @@
           <Property Name="PhuongThucThanhToan" Type="nvarchar" MaxLength="50" />
           <Property Name="SoTienGiam" Type="decimal" Precision="10" Scale="2" />
           <Property Name="TongTienGoc" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="TongTienCombo" Type="decimal" Precision="18" Scale="2" />
         </EntityType>
         <EntityType Name="Ve">
           <Key>
@@ -204,6 +230,30 @@
             </Principal>
             <Dependent Role="ChatMessages">
               <PropertyRef Name="ID_NhanVien" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__ComboOrde__ID_Co__7EC1CEDB">
+          <End Role="Combos" Type="Self.Combos" Multiplicity="1" />
+          <End Role="ComboOrders" Type="Self.ComboOrders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Combos">
+              <PropertyRef Name="ID_Combo" />
+            </Principal>
+            <Dependent Role="ComboOrders">
+              <PropertyRef Name="ID_Combo" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__ComboOrde__ID_Th__7DCDAAA2">
+          <End Role="ThanhToan" Type="Self.ThanhToan" Multiplicity="1" />
+          <End Role="ComboOrders" Type="Self.ComboOrders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ThanhToan">
+              <PropertyRef Name="ID_ThanhToan" />
+            </Principal>
+            <Dependent Role="ComboOrders">
+              <PropertyRef Name="ID_ThanhToan" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -410,6 +460,8 @@
           <EntitySet Name="__EFMigrationsHistory" EntityType="Self.__EFMigrationsHistory" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Blog" EntityType="Self.Blog" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ChatMessages" EntityType="Self.ChatMessages" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ComboOrders" EntityType="Self.ComboOrders" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Combos" EntityType="Self.Combos" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DanhGia" EntityType="Self.DanhGia" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DiemThuong" EntityType="Self.DiemThuong" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Ghe" EntityType="Self.Ghe" Schema="dbo" store:Type="Tables" />
@@ -429,6 +481,14 @@
           <AssociationSet Name="FK__ChatMessa__ID_Nh__2057CCD0" Association="Self.FK__ChatMessa__ID_Nh__2057CCD0">
             <End Role="NhanVien" EntitySet="NhanVien" />
             <End Role="ChatMessages" EntitySet="ChatMessages" />
+          </AssociationSet>
+          <AssociationSet Name="FK__ComboOrde__ID_Co__7EC1CEDB" Association="Self.FK__ComboOrde__ID_Co__7EC1CEDB">
+            <End Role="Combos" EntitySet="Combos" />
+            <End Role="ComboOrders" EntitySet="ComboOrders" />
+          </AssociationSet>
+          <AssociationSet Name="FK__ComboOrde__ID_Th__7DCDAAA2" Association="Self.FK__ComboOrde__ID_Th__7DCDAAA2">
+            <End Role="ThanhToan" EntitySet="ThanhToan" />
+            <End Role="ComboOrders" EntitySet="ComboOrders" />
           </AssociationSet>
           <AssociationSet Name="FK__DanhGia__ID_Khac__55BFB948" Association="Self.FK__DanhGia__ID_Khac__55BFB948">
             <End Role="KhachHang" EntitySet="KhachHang" />
@@ -585,6 +645,9 @@
           <Property Name="Trailer" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="LichChieux" Relationship="Self.FK_LichChieu_Phim" FromRole="Phim" ToRole="LichChieu" />
           <NavigationProperty Name="DanhGias" Relationship="CinemaV3Model.FK__DanhGia__ID_Phim__56B3DD81" FromRole="Phim" ToRole="DanhGia" />
+          <Property Name="DienVien" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="DaoDien" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="NhaSanSuat" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="PhongChieu">
           <Key>
@@ -621,6 +684,8 @@
           <NavigationProperty Name="KhachHang" Relationship="Self.FK_ThanhToan_KhachHang" FromRole="ThanhToan" ToRole="KhachHang" />
           <NavigationProperty Name="NhanVien" Relationship="Self.FK_ThanhToan_NhanVien" FromRole="ThanhToan" ToRole="NhanVien" />
           <NavigationProperty Name="Ves" Relationship="Self.FK_Ve_ThanhToan" FromRole="ThanhToan" ToRole="Ve" />
+          <NavigationProperty Name="ComboOrders" Relationship="CinemaV3Model.FK__ComboOrde__ID_Th__7DCDAAA2" FromRole="ThanhToan" ToRole="ComboOrder" />
+          <Property Name="TongTienCombo" Type="Decimal" Precision="18" Scale="2" />
         </EntityType>
         <EntityType Name="Ve">
           <Key>
@@ -858,6 +923,16 @@
             <End Role="Phim" EntitySet="Phims" />
             <End Role="DanhGia" EntitySet="DanhGias" />
           </AssociationSet>
+          <EntitySet Name="ComboOrders" EntityType="CinemaV3Model.ComboOrder" />
+          <EntitySet Name="Combos" EntityType="CinemaV3Model.Combo" />
+          <AssociationSet Name="FK__ComboOrde__ID_Co__7EC1CEDB" Association="CinemaV3Model.FK__ComboOrde__ID_Co__7EC1CEDB">
+            <End Role="Combo" EntitySet="Combos" />
+            <End Role="ComboOrder" EntitySet="ComboOrders" />
+          </AssociationSet>
+          <AssociationSet Name="FK__ComboOrde__ID_Th__7DCDAAA2" Association="CinemaV3Model.FK__ComboOrde__ID_Th__7DCDAAA2">
+            <End Role="ThanhToan" EntitySet="ThanhToans" />
+            <End Role="ComboOrder" EntitySet="ComboOrders" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="sp_helpdiagramdefinition_Result">
           <Property Type="Int32" Name="version" Nullable="true" />
@@ -954,6 +1029,7 @@
           <Property Name="ThoiGianGiu" Type="DateTime" Precision="3" />
           <NavigationProperty Name="Ghe" Relationship="CinemaV3Model.FK_Ghe_TrangThai_Ghe" FromRole="Ghe_TrangThai" ToRole="Ghe" />
           <NavigationProperty Name="LichChieu" Relationship="CinemaV3Model.FK_Ghe_TrangThai_LichChieu" FromRole="Ghe_TrangThai" ToRole="LichChieu" />
+          <Property Name="ID_KhachHang" Type="Int32" />
         </EntityType>
         <Association Name="FK_Ghe_TrangThai_Ghe">
           <End Type="CinemaV3Model.Ghe" Role="Ghe" Multiplicity="1" />
@@ -1012,6 +1088,54 @@
             </Principal>
             <Dependent Role="DanhGia">
               <PropertyRef Name="ID_Phim" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ComboOrder">
+          <Key>
+            <PropertyRef Name="ID_ComboOrder" />
+          </Key>
+          <Property Name="ID_ComboOrder" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ID_ThanhToan" Type="Int32" Nullable="false" />
+          <Property Name="ID_Combo" Type="Int32" Nullable="false" />
+          <Property Name="SoLuong" Type="Int32" Nullable="false" />
+          <Property Name="GiaTien" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <NavigationProperty Name="Combo" Relationship="CinemaV3Model.FK__ComboOrde__ID_Co__7EC1CEDB" FromRole="ComboOrder" ToRole="Combo" />
+          <NavigationProperty Name="ThanhToan" Relationship="CinemaV3Model.FK__ComboOrde__ID_Th__7DCDAAA2" FromRole="ComboOrder" ToRole="ThanhToan" />
+        </EntityType>
+        <EntityType Name="Combo">
+          <Key>
+            <PropertyRef Name="ID_Combo" />
+          </Key>
+          <Property Name="ID_Combo" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TenCombo" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="MoTa" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Gia" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="HinhAnh" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="TrangThai" Type="Boolean" />
+          <NavigationProperty Name="ComboOrders" Relationship="CinemaV3Model.FK__ComboOrde__ID_Co__7EC1CEDB" FromRole="Combo" ToRole="ComboOrder" />
+        </EntityType>
+        <Association Name="FK__ComboOrde__ID_Co__7EC1CEDB">
+          <End Type="CinemaV3Model.Combo" Role="Combo" Multiplicity="1" />
+          <End Type="CinemaV3Model.ComboOrder" Role="ComboOrder" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Combo">
+              <PropertyRef Name="ID_Combo" />
+            </Principal>
+            <Dependent Role="ComboOrder">
+              <PropertyRef Name="ID_Combo" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__ComboOrde__ID_Th__7DCDAAA2">
+          <End Type="CinemaV3Model.ThanhToan" Role="ThanhToan" Multiplicity="1" />
+          <End Type="CinemaV3Model.ComboOrder" Role="ComboOrder" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ThanhToan">
+              <PropertyRef Name="ID_ThanhToan" />
+            </Principal>
+            <Dependent Role="ComboOrder">
+              <PropertyRef Name="ID_ThanhToan" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1091,6 +1215,9 @@
           <EntitySetMapping Name="Phims">
             <EntityTypeMapping TypeName="CinemaV3Model.Phim">
               <MappingFragment StoreEntitySet="Phim">
+                <ScalarProperty Name="NhaSanSuat" ColumnName="NhaSanSuat" />
+                <ScalarProperty Name="DaoDien" ColumnName="DaoDien" />
+                <ScalarProperty Name="DienVien" ColumnName="DienVien" />
                 <ScalarProperty Name="ID_Phim" ColumnName="ID_Phim" />
                 <ScalarProperty Name="TenPhim" ColumnName="TenPhim" />
                 <ScalarProperty Name="TheLoai" ColumnName="TheLoai" />
@@ -1128,6 +1255,7 @@
           <EntitySetMapping Name="ThanhToans">
             <EntityTypeMapping TypeName="CinemaV3Model.ThanhToan">
               <MappingFragment StoreEntitySet="ThanhToan">
+                <ScalarProperty Name="TongTienCombo" ColumnName="TongTienCombo" />
                 <ScalarProperty Name="ID_ThanhToan" ColumnName="ID_ThanhToan" />
                 <ScalarProperty Name="ID_KhachHang" ColumnName="ID_KhachHang" />
                 <ScalarProperty Name="ID_NhanVien" ColumnName="ID_NhanVien" />
@@ -1219,6 +1347,7 @@
           <EntitySetMapping Name="Ghe_TrangThai">
             <EntityTypeMapping TypeName="CinemaV3Model.Ghe_TrangThai">
               <MappingFragment StoreEntitySet="Ghe_TrangThai">
+                <ScalarProperty Name="ID_KhachHang" ColumnName="ID_KhachHang" />
                 <ScalarProperty Name="ThoiGianGiu" ColumnName="ThoiGianGiu" />
                 <ScalarProperty Name="TrangThai" ColumnName="TrangThai" />
                 <ScalarProperty Name="ID_Ghe" ColumnName="ID_Ghe" />
@@ -1235,6 +1364,29 @@
                 <ScalarProperty Name="ID_Phim" ColumnName="ID_Phim" />
                 <ScalarProperty Name="ID_KhachHang" ColumnName="ID_KhachHang" />
                 <ScalarProperty Name="ID_DanhGia" ColumnName="ID_DanhGia" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ComboOrders">
+            <EntityTypeMapping TypeName="CinemaV3Model.ComboOrder">
+              <MappingFragment StoreEntitySet="ComboOrders">
+                <ScalarProperty Name="GiaTien" ColumnName="GiaTien" />
+                <ScalarProperty Name="SoLuong" ColumnName="SoLuong" />
+                <ScalarProperty Name="ID_Combo" ColumnName="ID_Combo" />
+                <ScalarProperty Name="ID_ThanhToan" ColumnName="ID_ThanhToan" />
+                <ScalarProperty Name="ID_ComboOrder" ColumnName="ID_ComboOrder" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Combos">
+            <EntityTypeMapping TypeName="CinemaV3Model.Combo">
+              <MappingFragment StoreEntitySet="Combos">
+                <ScalarProperty Name="TrangThai" ColumnName="TrangThai" />
+                <ScalarProperty Name="HinhAnh" ColumnName="HinhAnh" />
+                <ScalarProperty Name="Gia" ColumnName="Gia" />
+                <ScalarProperty Name="MoTa" ColumnName="MoTa" />
+                <ScalarProperty Name="TenCombo" ColumnName="TenCombo" />
+                <ScalarProperty Name="ID_Combo" ColumnName="ID_Combo" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

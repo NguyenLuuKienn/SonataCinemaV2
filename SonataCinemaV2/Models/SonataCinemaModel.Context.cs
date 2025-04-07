@@ -42,6 +42,8 @@ namespace SonataCinemaV2.Models
         public virtual DbSet<C__EFMigrationsHistory> C__EFMigrationsHistory { get; set; }
         public virtual DbSet<Ghe_TrangThai> Ghe_TrangThai { get; set; }
         public virtual DbSet<DanhGia> DanhGias { get; set; }
+        public virtual DbSet<ComboOrder> ComboOrders { get; set; }
+        public virtual DbSet<Combo> Combos { get; set; }
     
         public virtual int sp_alterdiagram(string diagramname, Nullable<int> owner_id, Nullable<int> version, byte[] definition)
         {

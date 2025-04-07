@@ -19,7 +19,7 @@ namespace SonataCinemaV2.Controllers
         {
             var model = new QuickBookingViewModel
             {
-                Phims = db.LichChieux.Where(p => p.TrangThai == "Đang chiếu").Select(p => p.Phim.TenPhim).ToList(),
+                Phims = db.LichChieux.Where(p => p.TrangThai == "Chưa chiếu").Select(p => p.Phim.TenPhim).ToList(),
             };
             return PartialView("_QuickBooking", model);
         }

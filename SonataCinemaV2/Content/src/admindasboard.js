@@ -20,6 +20,7 @@ function initializeNavigation() {
         showtime: document.querySelector(".showtime-management"),
         blog: document.querySelector(".blog-management"),
         ticket: document.querySelector(".ticket-management"),
+        combo: document.querySelector(".combo-management"),
         helper: document.querySelector(".helper-management"),
         report: document.querySelector(".report-management")
     };
@@ -57,6 +58,7 @@ function initializeNavigation() {
             "Quản lý Lịch Chiếu": contentElements.showtime,
             "Quản lý Blog": contentElements.blog,
             "Quản lý Vé": contentElements.ticket,
+            "Quản lý Dịch vụ": contentElements.combo,
             "Hỗ trợ Khách hàng": contentElements.helper,
             "Báo Cao Doanh Thu": contentElements.report
         };

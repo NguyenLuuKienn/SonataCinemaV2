@@ -58,14 +58,22 @@
                 </div>
             }
 
-            @if (ViewBag.TotalAmount != null)
+            @if (ViewBag.Combos != "Không có combo")
             {
                 <div class="ticket-detail">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <label>Tổng tiền:</label>
-                    <span>@ViewBag.TotalAmount</span>
+                    <i class="fas fa-hamburger"></i>
+                    <label>Combo đã chọn:</label>
+                    <span>@ViewBag.Combos</span>
                 </div>
             }
+
+            <div class="ticket-detail total-price">
+                <i class="fas fa-money-bill-wave"></i>
+                <label>Tổng tiền:</label>
+                <span>@ViewBag.TotalAmount</span>
+            </div>
+
+
         </div>
 
         <div class="action-buttons">

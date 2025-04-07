@@ -84,22 +84,54 @@ namespace SonataCinemaV2.Controllers
                     return Json(new { success = false, message = "Không tìm thấy vé!" });
                 }
 
-                ve.TrangThai = "Đã huỷ";
-                db.SaveChanges();
-
-                // Lấy thông tin khách hàng và lịch chiếu
-                var khachHang = db.KhachHangs.Find(ve.ID_KhachHang);
+                // Lấy thông tin lịch chiếu
                 var lichChieu = db.LichChieux
                                   .Include(lc => lc.Phim)
                                   .FirstOrDefault(lc => lc.ID_LichChieu == ve.ID_LichChieu);
 
+                if (lichChieu == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thông tin lịch chiếu!" });
+                }
+
+                // Lấy thời gian hiện tại
+                var now = DateTime.Now;
+
+                // Tính thời gian chiếu phim (kết hợp ngày chiếu và giờ chiếu)
+                var showTime = lichChieu.NgayChieu.Date + lichChieu.GioChieu;
+
+                // Kiểm tra xem phim đã chiếu chưa
+                if (showTime < now)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Không thể huỷ vé cho phim đã chiếu!"
+                    });
+                }
+
+                // Tính thời gian còn lại đến lúc chiếu
+                var timeUntilShow = showTime - now;
+
+                // Kiểm tra xem còn ít nhất 30 phút trước khi chiếu
+                if (timeUntilShow.TotalMinutes < 30)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Chỉ có thể huỷ vé trước giờ chiếu 30 phút!"
+                    });
+                }
+
+                // Tiếp tục xử lý huỷ vé nếu thoả mãn điều kiện
+                ve.TrangThai = "Đã huỷ";
+                db.SaveChanges();
+
+                // Lấy thông tin khách hàng
+                var khachHang = db.KhachHangs.Find(ve.ID_KhachHang);
                 if (khachHang == null || string.IsNullOrEmpty(khachHang.Email))
                 {
                     throw new Exception("Không tìm thấy thông tin khách hàng hoặc email không hợp lệ.");
-                }
-                if (lichChieu == null || lichChieu.Phim == null)
-                {
-                    throw new Exception("Không tìm thấy thông tin lịch chiếu hoặc phim.");
                 }
 
                 var email = khachHang.Email;
@@ -107,19 +139,16 @@ namespace SonataCinemaV2.Controllers
                 var movieName = lichChieu.Phim.TenPhim;
                 var formattedDate = lichChieu.NgayChieu.ToString("dd/MM/yyyy");
                 var formattedTime = lichChieu.GioChieu.ToString(@"hh\:mm");
-                var showTime = $"{formattedDate} {formattedTime}";
+                var showTimeStr = $"{formattedDate} {formattedTime}";
 
                 // Lấy danh sách ghế đã đặt
                 var seats = string.Join(", ", ve.ChoNgoi);
-
-                if (seats == null || !seats.Any())
+                if (string.IsNullOrEmpty(seats))
                 {
                     throw new Exception("Không tìm thấy danh sách ghế đã đặt.");
                 }
 
-                var seatList = string.Join(", ", seats);
-
-                // Giả sử hoàn tiền là 80% giá vé
+                // Tính tiền hoàn trả (80% giá vé)
                 decimal refundAmount = ve.Gia * 0.8m;
 
                 // Gửi email xác nhận huỷ vé
@@ -127,7 +156,7 @@ namespace SonataCinemaV2.Controllers
                     email,
                     customerName,
                     movieName,
-                    showTime,
+                    showTimeStr,
                     seats,
                     refundAmount
                 );
@@ -135,7 +164,7 @@ namespace SonataCinemaV2.Controllers
                 return Json(new
                 {
                     success = true,
-                    message = "Huỷ vé thành công! Email xác nhận đã được gửi."
+                    message = $"Huỷ vé thành công! Email xác nhận đã được gửi. Bạn sẽ được hoàn lại {refundAmount:N0} VNĐ"
                 });
             }
             catch (Exception ex)
