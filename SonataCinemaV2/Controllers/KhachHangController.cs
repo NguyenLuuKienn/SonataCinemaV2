@@ -72,38 +72,40 @@ namespace SonataCinema.Controllers
         [HttpPost]
         public ActionResult DangKy(Register model)
         {
-            if (ModelState.IsValid)
+            try
             {
-                // kiểm tra captcha google
-                var response = Request["g-recaptcha-response"];
-                if (string.IsNullOrEmpty(response))
+                if (ModelState.IsValid)
                 {
-                    ModelState.AddModelError("ReCaptcha", "Vui lòng xác nhận captcha");
-                    if (Request.IsAjaxRequest())
+                    // Kiểm tra captcha
+                    var response = Request["g-recaptcha-response"];
+                    if (string.IsNullOrEmpty(response))
                     {
-                        return PartialView("_RegisterPartial", model);
+                        return Json(new { 
+                            success = false, 
+                            errors = new { ReCaptcha = "Vui lòng xác nhận captcha" } 
+                        });
                     }
-                    return View(model);
-                }
-                bool isValidCaptcha = ReCaptchaHelper.VerifyReCaptcha(response);
-                if (!isValidCaptcha)
-                {
-                    ModelState.AddModelError("ReCaptcha", "Xác thực captcha không thành công");
-                    if (Request.IsAjaxRequest())
-                    {
-                        return PartialView("_RegisterPartial", model);
-                    }
-                    return View(model);
-                }
 
-                // kiểm tra khách hàng
-                var KHtontai = db.KhachHangs.Any(kh => kh.Email == model.Email);
-                if (KHtontai)
-                {
-                    ModelState.AddModelError("Email", "Email đã được sử dụng");
-                }
-                else
-                {
+                    bool isValidCaptcha = ReCaptchaHelper.VerifyReCaptcha(response);
+                    if (!isValidCaptcha)
+                    {
+                        return Json(new { 
+                            success = false, 
+                            errors = new { ReCaptcha = "Xác thực captcha không thành công" } 
+                        });
+                    }
+
+                    // Kiểm tra email tồn tại
+                    var KHtontai = db.KhachHangs.Any(kh => kh.Email == model.Email);
+                    if (KHtontai)
+                    {
+                        return Json(new { 
+                            success = false, 
+                            errors = new { Email = "Email đã được sử dụng" } 
+                        });
+                    }
+
+                    // Tạo tài khoản mới
                     string hashedPassWord = BCrypt.Net.BCrypt.HashPassword(model.MatKhau);
                     var userKH = new KhachHang
                     {
@@ -117,12 +119,9 @@ namespace SonataCinema.Controllers
                         QuyenHan = "Customer",
                         DiemThuong = 0
                     };
+
                     db.KhachHangs.Add(userKH);
                     db.SaveChanges();
-
-                    // Debug: Kiểm tra verify
-                    bool verifyTest = BCrypt.Net.BCrypt.Verify(model.MatKhau, hashedPassWord);
-                    System.Diagnostics.Debug.WriteLine($"Kiểm tra verify: {verifyTest}");
 
                     return Json(new
                     {
@@ -130,18 +129,25 @@ namespace SonataCinema.Controllers
                         redirectUrl = Url.Action("Index", "Home")
                     });
                 }
-            }
-            if (Request.IsAjaxRequest())
-            {
-                if (!ModelState.IsValid)
-                {
-                    return PartialView("_LoginPartial", model);
-                }
-                return Json(new { success = true, redirectUrl = Url.Action("Index", "Home") });
-            }
 
-            return View(model);
+                // Return validation errors
+                var errors = ModelState.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).FirstOrDefault()
+                );
+
+                return Json(new { success = false, errors = errors });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Registration error: {ex.Message}");
+                return Json(new { 
+                    success = false, 
+                    errors = new { General = "Đã xảy ra lỗi trong quá trình đăng ký" } 
+                });
+            }
         }
+
         // xoá khách hàng
         [HttpPost]
         public ActionResult deleteCustomer (int idKH)

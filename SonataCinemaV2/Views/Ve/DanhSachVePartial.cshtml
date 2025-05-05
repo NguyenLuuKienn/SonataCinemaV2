@@ -44,13 +44,14 @@
                                             <small class="text-muted">@ve.LichChieu.GioChieu</small>
                                         </td>
                                         <td>@(ve.NgayDat?.ToString("dd/MM/yyyy HH:mm"))</td>
-                                        <td>@ve.Gia.ToString("#,##0 đ")</td>
+                                        <td>@ve.ThanhToan.TongTienGoc.ToString("#,##0 đ")</td>
                                         <td>
                                             <span class="badge @(ve.TrangThai == "Thành Công" ? "bg-success" :
                                                 ve.TrangThai == "Chờ huỷ" ? "bg-warning" :
                                                 ve.TrangThai == "Đã huỷ" ? "bg-danger" : "bg-secondary")"
                                                   id="status-@ve.ID_Ve">
                                                 @ve.TrangThai
+                                                
                                             </span>
                                         </td>
                                         <td>
@@ -144,13 +145,13 @@
                         .sorting_desc::before, .sorting_desc::after {
                             display: none !important;
                         }
-                        
+
                         .sorting, .sorting_asc, .sorting_desc {
                             position: relative;
                             cursor: pointer;
                             padding-right: 20px !important;
                         }
-                        
+
                         .sorting::after, .sorting_asc::after, .sorting_desc::after {
                             content: '▼';
                             position: absolute;
@@ -159,29 +160,29 @@
                             opacity: 0.3;
                             font-size: 0.8em;
                         }
-                        
+
                         .sorting_asc::after {
                             opacity: 1;
                             color: #0d6efd;
                         }
-                        
+
                         .sorting_desc::after {
                             content: '▲';
                             opacity: 1;
                             color: #0d6efd;
                         }
-                        
+
                         /* Animation cho header khi hover */
                         .sorting:hover::after {
                             opacity: 0.7;
                             transition: opacity 0.3s ease;
                         }
-                        
+
                         /* Animation cho các hàng */
                         #ticketTable tbody tr {
                             transition: all 0.3s ease;
                         }
-                        
+
                         /* Các style khác giữ nguyên */
                     `)
                     .appendTo('head');
@@ -202,6 +203,24 @@
             success: function(response) {
                 if (response.success) {
                     var ve = response.data;
+                    
+                    // Generate combo HTML if combos exist
+                    var comboHtml = '';
+                    if (ve.Combos && ve.Combos.length > 0) {
+                        comboHtml = '<table class="table table-sm table-borderless mb-0">';
+                        ve.Combos.forEach(function(combo) {
+                            comboHtml += `
+                                <tr>
+                                    <td>${combo.TenCombo}</td>
+                                    <td>x${combo.SoLuong}</td>
+                                    <td class="text-end">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(combo.Gia)}</td>
+                                </tr>`;
+                        });
+                        comboHtml += '</table>';
+                    } else {
+                        comboHtml = 'Không có combo';
+                    }
+
                     var ticketInfo = `
                         <table class="table table-borderless">
                             <tr>
@@ -223,8 +242,12 @@
                                 </td>
                             </tr>
                             <tr>
+                                <th>Combo:</th>
+                                <td>${comboHtml}</td>
+                            </tr>
+                            <tr>
                                 <th>Giá Vé:</th>
-                                <td>${ve.Gia.toLocaleString('vi-VN')} đ</td>
+                                <td>${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(ve.TongTienGoc)}</td>
                             </tr>
                             <tr>
                                 <th>Điểm Thưởng:</th>
@@ -337,13 +360,13 @@
                         .sorting_desc::before, .sorting_desc::after {
                             display: none !important;
                         }
-                        
+
                         .sorting, .sorting_asc, .sorting_desc {
                             position: relative;
                             cursor: pointer;
                             padding-right: 20px !important;
                         }
-                        
+
                         .sorting::after, .sorting_asc::after, .sorting_desc::after {
                             content: '▼';
                             position: absolute;
@@ -352,23 +375,23 @@
                             opacity: 0.3;
                             font-size: 0.8em;
                         }
-                        
+
                         .sorting_asc::after {
                             opacity: 1;
                             color: #0d6efd;
                         }
-                        
+
                         .sorting_desc::after {
                             content: '▲';
                             opacity: 1;
                             color: #0d6efd;
                         }
-                        
+
                         .sorting:hover::after {
                             opacity: 0.7;
                             transition: opacity 0.3s ease;
                         }
-                        
+
                         #ticketTable tbody tr {
                             transition: all 0.3s ease;
                         }

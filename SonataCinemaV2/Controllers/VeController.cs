@@ -45,18 +45,38 @@ namespace SonataCinemaV2.Controllers
                     return Json(new { success = false, message = "Không tìm thấy vé!" }, JsonRequestBehavior.AllowGet);
                 }
 
+                // Lấy thông tin combo riêng
+                var comboInfo = db.ComboOrders
+                    .Include(co => co.Combo)
+                    .Where(co => co.ID_ThanhToan == ve.ID_ThanhToan)
+                    .Select(co => new
+                    {
+                        TenCombo = co.Combo.TenCombo,
+                        SoLuong = co.SoLuong,
+                        Gia = co.GiaTien
+                    })
+                    .ToList();
+
+                // Debug log
+                System.Diagnostics.Debug.WriteLine($"Số lượng combo: {comboInfo.Count}");
+                foreach (var combo in comboInfo)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Combo: {combo.TenCombo}, SL: {combo.SoLuong}, Giá: {combo.Gia}");
+                }
+
                 return Json(new
                 {
                     success = true,
                     data = new
                     {
                         ve.ID_Ve,
-                        ve.Gia,
+                        TongTienGoc = ve.ThanhToan?.TongTienGoc ?? 0,
                         ve.DiemThuong,
                         ve.NgayDat,
                         ve.TrangThai,
                         ve.ChoNgoi,
                         KhachHang = new { ve.KhachHang.TenKhachHang },
+                        Combos = comboInfo,
                         LichChieu = new
                         {
                             ve.LichChieu.NgayChieu,
@@ -69,6 +89,7 @@ namespace SonataCinemaV2.Controllers
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Error in GetTicketDetails: {ex.Message}");
                 return Json(new { success = false, message = "Lỗi: " + ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
@@ -76,100 +97,72 @@ namespace SonataCinemaV2.Controllers
         [HttpPost]
         public async Task<JsonResult> CancelTicket(int id)
         {
-            try
+            using (var transaction = db.Database.BeginTransaction())
             {
-                var ve = db.Ves.Find(id);
-                if (ve == null)
+                try
                 {
-                    return Json(new { success = false, message = "Không tìm thấy vé!" });
-                }
+                    var ve = db.Ves
+                        .Include(v => v.LichChieu.Phim)
+                        .Include(v => v.ThanhToan)
+                        .Include(v => v.KhachHang)
+                        .FirstOrDefault(v => v.ID_Ve == id);
 
-                // Lấy thông tin lịch chiếu
-                var lichChieu = db.LichChieux
-                                  .Include(lc => lc.Phim)
-                                  .FirstOrDefault(lc => lc.ID_LichChieu == ve.ID_LichChieu);
-
-                if (lichChieu == null)
-                {
-                    return Json(new { success = false, message = "Không tìm thấy thông tin lịch chiếu!" });
-                }
-
-                // Lấy thời gian hiện tại
-                var now = DateTime.Now;
-
-                // Tính thời gian chiếu phim (kết hợp ngày chiếu và giờ chiếu)
-                var showTime = lichChieu.NgayChieu.Date + lichChieu.GioChieu;
-
-                // Kiểm tra xem phim đã chiếu chưa
-                if (showTime < now)
-                {
-                    return Json(new
+                    if (ve == null)
                     {
-                        success = false,
-                        message = "Không thể huỷ vé cho phim đã chiếu!"
+                        return Json(new { success = false, message = "Không tìm thấy vé!" });
+                    }
+
+                    // Kiểm tra thời gian
+                    var now = DateTime.Now;
+                    var showTime = ve.LichChieu.NgayChieu.Date + ve.LichChieu.GioChieu;
+
+                    if (showTime < now)
+                    {
+                        return Json(new { success = false, message = "Không thể huỷ vé cho phim đã chiếu!" });
+                    }
+
+                    var timeUntilShow = showTime - now;
+                    if (timeUntilShow.TotalMinutes < 30)
+                    {
+                        return Json(new { success = false, message = "Chỉ có thể huỷ vé trước giờ chiếu 30 phút!" });
+                    }
+
+                    // Lưu thông tin để gửi email
+                    var email = ve.KhachHang.Email;
+                    var customerName = ve.KhachHang.TenKhachHang;
+                    var movieName = ve.LichChieu.Phim.TenPhim;
+                    var showTimeStr = $"{ve.LichChieu.NgayChieu:dd/MM/yyyy} {ve.LichChieu.GioChieu:hh\\:mm}";
+                    var seats = ve.ChoNgoi;
+                    decimal refundAmount = ve.ThanhToan.TongTienGoc * 0.8m;
+
+                    // Chỉ cập nhật trạng thái vé thành "Đã huỷ", giữ nguyên thông tin ghế
+                    ve.TrangThai = "Đã huỷ";
+
+                    db.SaveChanges();
+                    transaction.Commit();
+
+                    // Gửi email xác nhận huỷ vé
+                    await EmailHelper.SendCancellationEmail(
+                        email,
+                        customerName,
+                        movieName,
+                        showTimeStr,
+                        seats,
+                        refundAmount
+                    );
+
+                    return Json(new 
+                    {
+                        success = true,
+                        message = $"Huỷ vé thành công! Email xác nhận đã được gửi. Bạn sẽ được hoàn lại {refundAmount:N0} VNĐ"
                     });
                 }
-
-                // Tính thời gian còn lại đến lúc chiếu
-                var timeUntilShow = showTime - now;
-
-                // Kiểm tra xem còn ít nhất 30 phút trước khi chiếu
-                if (timeUntilShow.TotalMinutes < 30)
+                catch (Exception ex)
                 {
-                    return Json(new
-                    {
-                        success = false,
-                        message = "Chỉ có thể huỷ vé trước giờ chiếu 30 phút!"
-                    });
+                    transaction.Rollback();
+                    System.Diagnostics.Debug.WriteLine($"Error in CancelTicket: {ex.Message}");
+                    return Json(new { success = false, message = "Lỗi: " + ex.Message });
                 }
-
-                // Tiếp tục xử lý huỷ vé nếu thoả mãn điều kiện
-                ve.TrangThai = "Đã huỷ";
-                db.SaveChanges();
-
-                // Lấy thông tin khách hàng
-                var khachHang = db.KhachHangs.Find(ve.ID_KhachHang);
-                if (khachHang == null || string.IsNullOrEmpty(khachHang.Email))
-                {
-                    throw new Exception("Không tìm thấy thông tin khách hàng hoặc email không hợp lệ.");
-                }
-
-                var email = khachHang.Email;
-                var customerName = khachHang.TenKhachHang;
-                var movieName = lichChieu.Phim.TenPhim;
-                var formattedDate = lichChieu.NgayChieu.ToString("dd/MM/yyyy");
-                var formattedTime = lichChieu.GioChieu.ToString(@"hh\:mm");
-                var showTimeStr = $"{formattedDate} {formattedTime}";
-
-                // Lấy danh sách ghế đã đặt
-                var seats = string.Join(", ", ve.ChoNgoi);
-                if (string.IsNullOrEmpty(seats))
-                {
-                    throw new Exception("Không tìm thấy danh sách ghế đã đặt.");
-                }
-
-                // Tính tiền hoàn trả (80% giá vé)
-                decimal refundAmount = ve.Gia * 0.8m;
-
-                // Gửi email xác nhận huỷ vé
-                await EmailHelper.SendCancellationEmail(
-                    email,
-                    customerName,
-                    movieName,
-                    showTimeStr,
-                    seats,
-                    refundAmount
-                );
-
-                return Json(new
-                {
-                    success = true,
-                    message = $"Huỷ vé thành công! Email xác nhận đã được gửi. Bạn sẽ được hoàn lại {refundAmount:N0} VNĐ"
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Lỗi: " + ex.Message });
             }
         }
 

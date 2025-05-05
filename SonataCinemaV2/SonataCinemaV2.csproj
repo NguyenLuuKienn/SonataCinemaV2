@@ -448,6 +448,7 @@
     <Content Include="Content\img\8a154194-a022-4e81-b262-65dd252d7873.jpg" />
     <Content Include="Content\img\a8eb607f-4fbb-433d-89b8-d3e4b0b02e2c.jpg" />
     <Content Include="Content\img\Picturelogo.png" />
+    <Content Include="Content\img\vn-flag-full.gif" />
     <Content Include="Content\src\admindasboard.css" />
     <Content Include="Content\src\admindasboard.js" />
     <Content Include="Content\src\Blog.css" />
@@ -908,6 +909,9 @@
     <Content Include="protos\google\api\backend.proto" />
     <Content Include="protos\google\api\auth.proto" />
     <Content Include="protos\google\api\annotations.proto" />
+    <Content Include="Content\img\behind-hero.png" />
+    <Content Include="Content\img\50y.png" />
+    <Content Include="Content\img\hero.png" />
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />
     <Content Include="Scripts\jquery-3.4.1.min.js" />

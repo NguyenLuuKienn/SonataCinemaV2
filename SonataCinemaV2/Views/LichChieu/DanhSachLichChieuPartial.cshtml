@@ -35,7 +35,6 @@
                                     <td>@item.NgayChieu.ToString("dd/MM/yyyy")</td>
                                     <td>@($"{item.GioChieu.Hours:00}:{item.GioChieu.Minutes:00}")</td>
                                     <td>@item.GiaVe VNĐ</td>
-                                    <td>@item.TrangThai</td>
                                     <td>
                                         <span class="badge @(item.TrangThai == "Đang chiếu" ? "bg-success" : "bg-danger")" id="status-@item.ID_LichChieu">
                                             @(string.IsNullOrEmpty(item.TrangThai) ? "Chưa có trạng thái" : item.TrangThai)
@@ -239,6 +238,7 @@
                     <div class="seat-status mb-3">
                         <span class="seat-indicator available"></span> Ghế trống
                         <span class="seat-indicator occupied"></span> Ghế đã đặt
+                        <span class="seat-indicator reserved"></span> Ghế đang giữ
                     </div>
                     <div id="danhSachGhe" class="seat-grid">
                         <!-- Danh sách ghế sẽ được thêm vào đây -->
@@ -281,6 +281,10 @@
         background-color: #dc3545;
     }
 
+    .seat-indicator.reserved {
+        background-color: #ffc107;
+    }
+
     .seat-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
@@ -296,6 +300,8 @@
         border-radius: 4px;
         font-size: 14px;
         font-weight: bold;
+        cursor: help;
+        position: relative;
     }
 
     .seat.available {
@@ -306,6 +312,31 @@
     .seat.occupied {
         background-color: #dc3545;
         color: white;
+    }
+
+    .seat.reserved {
+        background-color: #ffc107;
+        color: black;
+    }
+
+    /* Tooltip styles */
+    .seat[data-tooltip] {
+        position: relative;
+    }
+
+    .seat[data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
     }
 </style>
 
@@ -600,38 +631,76 @@
     }
 
     function xemThongTinGhe(lichChieuId) {
-        $.ajax({
-            url: '/LichChieu/GetThongTinGhe',
-            type: 'GET',
-            data: { lichChieuId: lichChieuId },
-            success: function (response) {
-                if (response.success) {
-                    // Cập nhật thông tin lịch chiếu
-                    $('#tenPhimGhe').text(response.thongTinLichChieu.tenPhim);
-                    $('#tenPhongGhe').text(response.thongTinLichChieu.tenPhong);
-                    $('#ngayChieuGhe').text(response.thongTinLichChieu.ngayChieu);
-                    $('#gioChieuGhe').text(response.thongTinLichChieu.gioChieu);
+        $('#thongTinGheModal').modal('show');
+        
+        function loadSeatInfo() {
+            $.ajax({
+                url: '/LichChieu/GetThongTinGhe',
+                type: 'GET',
+                data: { lichChieuId: lichChieuId },
+                success: function (response) {
+                    if (response.success) {
+                        // Cập nhật thông tin cơ bản
+                        $('#tenPhimGhe').text(response.thongTinLichChieu.tenPhim);
+                        $('#tenPhongGhe').text(response.thongTinLichChieu.tenPhong);
+                        $('#ngayChieuGhe').text(response.thongTinLichChieu.ngayChieu);
+                        $('#gioChieuGhe').text(response.thongTinLichChieu.gioChieu);
 
-                    // Hiển thị danh sách ghế
-                    var danhSachGheHtml = '';
-                    response.danhSachGhe.forEach(function(ghe) {
-                        danhSachGheHtml += `
-                            <div class="seat ${ghe.trangThai === 'Trống' ? 'available' : 'occupied'}" 
-                                 title="${ghe.trangThai === 'Trống' ? 'Ghế trống' : 'Đã đặt'}">
-                                ${ghe.tenGhe}
-                            </div>`;
-                    });
-                    $('#danhSachGhe').html(danhSachGheHtml);
-
-                    // Hiển thị modal
-                    $('#thongTinGheModal').modal('show');
-                } else {
-                    Swal.fire('Lỗi!', response.message, 'error');
+                        // Render ghế
+                        var danhSachGheHtml = '';
+                        response.danhSachGhe.forEach(function(ghe) {
+                            var statusClass = '';
+                            var tooltipText = '';
+                            
+                            switch(ghe.trangThai) {
+                                case 'Đã đặt':
+                                    statusClass = 'occupied';
+                                    tooltipText = ghe.nguoiDat ? `Đã đặt bởi: ${ghe.nguoiDat}` : 'Đã đặt';
+                                    break;
+                                case 'Đang giữ':
+                                    statusClass = 'reserved';
+                                    tooltipText = 'Đang giữ';
+                                    break;
+                                default:
+                                    statusClass = 'available';
+                                    tooltipText = 'Ghế trống';
+                            }
+                            
+                            danhSachGheHtml += `
+                                <div class="seat ${statusClass}" data-tooltip="${tooltipText}">
+                                    ${ghe.tenGhe}
+                                </div>`;
+                        });
+                        
+                        $('#danhSachGhe').html(danhSachGheHtml);
+                    }
+                },
+                error: function() {
+                    console.log('Lỗi khi tải thông tin ghế');
                 }
-            },
-            error: function () {
-                Swal.fire('Lỗi!', 'Không thể tải thông tin ghế', 'error');
-            }
+            });
+        }
+
+        // Load lần đầu
+        loadSeatInfo();
+        
+        // Refresh mỗi 10 giây
+        let refreshInterval = setInterval(loadSeatInfo, 10000);
+        
+        // Clear interval khi đóng modal
+        $('#thongTinGheModal').on('hidden.bs.modal', function () {
+            clearInterval(refreshInterval);
         });
     }
+
+    // Add this to document ready
+    $(document).ready(function() {
+        // Clear any existing intervals when page loads
+        $('.btn-close, [data-bs-dismiss="modal"]').on('click', function() {
+            const modal = $(this).closest('.modal');
+            if (modal.data('refreshInterval')) {
+                clearInterval(modal.data('refreshInterval'));
+            }
+        });
+    });
 </script>

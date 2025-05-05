@@ -83,6 +83,11 @@
                 <div class="col-lg-4">
                     <div class="card shadow-sm">
                         <div class="card-body">
+                            <div class="timer-wrapper">
+                                        <i class="fas fa-clock"></i>
+                                        <span class="timer-text">Thời gian giữ ghế còn lại: </span>
+                                        <span id="countdown" class="text-danger fw-bold">03:00</span>
+                            </div>
                             <h4 class="card-titlee mb-4">Tổng Thanh Toán</h4>
 
                             <div class="payment-summary">
@@ -234,20 +239,37 @@
 </style>
 
 <script>
-        $(document).ready(function () {
-            // Log để kiểm tra dữ liệu
-            console.log("IDLichChieu from Model:", @Model.IDLichChieu);
+    let countdownTimer;
+    $(document).ready(function () {
+        // Start countdown when page loads (3 minutes = 180 seconds)
+        startCountdown(180);
 
-            // Xử lý submit form
-            $('form').on('submit', function (e) {
-                e.preventDefault();
+        // Log để kiểm tra dữ liệu
+        console.log("IDLichChieu from Model:", @Model.IDLichChieu);
 
-                // Log dữ liệu form trước khi gửi
-                var formData = $(this).serializeArray();
-                console.log("Form Data:", formData);
-
-                // Submit form
-                this.submit();
-            });
+        // Xử lý submit form
+        $('form').on('submit', function (e) {
+            e.preventDefault();
+            clearInterval(countdownTimer); // Clear timer when form is submitted
+            this.submit();
         });
+    });
+
+    function startCountdown(duration) {
+        let timer = duration;
+        countdownTimer = setInterval(function () {
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+
+            $("#countdown").text(
+                (minutes < 10 ? "0" + minutes : minutes) + ":" +
+                (seconds < 10 ? "0" + seconds : seconds)
+            );
+
+            if (--timer < 0) {
+                clearInterval(countdownTimer);
+                window.location.href = '@Url.Action("BookingTicket", "Booking")';
+            }
+        }, 1000);
+    }
 </script>

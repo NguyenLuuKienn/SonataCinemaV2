@@ -51,15 +51,17 @@ namespace SonataCinema.Controllers
                 return new HttpStatusCodeResult(400, "Tên phim không hợp lệ");
             }
 
+            var today = DateTime.Today;
             var dates = db.LichChieux
-                .Where(lc => lc.Phim.TenPhim == movie)
+                .Where(lc => lc.Phim.TenPhim == movie && lc.NgayChieu >= today)
                 .Select(lc => lc.NgayChieu)
                 .Distinct()
+                .OrderBy(d => d)
                 .ToList();
 
             if (!dates.Any())
             {
-                return new HttpStatusCodeResult(404, "Không có lịch chiếu nào cho phim này");
+                return new HttpStatusCodeResult(404, "Không có lịch chiếu sắp tới cho phim này");
             }
 
             var formatDate = dates.Select(d => d.ToString("dd-MM-yyyy")).ToList();
@@ -72,7 +74,6 @@ namespace SonataCinema.Controllers
         {
             try
             {
-                // Debug
                 System.Diagnostics.Debug.WriteLine($"Received - Movie: {movie}, Date: {date}, Time: {time}");
 
                 // Đổi ngày
@@ -102,7 +103,6 @@ namespace SonataCinema.Controllers
                     .Distinct()
                     .ToList();
 
-                // Debug
                 System.Diagnostics.Debug.WriteLine($"Found rooms: {availableRooms.Count}");
 
                 if (!availableRooms.Any())
@@ -153,6 +153,7 @@ namespace SonataCinema.Controllers
             try
             {
                 System.Diagnostics.Debug.WriteLine($"GetSeats called with room={room}, lichChieuId={lichChieuId}");
+                int currentUserId = Session.SessionID.GetHashCode();
                 var lichChieu = db.LichChieux
                     .Where(lc => lc.ID_LichChieu == lichChieuId)
                     .Select(lc => new
@@ -168,7 +169,7 @@ namespace SonataCinema.Controllers
                 }
 
                 var bookedSeats = db.Ves
-                    .Where(v => v.ID_LichChieu == lichChieuId)
+                    .Where(v => v.ID_LichChieu == lichChieuId && v.TrangThai != "Đã huỷ")
                     .Select(v => v.ChoNgoi)
                     .ToList();
 
@@ -188,12 +189,14 @@ namespace SonataCinema.Controllers
                         IDGhe = g.ID_Ghe,
                         TenGhe = g.TenGhe,
                         TrangThai = db.Ves.Any(v =>
-                            v.ID_LichChieu == lichChieuId &&
-                            v.ChoNgoi == g.TenGhe) ? "Đã đặt" :
+                           v.ID_LichChieu == lichChieuId &&
+                            v.ChoNgoi == g.TenGhe &&
+                            v.TrangThai != "Đã huỷ") ? "Đã đặt" :
                             db.Ghe_TrangThai.Any(gt =>
                                 gt.ID_Ghe == g.ID_Ghe &&
                                 gt.ID_LichChieu == lichChieuId &&
-                                gt.ThoiGianGiu > expiredTime) ? "Đang giữ" : "Trống"
+                                gt.ThoiGianGiu > expiredTime && gt.ID_KhachHang == currentUserId) ? "Đang giữ bởi bạn" : 
+                                db.Ghe_TrangThai.Any(gt => gt.ID_Ghe == g.ID_Ghe && gt.ID_LichChieu == lichChieuId && gt.ThoiGianGiu > expiredTime) ? "Đang giữ" : "Trống",
                     })
                     .OrderBy(g => g.TenGhe)
                     .ToList();
@@ -218,6 +221,7 @@ namespace SonataCinema.Controllers
         {
             try
             {
+                int currentUserId = Session.SessionID.GetHashCode();
                 foreach (var seatId in selectedSeatIds)
                 {
                     var gheTrangThai = new Ghe_TrangThai
@@ -225,7 +229,8 @@ namespace SonataCinema.Controllers
                         ID_LichChieu = lichChieuId,
                         ID_Ghe = seatId,
                         TrangThai = "Đang giữ",
-                        ThoiGianGiu = DateTime.Now
+                        ThoiGianGiu = DateTime.Now,
+                        ID_KhachHang = currentUserId
                     };
                     db.Ghe_TrangThai.Add(gheTrangThai);
                 }
@@ -321,7 +326,6 @@ namespace SonataCinema.Controllers
 
                 confirmModel.TongTien = confirmModel.TongTien + confirmModel.TongTienCombo;
 
-                // Debug log
                 System.Diagnostics.Debug.WriteLine($"Saving to TempData: {confirmModel.TenPhim}, {confirmModel.TenPhong}, {confirmModel.Ngay}");
 
                 // Lưu vào TempData
@@ -411,7 +415,7 @@ namespace SonataCinema.Controllers
                             // Kiểm tra ghế đã đặt
                             var existingVe = db.Ves.FirstOrDefault(v =>
                                 v.ID_LichChieu == model.IDLichChieu &&
-                                v.ChoNgoi == ghe.TenGhe);
+                                v.ChoNgoi == ghe.TenGhe &&  v.TrangThai != "Đã huỷ");
 
                             if (existingVe != null)
                             {

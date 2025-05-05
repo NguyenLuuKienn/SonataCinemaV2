@@ -58,7 +58,7 @@ namespace SonataCinemaV2.Controllers
             {
                 try
                 {
-                    string secret = "6LeLSrIqAAAAAO7dxwA7JLEIfJR4jEr3h00R-dMK"; // Kiểm tra lại secret key
+                    string secret = "6LeLSrIqAAAAAO7dxwA7JLEIfJR4jEr3h00R-dMK"; // secret key
                     using (var client = new WebClient())
                     {
                         var result = client.DownloadString(string.Format(
@@ -497,8 +497,8 @@ namespace SonataCinemaV2.Controllers
 
         public ActionResult DangXuat()
         {
-            FormsAuthentication.SignOut();
             Session.Clear();
+            FormsAuthentication.SignOut();
             return RedirectToAction("Index", "Home");
         }
     }

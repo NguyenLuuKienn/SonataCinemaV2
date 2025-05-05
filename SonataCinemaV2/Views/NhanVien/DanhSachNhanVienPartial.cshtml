@@ -1,19 +1,21 @@
 ﻿@model IEnumerable<SonataCinemaV2.Models.NhanVien>
 
-<div class="employee-management">
-    <!-- Header -->
-    <div class="management-header">
-        <h2>Quản Lý Nhân Viên</h2>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#employeeModal">
-            <i class="fas fa-plus"></i> Thêm Nhân Viên
+<div class="staff-dashboard">
+    <div class="staff-header">
+        <h3>
+            <i class="fas fa-users"></i>
+            Quản Lý Nhân Viên
+        </h3>
+        <button class="btn-add-staff" data-bs-toggle="modal" data-bs-target="#employeeModal">
+            <i class="fas fa-user-plus"></i>
+            Thêm Nhân Viên Mới
         </button>
     </div>
 
-    <!-- Filters -->
-    <div class="management-filters mb-3">
+    <div class="staff-filters mb-4">
         <div class="row">
             <div class="col-md-4">
-                <input type="text" id="searchStaff" class="form-control" placeholder="Tìm kiếm...">
+                <input type="text" id="searchStaff" class="form-control" placeholder="Tìm kiếm nhân viên...">
             </div>
             <div class="col-md-4">
                 <select id="roleFilter" class="form-select">
@@ -32,9 +34,8 @@
         </div>
     </div>
 
-    <!-- Staff Table -->
-    <div class="table-responsive">
-        <table class="table table-striped" id="employeeTable">
+    <div class="staff-table-container">
+        <table class="staff-table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -53,24 +54,24 @@
                         <td>@item.TenNhanVien</td>
                         <td>@item.Email</td>
                         <td>
-                            <span class="badge @(item.QuyenHan == "Admin" ? "bg-danger" : "bg-info")">
+                            <span class="staff-badge @(item.QuyenHan == "Admin" ? "staff-badge-admin" : "staff-badge-employee")">
                                 @item.QuyenHan
                             </span>
                         </td>
                         <td>
-                            <span class="badge @(item.TrangThai == "Khoá" ? "bg-secondary" : "bg-success")">
+                            <span class="staff-badge @(item.TrangThai == "Khoá" ? "staff-badge-inactive" : "staff-badge-active")">
                                 @(item.TrangThai ?? "Hoạt động")
                             </span>
                         </td>
                         <td>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-info" onclick="editEmployee(@item.ID_NhanVien)" data-bs-toggle="modal" data-bs-target="#employeeModal">
+                            <div class="staff-actions">
+                                <button class="staff-btn staff-btn-edit" onclick="editEmployee(@item.ID_NhanVien)" data-bs-toggle="modal" data-bs-target="#employeeModal">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-warning" onclick="StatusEmployee(@item.ID_NhanVien)">
-                                    <i class="fas fa-power-off"></i>
+                                <button class="staff-btn staff-btn-lock" onclick="StatusEmployee(@item.ID_NhanVien)">
+                                    <i class="fas fa-lock@(item.TrangThai == "Khoá" ? "-open" : "")"></i>
                                 </button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteEmployee(@item.ID_NhanVien, '@item.TenNhanVien')">
+                                <button class="staff-btn staff-btn-delete" onclick="deleteEmployee(@item.ID_NhanVien, '@item.TenNhanVien')">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>

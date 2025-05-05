@@ -4,6 +4,11 @@
     let currentTicketPrice = 0;
     let selectedCombos = [];
     let comboTotalPrice = 0;
+    let countdownTimer;
+    let selectedSeatsData = {
+        seats: [],
+        expiryTime: null
+    };
 
     const movieSelect = $("#movieSelect");
     const dateSelect = $("#dateSelect");
@@ -40,6 +45,14 @@
             .then(function (response) {
                 console.log("Seats loaded successfully");
                 $("#seat-selection").html(response);
+                
+                // Khôi phục trạng thái ghế đã chọn
+                if (selectedSeats.length > 0) {
+                    selectedSeats.forEach(seat => {
+                        $(`.seat[data-id="${seat.id}"]`).addClass('selected');
+                    });
+                    updateTicketInfo();
+                }
                 return true;
             })
             .fail(function (xhr, status, error) {
@@ -437,7 +450,17 @@
 
         updateTicketInfo();
         $("#next-to-combo").prop("disabled", selectedSeats.length === 0);
+
+        if (selectedSeats.length > 0) {
+            saveSeatsState();
+            startCountdown(SEAT_HOLD_MINUTES * 60);
+        } else {
+            clearInterval(countdownTimer);
+            $(".countdown-timer").hide();
+            localStorage.removeItem('selectedSeatsData');
+        }
     });
+
     // lấy giá vé
     function updateTicketPrice(lichChieuId) {
         $.ajax({
@@ -607,4 +630,70 @@
 
     // Refresh ghế mỗi 30 giây
     setInterval(refreshSeats, 30000);
+
+    // Thêm hàm lưu trạng thái ghế đã chọn
+    function saveSeatsState() {
+        selectedSeatsData = {
+            seats: selectedSeats,
+            expiryTime: new Date(Date.now() + SEAT_HOLD_MINUTES * 60 * 1000),
+            lichChieuId: $("#IDLichChieu").val(),
+            movieName: $("#selected-movie").text(),
+            showDate: $("#selected-date").text(),
+            showTime: $("#selected-time").text(),
+            roomId: $("#roomSelect").val()
+        };
+        localStorage.setItem('selectedSeatsData', JSON.stringify(selectedSeatsData));
+    }
+
+   
+
+    // Thêm hàm kiểm tra và khôi phục trạng thái
+    function checkAndRestoreSeatsState() {
+        const savedData = localStorage.getItem('selectedSeatsData');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            const now = new Date();
+            const expiryTime = new Date(data.expiryTime);
+
+            if (now < expiryTime) {
+                // Khôi phục trạng thái
+                selectedSeats = data.seats;
+                const remainingSeconds = Math.floor((expiryTime - now) / 1000);
+
+                // Điền lại thông tin form
+                $("#movieSelect").val(data.movieName).trigger('change');
+                setTimeout(() => {
+                    $("#dateSelect").val(data.showDate).trigger('change');
+                    setTimeout(() => {
+                        $("#timeSelect").val(data.showTime).trigger('change');
+                        setTimeout(() => {
+                            $("#roomSelect").val(data.roomId).trigger('change');
+                            
+                            // Đánh dấu lại ghế đã chọn
+                            setTimeout(() => {
+                                selectedSeats.forEach(seat => {
+                                    $(`.seat[data-id="${seat.id}"]`).addClass('selected');
+                                });
+                                updateTicketInfo();
+                                startCountdown(remainingSeconds);
+                            }, 1000);
+                        }, 500);
+                    }, 500);
+                }, 500);
+            } else {
+                // Xóa dữ liệu hết hạn
+                localStorage.removeItem('selectedSeatsData');
+            }
+        }
+    }
+
+    // Kiểm tra trạng thái đã lưu khi tải trang
+    checkAndRestoreSeatsState();
+
+    // Thêm sự kiện beforeunload
+    $(window).on('beforeunload', function() {
+        if (selectedSeats.length > 0) {
+            saveSeatsState();
+        }
+    });
 });

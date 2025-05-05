@@ -201,6 +201,11 @@ namespace SonataCinema.Controllers
         {
             try
             {
+                var currentUser = db.NhanViens.FirstOrDefault(u => u.TenNhanVien == User.Identity.Name);
+                if (currentUser == null || currentUser.QuyenHan != "Admin")
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền đổi trạng thái lịch chiếu!" });
+                }
                 var lichChieu = db.LichChieux.Find(id);
                 if (lichChieu == null)
                 {
@@ -300,7 +305,6 @@ namespace SonataCinema.Controllers
         {
             try
             {
-                // Lấy danh sách lịch chiếu trong ngày của phòng
                 var lichChieuTrongNgay = db.LichChieux
                     .Where(lc => lc.ID_Phong == phongId &&
                                 DbFunctions.TruncateTime(lc.NgayChieu) == DbFunctions.TruncateTime(ngay))
@@ -312,10 +316,9 @@ namespace SonataCinema.Controllers
                     })
                     .ToList();
 
-                // Tạo danh sách tất cả các khung giờ từ 8h đến 22h, mỗi 30 phút
                 var tatCaKhungGio = new List<TimeSpan>();
-                var gioHienTai = new TimeSpan(8, 0, 0); // Bắt đầu từ 8:00
-                var gioKetThuc = new TimeSpan(22, 0, 0); // Kết thúc lúc 22:00
+                var gioHienTai = new TimeSpan(8, 0, 0);
+                var gioKetThuc = new TimeSpan(22, 0, 0);
 
                 while (gioHienTai <= gioKetThuc)
                 {
@@ -328,18 +331,15 @@ namespace SonataCinema.Controllers
                 foreach (var lichChieu in lichChieuTrongNgay)
                 {
                     var batDau = lichChieu.gioChieu;
-                    var ketThuc = batDau.Add(TimeSpan.FromMinutes(lichChieu.thoiLuong + 15)); // Thêm 15 phút buffer
+                    var ketThuc = batDau.Add(TimeSpan.FromMinutes(lichChieu.thoiLuong + 15));
 
-                    // Đánh dấu tất cả các khung giờ nằm trong khoảng thời gian chiếu + buffer
                     khungGioKhongKhaDung.AddRange(
                         tatCaKhungGio.Where(kg =>
-                            kg >= batDau.Add(TimeSpan.FromMinutes(-15)) && // Thêm 15 phút buffer trước
-                            kg <= ketThuc
+                            kg >= batDau.Add(TimeSpan.FromMinutes(-15)) && kg <= ketThuc
                         )
                     );
                 }
 
-                // Lọc ra các khung giờ còn khả dụng
                 var khungGioKhaDung = tatCaKhungGio
                     .Except(khungGioKhongKhaDung)
                     .Select(kg => kg.ToString(@"hh\:mm"))
@@ -369,7 +369,6 @@ namespace SonataCinema.Controllers
         {
             try
             {
-                // Lấy thông tin lịch chiếu
                 var lichChieu = db.LichChieux
                     .Include(lc => lc.Phim)
                     .Include(lc => lc.PhongChieu)
@@ -380,22 +379,34 @@ namespace SonataCinema.Controllers
                     return Json(new { success = false, message = "Không tìm thấy lịch chiếu" }, JsonRequestBehavior.AllowGet);
                 }
 
-                // Lấy danh sách ghế đã đặt
-                var ghesDaDat = db.Ves
+                // Lấy thông tin vé đã đặt và ghế đang giữ
+                var vesDaDat = db.Ves
+                    .Include(v => v.KhachHang)
                     .Where(v => v.ID_LichChieu == lichChieuId)
-                    .Select(v => v.ChoNgoi)
                     .ToList();
 
-                // Lấy tất cả ghế của phòng
+                var ghesDangGiu = db.Ghe_TrangThai
+                    .Include(gt => gt.Ghe)
+                    .Where(gt => gt.ID_LichChieu == lichChieuId && gt.ThoiGianGiu > DateTime.Now)
+                    .ToList();
+
+                // Lấy danh sách ghế của phòng và xử lý trạng thái
                 var danhSachGhe = db.Ghes
                     .Where(g => g.ID_Phong == lichChieu.ID_Phong)
-                    .OrderBy(g => g.TenGhe)
+                    .ToList()
                     .Select(g => new
                     {
                         tenGhe = g.TenGhe,
-                        trangThai = ghesDaDat.Contains(g.TenGhe) ? "Đã đặt" : "Trống"
+                        trangThai = vesDaDat.Any(v => v.ChoNgoi == g.TenGhe) ? "Đã đặt" :
+                                   ghesDangGiu.Any(gt => gt.ID_Ghe == g.ID_Ghe) ? "Đang giữ" : "Trống",
+                        nguoiDat = vesDaDat.FirstOrDefault(v => v.ChoNgoi == g.TenGhe)?.KhachHang.TenKhachHang ?? ""
                     })
+                    .OrderBy(g => g.tenGhe)
                     .ToList();
+
+                System.Diagnostics.Debug.WriteLine($"Số ghế đã đặt: {vesDaDat.Count}");
+                System.Diagnostics.Debug.WriteLine($"Số ghế đang giữ: {ghesDangGiu.Count}");
+                System.Diagnostics.Debug.WriteLine($"Tổng số ghế: {danhSachGhe.Count}");
 
                 var thongTinLichChieu = new
                 {
@@ -414,6 +425,7 @@ namespace SonataCinema.Controllers
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Error in GetThongTinGhe: {ex.Message}");
                 return Json(new { success = false, message = "Lỗi: " + ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Data.Entity;
+using System.Threading.Tasks;
 
 namespace SonataCinemaV2.Controllers
 {
@@ -167,7 +168,7 @@ namespace SonataCinemaV2.Controllers
         }
 
         [HttpPost]
-        public ActionResult RequestCancelTicket(int ticketId)
+        public async Task<ActionResult> RequestCancelTicket(int ticketId)
         {
             if (Session["MaKhachHang"] == null)
             {
@@ -176,77 +177,82 @@ namespace SonataCinemaV2.Controllers
 
             int maKhachHang = Convert.ToInt32(Session["MaKhachHang"]);
 
-            if (ticketId <= 0)
+            using (var transaction = db.Database.BeginTransaction())
             {
-                return Json(new { success = false, message = "ID vé không hợp lệ!" });
-            }
-
-            try
-            {
-                var ve = db.Ves
-                    .Include(v => v.LichChieu) // Đảm bảo load thông tin lịch chiếu
-                    .FirstOrDefault(v => v.ID_Ve == ticketId);
-
-                if (ve == null)
+                try
                 {
-                    return Json(new { success = false, message = "Không tìm thấy vé!" });
-                }
+                    var ve = db.Ves
+                        .Include(v => v.LichChieu.Phim)
+                        .Include(v => v.KhachHang)
+                        .Include(v => v.ThanhToan)
+                        .FirstOrDefault(v => v.ID_Ve == ticketId);
 
-                if (ve.ID_KhachHang != maKhachHang)
-                {
-                    return Json(new { success = false, message = "Bạn không có quyền huỷ vé này!" });
-                }
+                    if (ve == null)
+                    {
+                        return Json(new { success = false, message = "Không tìm thấy vé!" });
+                    }
 
-                if (ve.TrangThai != "Thành Công")
-                {
-                    return Json(new { success = false, message = "Vé không thể huỷ!" });
-                }
+                    if (ve.ID_KhachHang != maKhachHang)
+                    {
+                        return Json(new { success = false, message = "Bạn không có quyền huỷ vé này!" });
+                    }
 
-                // Lấy thời gian hiện tại
-                var now = DateTime.Now;
+                    if (ve.TrangThai != "Thành Công")
+                    {
+                        return Json(new { success = false, message = "Vé không thể huỷ!" });
+                    }
 
-                // Tính thời gian chiếu phim
-                var showTime = ve.LichChieu.NgayChieu.Date + ve.LichChieu.GioChieu;
+                    var now = DateTime.Now;
+                    var showTime = ve.LichChieu.NgayChieu.Date + ve.LichChieu.GioChieu;
 
-                // Kiểm tra xem phim đã chiếu chưa
-                if (showTime < now)
-                {
+                    if (showTime < now)
+                    {
+                        return Json(new { success = false, message = "Không thể huỷ vé cho phim đã chiếu!" });
+                    }
+
+                    var timeUntilShow = showTime - now;
+                    if (timeUntilShow.TotalMinutes < 30)
+                    {
+                        return Json(new { success = false, message = "Chỉ có thể huỷ vé trước giờ chiếu 30 phút!" });
+                    }
+
+                    // Tính số tiền hoàn trả (80%)
+                    decimal refundAmount = ve.ThanhToan.TongTienGoc * 0.8m;
+
+                    // Lưu thông tin để gửi email
+                    var email = ve.KhachHang.Email;
+                    var customerName = ve.KhachHang.TenKhachHang;
+                    var movieName = ve.LichChieu.Phim.TenPhim;
+                    var showTimeStr = $"{ve.LichChieu.NgayChieu:dd/MM/yyyy} {ve.LichChieu.GioChieu:hh\\:mm}";
+                    var seats = ve.ChoNgoi;
+
+                    // Cập nhật trạng thái vé thành "Đã huỷ"
+                    ve.TrangThai = "Đã huỷ";
+                    
+                    await db.SaveChangesAsync();
+                    transaction.Commit();
+
+                    // Gửi email xác nhận huỷ vé
+                    await Helper.EmailHelper.SendCancellationEmail(
+                        email,
+                        customerName,
+                        movieName,
+                        showTimeStr,
+                        seats,
+                        refundAmount
+                    );
+
                     return Json(new
                     {
-                        success = false,
-                        message = "Không thể huỷ vé cho phim đã chiếu!"
+                        success = true,
+                        message = $"Huỷ vé thành công! Email xác nhận đã được gửi. Bạn sẽ được hoàn lại {refundAmount:N0} VNĐ"
                     });
                 }
-
-                // Tính thời gian còn lại đến lúc chiếu
-                var timeUntilShow = showTime - now;
-
-                // Kiểm tra xem còn ít nhất 30 phút trước khi chiếu
-                if (timeUntilShow.TotalMinutes < 30)
+                catch (Exception ex)
                 {
-                    return Json(new
-                    {
-                        success = false,
-                        message = "Chỉ có thể huỷ vé trước giờ chiếu 30 phút!"
-                    });
+                    transaction.Rollback();
+                    return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
                 }
-
-                // Nếu thoả mãn tất cả điều kiện thì mới cho phép yêu cầu huỷ vé
-                ve.TrangThai = "Chờ huỷ";
-                db.SaveChanges();
-
-                // Tính số tiền sẽ được hoàn (80%)
-                decimal refundAmount = ve.Gia * 0.8m;
-
-                return Json(new
-                {
-                    success = true,
-                    message = $"Yêu cầu huỷ vé đã được gửi! Bạn sẽ được hoàn lại {refundAmount:N0} VNĐ sau khi yêu cầu được duyệt."
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
             }
         }
 

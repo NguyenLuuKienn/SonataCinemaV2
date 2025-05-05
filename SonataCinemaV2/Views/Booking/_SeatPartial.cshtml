@@ -17,12 +17,14 @@
                         var seatName = $"{row}-{i}";
                         var seat = Model.FirstOrDefault(g => g.TenGhe == seatName);
                         var seatClass = seat?.TrangThai == "Đã đặt" ? "occupied" :
-                                      seat?.TrangThai == "Đang giữ" ? "holding" : "empty";
+                                        seat?.TrangThai == "Đang giữ" ? "holding" : 
+                                        seat?.TrangThai == "Đang giữ bởi bạn" ? "holding-by-you" :
+                                        seat?.TrangThai == "Đã huỷ" ? "empty" : "empty";
 
                         <div class="seat @seatClass"
                              data-id="@(seat?.IDGhe ?? 0)"
                              data-name="@seatName"
-                             @(seat?.TrangThai != "Trống" ? "disabled" : "")>
+                             @(seat?.TrangThai != "Trống" && seat?.TrangThai != "Đã huỷ" ? "disabled" : "")>
                             @i
                         </div>
                     }
@@ -31,24 +33,28 @@
         }
     }
 
-    <div class="seat-legend">
-        <div class="legend-item">
-            <div class="seat empty"></div>
-            <span>Ghế trống</span>
-        </div>
-        <div class="legend-item">
-            <div class="seat selected"></div>
-            <span>Ghế đang chọn</span>
-        </div>
-        <div class="legend-item">
-            <div class="seat occupied"></div>
-            <span>Ghế đã đặt</span>
-        </div>
-        <div class="legend-item">
-            <div class="seat holding"></div>
-            <span>Ghế đang giữ</span>
-        </div>
+<div class="seat-legend">
+    <div class="legend-item">
+        <div class="seat empty"></div>
+        <span>Ghế trống</span>
     </div>
+    <div class="legend-item">
+        <div class="seat selected"></div>
+        <span>Ghế đang chọn</span>
+    </div>
+    <div class="legend-item">
+        <div class="seat occupied"></div>
+        <span>Ghế đã đặt</span>
+    </div>
+    <div class="legend-item">
+        <div class="seat holding"></div>
+        <span>Ghế đang giữ</span>
+    </div>
+    <div class="legend-item">
+        <div class="seat holding-by-you"></div>
+        <span>Ghế bạn đang giữ</span>
+    </div>
+</div>
 </div>
 <style>
     /* Thêm/cập nhật các styles sau */
@@ -176,4 +182,11 @@
             font-size: 14px;
             color: #2c3e50;
         }
+    .seat.holding-by-you {
+        background-color: #3498db; /* màu xanh dương */
+        border-color: #2980b9;
+        color: white;
+        cursor: not-allowed;
+    }
+
 </style>
