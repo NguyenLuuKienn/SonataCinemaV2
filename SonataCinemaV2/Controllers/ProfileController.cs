@@ -15,13 +15,11 @@ namespace SonataCinemaV2.Controllers
         // GET: Profile
         public ActionResult ProfilePage()
         {
-            // Kiểm tra cả hai loại tài khoản
             if (Session["MaKhachHang"] == null && Session["MaNhanVien"] == null)
             {
                 return RedirectToAction("DangNhap", "Account");
             }
 
-            // Xử lý cho khách hàng
             if (Session["MaKhachHang"] != null)
             {
                 int userId = (int)Session["MaKhachHang"];
@@ -37,7 +35,6 @@ namespace SonataCinemaV2.Controllers
                 ViewBag.UserType = "KhachHang";
                 return View(khachHang);
             }
-            // Xử lý cho nhân viên              
             else
             {
                 int staffId = (int)Session["MaNhanVien"];
@@ -66,7 +63,6 @@ namespace SonataCinemaV2.Controllers
                     return Json(new { success = false, message = "Không tìm thấy tài khoản!" });
                 }
 
-                // Kiểm tra mật khẩu hiện tại bằng BCrypt
                 bool isValidPassword = BCrypt.Net.BCrypt.Verify(currentPassword, khachHang.MatKhau);
                 if (!isValidPassword)
                 {
@@ -78,13 +74,11 @@ namespace SonataCinemaV2.Controllers
                     return Json(new { success = false, message = "Mật khẩu mới không khớp!" });
                 }
 
-                // Kiểm tra độ dài mật khẩu mới
                 if (newPassword.Length < 6)
                 {
                     return Json(new { success = false, message = "Mật khẩu mới phải có ít nhất 6 ký tự!" });
                 }
 
-                // Mã hóa mật khẩu mới bằng BCrypt
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
                 khachHang.MatKhau = hashedPassword;
                 db.SaveChanges();
@@ -216,23 +210,20 @@ namespace SonataCinemaV2.Controllers
                         return Json(new { success = false, message = "Chỉ có thể huỷ vé trước giờ chiếu 30 phút!" });
                     }
 
-                    // Tính số tiền hoàn trả (80%)
+                    // hoàn trả 80%
                     decimal refundAmount = ve.ThanhToan.TongTienGoc * 0.8m;
 
-                    // Lưu thông tin để gửi email
                     var email = ve.KhachHang.Email;
                     var customerName = ve.KhachHang.TenKhachHang;
                     var movieName = ve.LichChieu.Phim.TenPhim;
                     var showTimeStr = $"{ve.LichChieu.NgayChieu:dd/MM/yyyy} {ve.LichChieu.GioChieu:hh\\:mm}";
                     var seats = ve.ChoNgoi;
 
-                    // Cập nhật trạng thái vé thành "Đã huỷ"
                     ve.TrangThai = "Đã huỷ";
                     
                     await db.SaveChangesAsync();
                     transaction.Commit();
 
-                    // Gửi email xác nhận huỷ vé
                     await Helper.EmailHelper.SendCancellationEmail(
                         email,
                         customerName,

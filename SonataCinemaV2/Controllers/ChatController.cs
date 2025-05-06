@@ -47,7 +47,6 @@ namespace SonataCinemaV2.Controllers
 
                 if (!string.IsNullOrEmpty(imageData))
                 {
-                    // Xử lý hình ảnh như cũ
                     string fileName = $"chat_image_{DateTime.Now.Ticks}.jpg";
                     string path = Server.MapPath("~/Uploads/ChatImages/");
                     if (!Directory.Exists(path))

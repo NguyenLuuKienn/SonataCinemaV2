@@ -49,8 +49,8 @@ namespace SonataCinemaV2.Controllers
                 return HttpNotFound();
             }
 
-            // Tăng lượt xem
             blog.LuotXem++;
+
             var relatedPosts = db.Blogs
             .Where(b => b.ID_Blog != blog.ID_Blog
                    && b.TheLoai == blog.TheLoai

@@ -18,7 +18,6 @@ namespace SonataCinema.Controllers
         {
             return View();
         }
-        // lấy danh sách nhân viên
         public ActionResult DanhSachNhanVienPartial()
         {
             List<NhanVien> danhsachNVien = db.NhanViens.ToList();
@@ -27,7 +26,6 @@ namespace SonataCinema.Controllers
         }
 
         [AdminOnlyAuthorize]
-        // thêm nhân viên
         [HttpPost]
         public ActionResult addEmploy(NvMoi nhanvienMoi)
         {
@@ -72,7 +70,6 @@ namespace SonataCinema.Controllers
                     return Json(new { success = false, message = "Nhân viên không tồn tại!" });
                 }
 
-                // Đổi trạng thái
                 nhanvien.TrangThai = nhanvien.TrangThai == "Khoá" ? "Hoạt động" : "Khoá";
 
                 db.SaveChanges();
@@ -109,7 +106,6 @@ namespace SonataCinema.Controllers
             }
         }
 
-        // action lấy thông tin nhân viên
         [HttpGet]
         public JsonResult GetEmployee(int id)
         {
@@ -140,7 +136,6 @@ namespace SonataCinema.Controllers
             }
         }
 
-        // action cập nhật nhân viên
         [HttpPost]
         public JsonResult UpdateEmployee(NhanVien model)
         {

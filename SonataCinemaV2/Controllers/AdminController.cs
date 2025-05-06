@@ -284,14 +284,12 @@ namespace SonataCinema.Controllers
                             break;
                     }
 
-                    // Định dạng tiêu đề
                     worksheet.Cells["A1:D1"].Merge = true;
                     worksheet.Cells["A1"].Value = "STT";
                     worksheet.Cells["A1"].Style.Font.Bold = true;
                     worksheet.Cells["A1"].Style.Font.Size = 16;
                     worksheet.Cells["A1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
 
-                    // Định dạng tên báo cáo
                     worksheet.Cells["A2:D2"].Merge = true;
                     string reportTitle = "BÁO CÁO " + (loaiThongKe == "Phim" ? "DOANH THU THEO PHIM" :
                                                       loaiThongKe == "PhongChieu" ? "DOANH THU THEO PHÒNG CHIẾU" :
@@ -301,31 +299,25 @@ namespace SonataCinema.Controllers
                     worksheet.Cells["A2"].Style.Font.Size = 14;
                     worksheet.Cells["A2"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
 
-                    // Thời gian xuất báo cáo
                     worksheet.Cells["A3:D3"].Merge = true;
                     worksheet.Cells["A3"].Value = $"Thời gian xuất báo cáo: {DateTime.Now:dd/MM/yyyy HH:mm}";
                     worksheet.Cells["A3"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
 
-                    // Người xuất báo cáo
                     worksheet.Cells["A4:D4"].Merge = true;
                     worksheet.Cells["A4"].Value = $"Người xuất báo cáo: {User.Identity.Name}";
                     worksheet.Cells["A4"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
 
-                    // Khoảng thời gian báo cáo
                     worksheet.Cells["A5:D5"].Merge = true;
                     worksheet.Cells["A5"].Value = $"Khoảng thời gian: Từ {fromDate:dd/MM/yyyy} đến {toDate:dd/MM/yyyy}";
                     worksheet.Cells["A5"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
 
-                    // Dòng trống
                     worksheet.Cells["A6:D6"].Merge = true;
 
-                    // Tiêu đề cột
                     worksheet.Cells["A7"].Value = "STT";
                     worksheet.Cells["B7"].Value = loaiThongKe == "Blog" ? "Tiêu đề Blog" : "Tên";
                     worksheet.Cells["C7"].Value = loaiThongKe == "Blog" ? "Người đăng" : "Thời gian";
                     worksheet.Cells["D7"].Value = loaiThongKe == "Blog" ? "Lượt xem" : "Doanh Thu";
 
-                    // Định dạng tiêu đề cột
                     var headerRange = worksheet.Cells["A7:D7"];
                     headerRange.Style.Font.Bold = true;
                     headerRange.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -391,12 +383,10 @@ namespace SonataCinema.Controllers
                             worksheet.Cells[row, 3].Value = item.Ngay.Value.ToString("dd/MM/yyyy");
                             worksheet.Cells[row, 4].Value = item.DoanhThu;
 
-                            // Định dạng cột doanh thu
                             worksheet.Cells[row, 4].Style.Numberformat.Format = "#,##0";
                             row++;
                         }
 
-                        // Thêm tổng doanh thu
                         worksheet.Cells[row, 1].Value = "";
                         worksheet.Cells[row, 2].Value = "Tổng cộng:";
                         worksheet.Cells[row, 2].Style.Font.Bold = true;
@@ -406,18 +396,15 @@ namespace SonataCinema.Controllers
                         worksheet.Cells[row, 4].Style.Numberformat.Format = "#,##0";
                     }
 
-                    // Định dạng toàn bộ vùng dữ liệu
                     var dataRange = worksheet.Cells[8, 1, row, 4];
                     dataRange.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                     dataRange.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                     dataRange.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                     dataRange.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
 
-                    // Căn giữa cột STT và Thời gian
                     worksheet.Column(1).Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                     worksheet.Column(3).Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
 
-                    // Tự động điều chỉnh độ rộng cột
                     worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
 
                     var stream = new MemoryStream();
@@ -430,7 +417,6 @@ namespace SonataCinema.Controllers
             }
             catch (Exception ex)
             {
-                // Log lỗi
                 System.Diagnostics.Debug.WriteLine($"Error in ExportExcel: {ex.Message}");
                 return Content("Có lỗi xảy ra khi xuất báo cáo: " + ex.Message);
             }
@@ -438,8 +424,6 @@ namespace SonataCinema.Controllers
 
         public ActionResult DangXuat()
         {
-            //Test
-            //Pull
             FormsAuthentication.SignOut();
             Session.Clear();
             return RedirectToAction("Index", "Home");

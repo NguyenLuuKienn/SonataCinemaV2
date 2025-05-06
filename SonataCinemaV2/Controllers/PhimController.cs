@@ -16,8 +16,6 @@ namespace SonataCinema.Controllers
         // GET: Phim
         CinemaV3Entities db = new CinemaV3Entities();
 
-
-        // phần ds phim
         public ActionResult DanhSachPhimPartial()
         {
             var danhsachPhim = db.Phims.ToList();
@@ -39,7 +37,6 @@ namespace SonataCinema.Controllers
             return PartialView("DanhSachPhimPartial", phimMoiList);
         }
 
-        // lưu ảnh
         public string SaveImg(HttpPostedFileBase file, out string tenGoc)
         {
             if (file != null && file.ContentLength > 0)
@@ -57,7 +54,6 @@ namespace SonataCinema.Controllers
         }
 
         [AdminOnlyAuthorize]
-        // thêm phim
         [HttpPost]
         public JsonResult Create(PhimMoi phimMoi)
         {
@@ -77,7 +73,6 @@ namespace SonataCinema.Controllers
                         TrangThai = phimMoi.TrangThai,
                         NoiBat = phimMoi.NoiBat
                     };
-                    // Xử lý Poster
                     if (phimMoi.Poster != null && phimMoi.Poster.ContentLength > 0)
                     {
                         string fileName = Path.GetFileNameWithoutExtension(phimMoi.Poster.FileName);
@@ -88,7 +83,6 @@ namespace SonataCinema.Controllers
                         phimMoi.Poster.SaveAs(path);
                     }
 
-                    // Xử lý Banner
                     if (phimMoi.Banner != null && phimMoi.Banner.ContentLength > 0)
                     {
                         string fileName = Path.GetFileNameWithoutExtension(phimMoi.Banner.FileName);
@@ -98,7 +92,7 @@ namespace SonataCinema.Controllers
                         string path = Path.Combine(Server.MapPath("~/Content/img/"), fileName);
                         phimMoi.Banner.SaveAs(path);
                     }
-                    // Xử lý URL trailer
+
                     if (!string.IsNullOrEmpty(phimMoi.Trailer))
                     {
                         try
@@ -139,7 +133,6 @@ namespace SonataCinema.Controllers
             }
         }
         [AdminOnlyAuthorize]
-        // xoá phim
         [HttpPost]
         public JsonResult Delete(int id)
         {
@@ -163,7 +156,6 @@ namespace SonataCinema.Controllers
         }
 
         [AdminOnlyAuthorize]
-        // sửa phim
         public ActionResult Edit(int id)
         {
             try
@@ -212,7 +204,6 @@ namespace SonataCinema.Controllers
                         return Json(new { success = false, message = "Không tìm thấy phim!" });
                     }
 
-                    // Cập nhật thông tin cơ bản
                     phim.TenPhim = phimMoi.TenPhim;
                     phim.TheLoai = phimMoi.TheLoai;
                     phim.DaoDien = phimMoi.DaoDien;
@@ -223,10 +214,8 @@ namespace SonataCinema.Controllers
                     phim.TrangThai = phimMoi.TrangThai;
                     phim.NoiBat = phimMoi.NoiBat;
 
-                    // Xử lý Poster
                     if (phimMoi.Poster != null && phimMoi.Poster.ContentLength > 0)
                     {
-                        // Có file mới upload
                         string fileName = Path.GetFileNameWithoutExtension(phimMoi.Poster.FileName);
                         string extension = Path.GetExtension(phimMoi.Poster.FileName);
                         fileName = fileName + DateTime.Now.ToString("yymmssfff") + extension;
@@ -239,7 +228,6 @@ namespace SonataCinema.Controllers
                         phim.Poster = phimMoi.TenPoster;
                     }
 
-                    // Xử lý Banner
                     if (phimMoi.Banner != null && phimMoi.Banner.ContentLength > 0)
                     {
                         string fileName = Path.GetFileNameWithoutExtension(phimMoi.Banner.FileName);
@@ -264,7 +252,6 @@ namespace SonataCinema.Controllers
                 return Json(new { success = false, message = "Lỗi: " + ex.Message });
             }
         }
-        // action lấy thông tin phim dạng JSON
         [HttpGet]
         public JsonResult GetPhimById(int id)
         {
@@ -314,13 +301,11 @@ namespace SonataCinema.Controllers
         {
             if (file == null) return true;
 
-            // Kiểm tra định dạng file
             string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
             var extension = Path.GetExtension(file.FileName).ToLower();
             if (!allowedExtensions.Contains(extension))
                 return false;
 
-            // Kiểm tra kích thước file (ví dụ: max 5MB)
             if (file.ContentLength > 5 * 1024 * 1024)
                 return false;
 

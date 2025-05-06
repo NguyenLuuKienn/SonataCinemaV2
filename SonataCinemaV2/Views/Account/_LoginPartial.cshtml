@@ -70,19 +70,16 @@
                     if (response.success) {
                         window.location.href = response.redirectUrl;
                     } else {
-                        // Cập nhật nội dung form với thông báo lỗi
                         $('.login-form-content-partial').html($(response).find('.login-form-content-partial').html());
 
-                        // Thêm setTimeout để đảm bảo DOM đã được cập nhật
                         setTimeout(function () {
-                            // Render lại captcha
                             if (typeof grecaptcha !== 'undefined') {
                                 $('.g-recaptcha').empty();
                                 grecaptcha.render($('.g-recaptcha')[0], {
                                     'sitekey': '6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL'
                                 });
                             }
-                        }, 100); // Delay 100ms
+                        }, 100);
                     }
                 },
                 error: function () {

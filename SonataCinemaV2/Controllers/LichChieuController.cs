@@ -14,7 +14,6 @@ namespace SonataCinema.Controllers
     {
         private CinemaV3Entities db = new CinemaV3Entities();
 
-        // Lấy danh sách lịch chiếu
         public ActionResult DanhSachLichChieuPartial()
         {
             CapNhatTrangThaiLichChieu();
@@ -33,11 +32,9 @@ namespace SonataCinema.Controllers
         {
             try
             {
-                // Tính toán thời gian bắt đầu và kết thúc của lịch chiếu mới
                 DateTime thoiDiemBatDau = ngayChieu.Date + gioChieu;
                 DateTime thoiDiemKetThuc = thoiDiemBatDau.AddMinutes(thoiLuong);
 
-                // Lấy tất cả lịch chiếu trong ngày của phòng đó
                 var lichChieuTrongNgay = db.LichChieux
                     .Where(lc => lc.ID_Phong == phongId && DbFunctions.TruncateTime(lc.NgayChieu) == ngayChieu.Date)
                     .ToList();
@@ -47,14 +44,13 @@ namespace SonataCinema.Controllers
                     DateTime batDauHienCo = lichChieu.NgayChieu.Date + lichChieu.GioChieu;
                     DateTime ketThucHienCo = batDauHienCo.AddMinutes(lichChieu.Phim.ThoiLuong ?? 0);
 
-                    // 🔥 Cải thiện kiểm tra trùng lịch bằng cách kiểm tra khoảng thời gian chồng lấn
                     if ((thoiDiemBatDau < ketThucHienCo && thoiDiemKetThuc > batDauHienCo))
                     {
-                        return true; // Phim mới bị trùng lịch
+                        return true;
                     }
                 }
 
-                return false; // Không có lịch nào trùng
+                return false; 
             }
             catch (Exception ex)
             {
@@ -64,7 +60,6 @@ namespace SonataCinema.Controllers
         }
 
         [AdminOnlyAuthorize]
-        // Thêm lịch chiếu
         [HttpPost]
         public JsonResult ThemLichChieu(LichChieuMoi lichChieuMoi)
         {
@@ -78,13 +73,11 @@ namespace SonataCinema.Controllers
                     var phimm = db.Phims.Find(lichChieuMoi.IDPhim);
                     int thoiLuong = phimm?.ThoiLuong ?? 0; 
 
-                    // Kiểm tra trùng lịch cho tất cả các ngày
                     for (DateTime ngay = lichChieuMoi.TuNgay; ngay <= lichChieuMoi.DenNgay; ngay = ngay.AddDays(1))
                     {
                         DateTime thoiGianChieu = ngay.Date + gioChieu;
 
 
-                        // Kiểm tra trùng lịch
                         if (KiemTraTrungLichChieu(ngay, gioChieu, lichChieuMoi.IDPhong, thoiLuong))
                         {
                             var phim = db.Phims.Find(lichChieuMoi.IDPhim);
@@ -96,7 +89,6 @@ namespace SonataCinema.Controllers
                             });
                         }
 
-                        // Nếu không trùng, thêm vào danh sách chờ
                         lichChieuMoiList.Add(new LichChieu
                         {
                             ID_Phim = lichChieuMoi.IDPhim,
@@ -108,7 +100,6 @@ namespace SonataCinema.Controllers
                         });
                     }
 
-                    // Nếu không có lịch nào trùng, thêm tất cả vào database
                     if (lichChieuMoiList.Any())
                     {
                         db.LichChieux.AddRange(lichChieuMoiList);
@@ -146,7 +137,6 @@ namespace SonataCinema.Controllers
                     return Json(new { success = false, message = "Lịch chiếu không tồn tại!" });
                 }
 
-                // Kiểm tra xem có vé nào đã được đặt cho lịch chiếu này không
                 var coVeDat = db.Ves.Any(v => v.ID_LichChieu == ID_LichChieu);
                 if (coVeDat)
                 {
@@ -177,7 +167,6 @@ namespace SonataCinema.Controllers
                         return Json(new { success = false, message = "Không tìm thấy lịch chiếu!" });
                     }
 
-                    // Cập nhật thông tin
                     lcc.ID_Phong = lichChieu.ID_Phong;
                     lcc.NgayChieu = lichChieu.NgayChieu;
                     lcc.GioChieu = lichChieu.GioChieu;
@@ -212,7 +201,6 @@ namespace SonataCinema.Controllers
                     return Json(new { success = false, message = "Không tìm thấy lịch chiếu!" });
                 }
 
-                // Đổi trạng thái
                 if (lichChieu.TrangThai == "Đang chiếu")
                 {
                     lichChieu.TrangThai = "Ngừng chiếu";
@@ -239,7 +227,6 @@ namespace SonataCinema.Controllers
             }
         }
 
-        // lấy thông tin lịch 
         [HttpGet]
         public JsonResult GetLichChieuById(int id)
         {
@@ -326,7 +313,6 @@ namespace SonataCinema.Controllers
                     gioHienTai = gioHienTai.Add(TimeSpan.FromMinutes(30));
                 }
 
-                // Đánh dấu các khung giờ không khả dụng (đã có phim chiếu + 15 phút buffer)
                 var khungGioKhongKhaDung = new List<TimeSpan>();
                 foreach (var lichChieu in lichChieuTrongNgay)
                 {
@@ -379,7 +365,6 @@ namespace SonataCinema.Controllers
                     return Json(new { success = false, message = "Không tìm thấy lịch chiếu" }, JsonRequestBehavior.AllowGet);
                 }
 
-                // Lấy thông tin vé đã đặt và ghế đang giữ
                 var vesDaDat = db.Ves
                     .Include(v => v.KhachHang)
                     .Where(v => v.ID_LichChieu == lichChieuId)
@@ -390,7 +375,6 @@ namespace SonataCinema.Controllers
                     .Where(gt => gt.ID_LichChieu == lichChieuId && gt.ThoiGianGiu > DateTime.Now)
                     .ToList();
 
-                // Lấy danh sách ghế của phòng và xử lý trạng thái
                 var danhSachGhe = db.Ghes
                     .Where(g => g.ID_Phong == lichChieu.ID_Phong)
                     .ToList()

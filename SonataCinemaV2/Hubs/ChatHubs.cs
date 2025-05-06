@@ -34,7 +34,7 @@ namespace SonataCinemaV2.Hubs
                 if (nhanVien != null && (nhanVien.QuyenHan == "Admin" || nhanVien.QuyenHan == "Staff"))
                 {
                     await Groups.Add(Context.ConnectionId, StaffGroup);
-                    StaffConnections[userEmail] = Context.ConnectionId; // Lưu connection của staff
+                    StaffConnections[userEmail] = Context.ConnectionId; 
 
                     Debug.WriteLine($"Staff joined: {Context.ConnectionId} - {userEmail}");
                     Debug.WriteLine($"Current StaffConnections: {string.Join(", ", StaffConnections)}");
@@ -100,7 +100,6 @@ namespace SonataCinemaV2.Hubs
             {
                 Debug.WriteLine($"AcceptChat called - StaffId: {staffId}, UserId: {userId}");
 
-                // Sử dụng FormatRoomId để tạo roomId
                 string roomId = FormatRoomId(userId, staffId);
                 Debug.WriteLine($"Creating room: {roomId}");
 
@@ -149,17 +148,14 @@ namespace SonataCinemaV2.Hubs
             {
                 Debug.WriteLine($"EndChat called - Room: {roomId}, User: {userId}");
 
-                // Thông báo cho tất cả người trong room
                 await Clients.Group(roomId).chatEnded(userId, reason);
 
-                // Xóa các connections khỏi room
                 if (UserConnections.ContainsKey(userId))
                 {
                     await Groups.Remove(UserConnections[userId], roomId);
                 }
                 await Groups.Remove(Context.ConnectionId, roomId);
 
-                // Nếu là staff, cập nhật UI dashboard
                 if (StaffConnections.ContainsValue(Context.ConnectionId))
                 {
                     await Clients.Group(StaffGroup).activeChatEnded(roomId);

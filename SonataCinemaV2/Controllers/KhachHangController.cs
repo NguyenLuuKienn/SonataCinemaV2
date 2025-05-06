@@ -20,7 +20,6 @@ namespace SonataCinema.Controllers
         //GET: KhachHang
         CinemaV3Entities db = new CinemaV3Entities();
 
-        // phần ds khách hàng
         public ActionResult DanhSachKhangHangPartial()
         {
             List<KhachHang> danhsachKH = db.KhachHangs.ToList();
@@ -49,7 +48,7 @@ namespace SonataCinema.Controllers
             {
                 try
                 {
-                    string secret = "6LeLSrIqAAAAAO7dxwA7JLEIfJR4jEr3h00R-dMK"; // Kiểm tra lại secret key
+                    string secret = "6LeLSrIqAAAAAO7dxwA7JLEIfJR4jEr3h00R-dMK"; // secret key
                     using (var client = new WebClient())
                     {
                         var result = client.DownloadString(string.Format(
@@ -76,7 +75,6 @@ namespace SonataCinema.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    // Kiểm tra captcha
                     var response = Request["g-recaptcha-response"];
                     if (string.IsNullOrEmpty(response))
                     {
@@ -95,7 +93,6 @@ namespace SonataCinema.Controllers
                         });
                     }
 
-                    // Kiểm tra email tồn tại
                     var KHtontai = db.KhachHangs.Any(kh => kh.Email == model.Email);
                     if (KHtontai)
                     {
@@ -105,7 +102,6 @@ namespace SonataCinema.Controllers
                         });
                     }
 
-                    // Tạo tài khoản mới
                     string hashedPassWord = BCrypt.Net.BCrypt.HashPassword(model.MatKhau);
                     var userKH = new KhachHang
                     {
@@ -130,7 +126,6 @@ namespace SonataCinema.Controllers
                     });
                 }
 
-                // Return validation errors
                 var errors = ModelState.ToDictionary(
                     kvp => kvp.Key,
                     kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).FirstOrDefault()
@@ -148,7 +143,6 @@ namespace SonataCinema.Controllers
             }
         }
 
-        // xoá khách hàng
         [HttpPost]
         public ActionResult deleteCustomer (int idKH)
         {
@@ -183,7 +177,6 @@ namespace SonataCinema.Controllers
                     return Json(new { success = false, message = "Không tìm thấy khách hàng!" });
                 }
 
-                // Thêm debug log
                 System.Diagnostics.Debug.WriteLine($"Current status: {khachHang.TrangThai}");
 
                 khachHang.TrangThai = khachHang.TrangThai == "Hoạt Động" ? "Khoá" : "Hoạt Động";
@@ -216,7 +209,6 @@ namespace SonataCinema.Controllers
                     return Json(new { success = false, message = "Không tìm thấy khách hàng!" }, JsonRequestBehavior.AllowGet);
                 }
 
-                // Thêm debug log
                 System.Diagnostics.Debug.WriteLine($"Found customer: {khachHang.TenKhachHang}");
 
                 var html = RenderPartialViewToString("_CustomerDetailsPartial", khachHang);
@@ -229,7 +221,6 @@ namespace SonataCinema.Controllers
             }
         }
 
-        // Helper method để render partial view thành string
         private string RenderPartialViewToString(string viewName, object model)
         {
             if (string.IsNullOrEmpty(viewName))

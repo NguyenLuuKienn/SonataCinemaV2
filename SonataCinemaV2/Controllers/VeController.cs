@@ -45,7 +45,6 @@ namespace SonataCinemaV2.Controllers
                     return Json(new { success = false, message = "Không tìm thấy vé!" }, JsonRequestBehavior.AllowGet);
                 }
 
-                // Lấy thông tin combo riêng
                 var comboInfo = db.ComboOrders
                     .Include(co => co.Combo)
                     .Where(co => co.ID_ThanhToan == ve.ID_ThanhToan)
@@ -57,7 +56,6 @@ namespace SonataCinemaV2.Controllers
                     })
                     .ToList();
 
-                // Debug log
                 System.Diagnostics.Debug.WriteLine($"Số lượng combo: {comboInfo.Count}");
                 foreach (var combo in comboInfo)
                 {
@@ -112,7 +110,6 @@ namespace SonataCinemaV2.Controllers
                         return Json(new { success = false, message = "Không tìm thấy vé!" });
                     }
 
-                    // Kiểm tra thời gian
                     var now = DateTime.Now;
                     var showTime = ve.LichChieu.NgayChieu.Date + ve.LichChieu.GioChieu;
 
@@ -127,7 +124,6 @@ namespace SonataCinemaV2.Controllers
                         return Json(new { success = false, message = "Chỉ có thể huỷ vé trước giờ chiếu 30 phút!" });
                     }
 
-                    // Lưu thông tin để gửi email
                     var email = ve.KhachHang.Email;
                     var customerName = ve.KhachHang.TenKhachHang;
                     var movieName = ve.LichChieu.Phim.TenPhim;
@@ -135,13 +131,11 @@ namespace SonataCinemaV2.Controllers
                     var seats = ve.ChoNgoi;
                     decimal refundAmount = ve.ThanhToan.TongTienGoc * 0.8m;
 
-                    // Chỉ cập nhật trạng thái vé thành "Đã huỷ", giữ nguyên thông tin ghế
                     ve.TrangThai = "Đã huỷ";
 
                     db.SaveChanges();
                     transaction.Commit();
 
-                    // Gửi email xác nhận huỷ vé
                     await EmailHelper.SendCancellationEmail(
                         email,
                         customerName,

@@ -48,7 +48,6 @@ namespace SonataCinema.Controllers
 
             return PartialView("_MovieGridPartial", nextMovies);
         }
-        //phim dang chieu
         public ActionResult DangChieu()
         {
             ViewBag.Title = "Phim Đang Chiếu";
@@ -57,7 +56,6 @@ namespace SonataCinema.Controllers
 
             return View(DsDangChieu);
         }
-        //phim sap chieu
         public ActionResult SapChieu()
         {
             ViewBag.Title = "Phim Sắp Chiếu";

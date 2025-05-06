@@ -382,7 +382,6 @@ namespace SonataCinemaV2.Controllers
                         }
                     }
 
-                    // Không tìm thấy email nhưng vẫn trả về thành công để tránh lộ thông tin
                     return Json(new { success = true });
                 }
                 catch (Exception ex)
@@ -413,17 +412,16 @@ namespace SonataCinemaV2.Controllers
                 Token = token
             };
 
-            // Kiểm tra token có hợp lệ không
+            // Kiểm tra token
             var userKH = db.KhachHangs.FirstOrDefault(k => k.Email == email && k.ResetPasswordToken == token);
             var userNV = db.NhanViens.FirstOrDefault(n => n.Email == email && n.ResetPasswordToken == token);
 
             if (userKH == null && userNV == null)
             {
-                // Token không hợp lệ
                 return RedirectToAction("DangNhap");
             }
 
-            // Kiểm tra token còn hạn không
+            // Kiểm tra token còn hạn
             if (userKH != null && userKH.ResetPasswordExpiry < DateTime.Now)
             {
                 ModelState.AddModelError("", "Link đặt lại mật khẩu đã hết hạn.");

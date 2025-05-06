@@ -42,7 +42,6 @@ namespace SonataCinema.Controllers
             ViewBag.QuickBooking = TempData["QuickBooking"];
             return View(modell);
         }
-        // lấy phim
         [HttpGet]
         public ActionResult GetDates(string movie)
         {
@@ -87,7 +86,6 @@ namespace SonataCinema.Controllers
                 var timeParts = time.Split(':');
                 var timeSpan = new TimeSpan(int.Parse(timeParts[0]), int.Parse(timeParts[1]), 0);
 
-                // Debug
                 System.Diagnostics.Debug.WriteLine($"Parsed - Date: {selectedDate}, Time: {timeSpan}");
 
                 var availableRooms = db.LichChieux
@@ -123,7 +121,6 @@ namespace SonataCinema.Controllers
             }
         }
 
-        // lấy giờ
         [HttpGet]
         public ActionResult GetTimes(string movie, string date)
         {
@@ -146,7 +143,6 @@ namespace SonataCinema.Controllers
         }
 
         private const int SEAT_HOLD_MINUTES = 3;
-        // lấy ghế
         [HttpGet]
         public ActionResult GetSeats(int room, int lichChieuId)
         {
@@ -173,7 +169,6 @@ namespace SonataCinema.Controllers
                     .Select(v => v.ChoNgoi)
                     .ToList();
 
-                // Xóa các ghế giữ quá hạn
                 var expiredTime = DateTime.Now.AddMinutes(-SEAT_HOLD_MINUTES);
                 var expiredHolds = db.Ghe_TrangThai
                     .Where(gt => gt.ThoiGianGiu <= expiredTime)
@@ -181,7 +176,6 @@ namespace SonataCinema.Controllers
                 db.Ghe_TrangThai.RemoveRange(expiredHolds);
                 db.SaveChanges();
 
-                // Lấy danh sách ghế
                 var seats = db.Ghes
                     .Where(g => g.ID_Phong == room)
                     .Select(g => new GheViewModel
@@ -308,7 +302,6 @@ namespace SonataCinema.Controllers
                     return Json(new { success = false, error = "Không tìm thấy lịch chiếu" });
                 }
 
-                // Tạo model với đầy đủ thông tin
                 var confirmModel = new ConfirmViewModel
                 {
                     IDLichChieu = model.IDLichChieu,
@@ -328,7 +321,6 @@ namespace SonataCinema.Controllers
 
                 System.Diagnostics.Debug.WriteLine($"Saving to TempData: {confirmModel.TenPhim}, {confirmModel.TenPhong}, {confirmModel.Ngay}");
 
-                // Lưu vào TempData
                 TempData["BookingInfo"] = confirmModel;
 
                 return Json(new { success = true, redirectUrl = Url.Action("ConfirmBooking") });
@@ -349,7 +341,6 @@ namespace SonataCinema.Controllers
                 return RedirectToAction("BookingTicket");
             }
 
-            // Debug log
             System.Diagnostics.Debug.WriteLine($"Retrieved from TempData: {model.TenPhim}, {model.TenPhong}, {model.Ngay}");
 
             return View(model);
@@ -364,7 +355,6 @@ namespace SonataCinema.Controllers
                 {
                     try
                     {
-                        // Debug log
                         System.Diagnostics.Debug.WriteLine($"Start processing payment:");
                         System.Diagnostics.Debug.WriteLine($"IDLichChieu: {model.IDLichChieu}");
                         System.Diagnostics.Debug.WriteLine($"IDKhachHang: {model.IDKhachHang}");
@@ -412,7 +402,6 @@ namespace SonataCinema.Controllers
                         // 4. Tạo vé
                         foreach (var ghe in model.ChonGhe)
                         {
-                            // Kiểm tra ghế đã đặt
                             var existingVe = db.Ves.FirstOrDefault(v =>
                                 v.ID_LichChieu == model.IDLichChieu &&
                                 v.ChoNgoi == ghe.TenGhe &&  v.TrangThai != "Đã huỷ");
@@ -434,7 +423,6 @@ namespace SonataCinema.Controllers
                             };
                             db.Ves.Add(newVe);
 
-                            // Xóa trạng thái giữ ghế
                             var gheTrangThai = await db.Ghe_TrangThai.FirstOrDefaultAsync(gt =>
                                 gt.ID_LichChieu == model.IDLichChieu &&
                                 gt.ID_Ghe == ghe.IDGhe);
@@ -551,13 +539,11 @@ namespace SonataCinema.Controllers
         {
             try
             {
-                // Tìm các ghế cần giải phóng
                 var seatsToRelease = db.Ghe_TrangThai
                     .Where(gt => gt.ID_LichChieu == lichChieuId &&
                            gheIds.Contains(gt.ID_Ghe))
                     .ToList();
 
-                // Xóa trạng thái giữ ghế
                 db.Ghe_TrangThai.RemoveRange(seatsToRelease);
                 db.SaveChanges();
 

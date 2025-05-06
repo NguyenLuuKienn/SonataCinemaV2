@@ -73,7 +73,6 @@ namespace SonataCinemaV2.Controllers
         {
             try
             {
-                // Validate input
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors)
@@ -81,7 +80,6 @@ namespace SonataCinemaV2.Controllers
                     return Json(new { success = false, message = "Dữ liệu không hợp lệ: " + string.Join(", ", errors) });
                 }
 
-                // Xử lý hình ảnh
                 if (HinhAnh != null && HinhAnh.ContentLength > 0)
                 {
                     try
@@ -89,7 +87,6 @@ namespace SonataCinemaV2.Controllers
                         string fileName = $"combo_{DateTime.Now.Ticks}{Path.GetExtension(HinhAnh.FileName)}";
                         string folderPath = Server.MapPath("~/Content/images/combos");
 
-                        // Tạo thư mục nếu chưa tồn tại
                         if (!Directory.Exists(folderPath))
                         {
                             Directory.CreateDirectory(folderPath);
@@ -105,10 +102,8 @@ namespace SonataCinemaV2.Controllers
                     }
                 }
 
-                // Set giá trị mặc định
                 combo.TrangThai = true;
 
-                // Thêm vào database
                 using (var transaction = db.Database.BeginTransaction())
                 {
                     try
@@ -171,7 +166,7 @@ namespace SonataCinemaV2.Controllers
                 if (combo == null)
                     return Json(new { success = false, message = "Không tìm thấy combo!" });
 
-                combo.TrangThai = false; // Soft delete
+                combo.TrangThai = false; 
                 db.SaveChanges();
                 return Json(new { success = true, message = "Xóa combo thành công!" });
             }
