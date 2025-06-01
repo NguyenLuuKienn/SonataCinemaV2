@@ -113,12 +113,13 @@ namespace SonataCinema.Controllers
                         NgaySinh = model.NgaySinh,
                         MatKhau = hashedPassWord,
                         QuyenHan = "Customer",
-                        DiemThuong = 0
+                        DiemThuong = 0,
+                        DaXacThuc = false
                     };
 
                     db.KhachHangs.Add(userKH);
                     db.SaveChanges();
-
+                    
                     return Json(new
                     {
                         success = true,
@@ -165,7 +166,36 @@ namespace SonataCinema.Controllers
                 return RedirectToAction("IndexAdmin", "Admin");
             }
         }
+        [HttpPost]
+        public ActionResult deleteKH(int idKH)
+        {
+            try
+            {
+                var khachhanng = db.KhachHangs.FirstOrDefault(k => k.ID_KhachHang == idKH);
+                if (khachhanng == null)
+                {
+                    return Json(new { success = false, message = "Khách hàng không tồn tại!" });
+                }
 
+                // Kiểm tra khách hàng có đang có vé đã đặt không
+                var hasBookings = db.Ves.Any(v => v.ID_KhachHang == idKH);
+                if (hasBookings)
+                {
+                    return Json(new { success = false, message = "Không thể xóa khách hàng đã có lịch sử đặt vé!" });
+                }
+
+                db.KhachHangs.Remove(khachhanng);
+                db.SaveChanges();
+                
+                return Json(new { success = true, message = "Xóa khách hàng thành công!" });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error deleting customer: {ex.Message}");
+                return Json(new { success = false, message = "Đã xảy ra lỗi: " + ex.Message });
+            }
+        }
+        
         [HttpPost]
         public JsonResult ToggleStatus(int id)
         {

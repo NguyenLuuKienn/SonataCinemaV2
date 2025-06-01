@@ -72,9 +72,40 @@
                 <label>Tổng tiền:</label>
                 <span>@ViewBag.TotalAmount</span>
             </div>
-
-
         </div>
+
+        @* QR Code Section *@
+        @if (ViewBag.Tickets != null)
+        {
+            <div class="qr-section">
+                <h3><i class="fas fa-qrcode"></i> Mã QR Vé Của Bạn</h3>
+                <p class="qr-instruction">Xuất trình mã QR này tại rạp để check-in</p>
+                
+                <div class="qr-codes">
+                    @foreach (var ticket in (dynamic)ViewBag.Tickets)
+                    {
+                        <div class="qr-card">
+                            <div class="qr-header">                                
+                                <span class="seat-info">Ghế @ViewBag.SeatNumbers</span>
+                            </div>
+                            <div class="qr-code-container">
+                                @if (!string.IsNullOrEmpty(ticket.QRCodePath))
+                                {
+                                    <img src="@ticket.QRCodePath" alt="QR Code cho vé" class="qr-image" />
+                                }
+                                else
+                                {
+                                    <div class="qr-error">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <p>Không thể tạo mã QR</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
 
         <div class="action-buttons">
             <a href="@Url.Action("Index", "Home")" class="btn-home">
@@ -105,7 +136,7 @@
     border-radius: 15px;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
     text-align: center;
-    max-width: 600px;
+    max-width: 700px;
     width: 100%;
 }
 
@@ -170,6 +201,97 @@
     text-align: left;
 }
 
+/* QR Code Styles */
+.qr-section {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.qr-section h3 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 24px;
+}
+
+.qr-section h3 i {
+    color: #df9a2c;
+    margin-right: 10px;
+}
+
+.qr-instruction {
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 14px;
+}
+
+.qr-codes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.qr-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    min-width: 200px;
+    text-align: center;
+}
+
+.qr-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.qr-header strong {
+    display: block;
+    color: #333;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.seat-info {
+    color: #666;
+    font-size: 14px;
+}
+
+.qr-code-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 180px;
+}
+
+.qr-image {
+    max-width: 160px;
+    max-height: 160px;
+    width: 100%;
+    height: auto;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+.qr-error {
+    color: #dc3545;
+    text-align: center;
+}
+
+.qr-error i {
+    font-size: 40px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.qr-error p {
+    margin: 0;
+    font-size: 14px;
+}
+
 .action-buttons {
     display: flex;
     gap: 20px;
@@ -204,5 +326,5 @@
     margin-right: 8px;
 }
 
-
+/* Responsive */
 </style>

@@ -151,19 +151,15 @@ $(document).ready(function () {
             data: $(this).serialize(),
             success: function (response) {
                 if (response.success) {
-                    // Thêm kiểm tra
                     if (response.redirectUrl) {
                         window.location.href = response.redirectUrl;
                     } else {
-                        window.location.href = '/'; // URL mặc định
+                        window.location.href = '/';
                     }
                 } else {
-                    // Xử lý khi response là partial view
                     if (typeof response === 'string') {
                         $('#loginPartialContainer').html(response);
-                    } else {
-                        alert('Đăng nhập thất bại. Vui lòng thử lại.');
-                    }
+                    } 
                 }
             },
             error: function (xhr, status, error) {
@@ -172,64 +168,7 @@ $(document).ready(function () {
             }
         });
     });
-
-    // Handle register form submission
-    $(document).on('submit', '#registerForm', function (e) {
-        e.preventDefault();
-        
-        // Reset validation messages
-        $('.text-danger').empty();
-        
-        $.ajax({
-            url: $(this).attr('action'),
-            type: 'POST',
-            data: $(this).serialize(),
-            success: function(response) {
-                console.log('Server Response:', response);
-                
-                if (response.success) {
-                    Swal.fire({
-                        title: 'Đăng Ký Thành Công!',
-                        text: 'Chào mừng bạn đến với Sonata Cinema',
-                        icon: 'success',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#df9a2c'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = response.redirectUrl;
-                        }
-                    });
-                } else {
-                    if (response.errors) {
-                        Object.keys(response.errors).forEach(function(key) {
-                            $(`[data-valmsg-for="${key}"]`).text(response.errors[key]);
-                        });
-                    }
-                    
-                    Swal.fire({
-                        title: 'Lỗi!',
-                        text: 'Vui lòng kiểm tra lại thông tin đăng ký',
-                        icon: 'error',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#df9a2c'
-                    });
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('AJAX Error:', error);
-                console.error('Response Text:', xhr.responseText);
-                
-                Swal.fire({
-                    title: 'Lỗi!',
-                    text: 'Đã xảy ra lỗi trong quá trình đăng ký. Vui lòng thử lại.',
-                    icon: 'error',
-                    confirmButtonText: 'OK',
-                    confirmButtonColor: '#df9a2c'
-                });
-            }
-        });
-    });
-    });
+});
 
 // xem mật khẩu
 function togglePassword() {

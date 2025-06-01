@@ -53,6 +53,11 @@
                                                     id="toggle-btn-@khach.ID_KhachHang">
                                                 <i class="bi @(khach.TrangThai == "Hoạt Động" ? "bi-lock" : "bi-unlock")"></i>
                                             </button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                                    onclick="deleteCustomer(@khach.ID_KhachHang)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+
                                         </div>
                                     </td>
                                 </tr>
@@ -147,6 +152,45 @@
                     },
                     error: function () {
                         Swal.fire('Lỗi!', 'Không thể thay đổi trạng thái', 'error');
+                    }
+                });
+            }
+        });
+    }
+    function deleteCustomer(idKH) {
+        Swal.fire({
+            title: 'Bạn có chắc muốn xoá?',
+            text: "Thao tác này sẽ xoá khách hàng vĩnh viễn!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Xoá',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/KhachHang/deleteKH',
+                    type: 'POST',
+                    data: { idKH: idKH },
+                    success: function (response) {
+                        console.log('Delete response:', response); // Debug log
+
+                        if (response.success) {
+                            Swal.fire('Đã xoá!', response.message, 'success').then(() => {
+                                // Remove the row from table instead of full reload
+                                $(`tr:has(button[onclick="deleteCustomer(${idKH})"])`).fadeOut(300, function () {
+                                    $(this).remove();
+                                });
+                            });
+                        } else {
+                            Swal.fire('Lỗi!', response.message, 'error');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Delete error:', error);
+                        console.error('Response:', xhr.responseText);
+                        Swal.fire('Lỗi!', 'Không thể xoá khách hàng: ' + error, 'error');
                     }
                 });
             }

@@ -40,10 +40,33 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <div class="g-recaptcha" data-sitekey="6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL"></div>
-                @Html.ValidationMessage("ReCaptcha", new { @class = "text-danger" })
-            </div>
+            <!-- CHỈ HIỆN CAPTCHA KHI CẦN THIẾT -->
+           
+                int loginAttempts = Session["LoginAttempts"] != null ? (int)Session["LoginAttempts"] : 0;
+            
+
+            if (loginAttempts >= 5)
+            {
+                <div class="form-group" id="captcha-container">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Bạn đã đăng nhập sai quá nhiều lần. Vui lòng xác thực captcha.
+                    </div>
+                    <div class="g-recaptcha" data-sitekey="6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL"></div>
+                    @Html.ValidationMessage("ReCaptcha", new { @class = "text-danger" })
+                </div>
+            }
+            else
+            {
+                <div class="form-group" id="captcha-container" style="display: none;">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Bạn đã đăng nhập sai quá nhiều lần. Vui lòng xác thực captcha.
+                    </div>
+                    <div class="g-recaptcha" data-sitekey="6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL"></div>
+                    @Html.ValidationMessage("ReCaptcha", new { @class = "text-danger" })
+                </div>
+            }
 
             <div class="custom-form-group-partial text-center-partial">
                 <button type="submit" class="custom-btn button-62">Đăng Nhập</button>
@@ -55,7 +78,24 @@
         }
     </div>
 </div>
+<style>
+.alert {
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
 
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+}
+
+.alert i {
+    margin-right: 8px;
+}
+</style>
 <script>
     $(document).ready(function () {
         $('#loginForm').on('submit', function (e) {
@@ -69,22 +109,45 @@
                 success: function (response) {
                     if (response.success) {
                         window.location.href = response.redirectUrl;
+                    } else if (response.requireVerification) {
+                        // Chuyển đến trang xác thực
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Cần xác thực email',
+                            text: response.message,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Xác thực ngay'
+                        }).then(function () {
+                            window.location.href = response.redirectUrl;
+                        });
                     } else {
-                        $('.login-form-content-partial').html($(response).find('.login-form-content-partial').html());
+                        // Cập nhật form với response mới
+                        if (response.html) {
+                            $('.login-form-content-partial').html($(response.html).find('.login-form-content-partial').html());
+                        }
 
-                        setTimeout(function () {
-                            if (typeof grecaptcha !== 'undefined') {
-                                $('.g-recaptcha').empty();
-                                grecaptcha.render($('.g-recaptcha')[0], {
-                                    'sitekey': '6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL'
-                                });
-                            }
-                        }, 100);
+                        // Kiểm tra xem có cần hiện captcha không
+                        if (response.requiresCaptcha) {
+                            $('#captcha-container').show();
+                            
+                            // Render lại captcha
+                            setTimeout(function () {
+                                if (typeof grecaptcha !== 'undefined') {
+                                    $('.g-recaptcha').empty();
+                                    grecaptcha.render($('.g-recaptcha')[0], {
+                                        'sitekey': '6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL'
+                                    });
+                                }
+                            }, 100);
+                        } else {
+                            $('#captcha-container').hide();
+                        }
                     }
                 },
                 error: function () {
+                    // Render lại captcha nếu có lỗi
                     setTimeout(function () {
-                        if (typeof grecaptcha !== 'undefined') {
+                        if (typeof grecaptcha !== 'undefined' && $('#captcha-container').is(':visible')) {
                             $('.g-recaptcha').empty();
                             grecaptcha.render($('.g-recaptcha')[0], {
                                 'sitekey': '6LeLSrIqAAAAAKNmfVxPljwFG2V94hTppQEy_bmL'

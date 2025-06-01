@@ -24,6 +24,7 @@ namespace SonataCinemaV2.Models
         public string TrangThai { get; set; }
         public Nullable<System.DateTime> NgayDat { get; set; }
         public string TrangThaiGhe { get; set; }
+        public string QRCodePath { get; set; }
     
         public virtual KhachHang KhachHang { get; set; }
         public virtual LichChieu LichChieu { get; set; }

@@ -35,6 +35,9 @@ namespace SonataCinemaV2.Models
         public string TrangThai { get; set; }
         public string ResetPasswordToken { get; set; }
         public Nullable<System.DateTime> ResetPasswordExpiry { get; set; }
+        public string MaXacThuc { get; set; }
+        public Nullable<bool> DaXacThuc { get; set; }
+        public Nullable<System.DateTime> ThoiGianXacThuc { get; set; }
     
         public virtual DiemThuong DiemThuong1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

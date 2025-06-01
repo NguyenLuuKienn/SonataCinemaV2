@@ -45,5 +45,11 @@ namespace SonataCinemaV2.ViewModel
         [DataType(DataType.Password)]
         [Display(Name = "Nhập Lại Mật Khẩu")]
         public string NhapLaiMatKhau { get; set; }
+
+        // Thêm các thuộc tính cho xác thực email
+        [Display(Name = "Mã xác thực")]
+        public string MaXacThuc { get; set; }
+
+        public bool IsVerifying { get; set; } = false;
     }
 }

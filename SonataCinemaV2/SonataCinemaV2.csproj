@@ -189,6 +189,10 @@
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="QRCoder, Version=1.6.0.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
+      <HintPath>..\packages\QRCoder.1.6.0\lib\net40\QRCoder.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.6.0\lib\net462\System.Buffers.dll</HintPath>
@@ -296,6 +300,7 @@
       <Private>True</Private>
       <HintPath>..\packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform">
@@ -329,6 +334,7 @@
     <Compile Include="Helper\DialogflowHelper.cs" />
     <Compile Include="Helper\EmailHelper.cs" />
     <Compile Include="Helper\GeminiHelper.cs" />
+    <Compile Include="Helper\QRCode.cs" />
     <Compile Include="Helper\SimpleBoHelper.cs" />
     <Compile Include="Hubs\ChatHubs.cs" />
     <Compile Include="ML\MovieRecommenderModel.cs" />
@@ -982,9 +988,11 @@
     <Content Include="Views\Account\ResetPasswordConfirmation.cshtml" />
     <Content Include="Views\Combo\_QuanLyComboPartial.cshtml" />
     <Content Include="Views\Booking\_ComboPartial.cshtml" />
+    <Content Include="Views\Account\XacThucEmail.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Content\QRCodes\" />
     <Folder Include="Views\MovieRecommenderService\" />
   </ItemGroup>
   <ItemGroup>

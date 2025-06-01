@@ -115,6 +115,9 @@
           <Property Name="TrangThai" Type="nvarchar" MaxLength="100" />
           <Property Name="ResetPasswordToken" Type="nvarchar" MaxLength="100" />
           <Property Name="ResetPasswordExpiry" Type="datetime" />
+          <Property Name="MaXacThuc" Type="nvarchar" MaxLength="10" />
+          <Property Name="DaXacThuc" Type="bit" />
+          <Property Name="ThoiGianXacThuc" Type="datetime" />
         </EntityType>
         <EntityType Name="LichChieu">
           <Key>
@@ -208,6 +211,7 @@
           <Property Name="TrangThai" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="NgayDat" Type="datetime" />
           <Property Name="TrangThaiGhe" Type="nvarchar" MaxLength="50" />
+          <Property Name="QRCodePath" Type="nchar" MaxLength="500" />
         </EntityType>
         <Association Name="FK__ChatMessa__ID_Kh__1F63A897">
           <End Role="KhachHang" Type="Self.KhachHang" Multiplicity="0..1" />
@@ -593,6 +597,9 @@
           <NavigationProperty Name="DanhGias" Relationship="CinemaV3Model.FK__DanhGia__ID_Khac__55BFB948" FromRole="KhachHang" ToRole="DanhGia" />
           <Property Name="ResetPasswordToken" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <Property Name="ResetPasswordExpiry" Type="DateTime" Precision="3" />
+          <Property Name="MaXacThuc" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="DaXacThuc" Type="Boolean" />
+          <Property Name="ThoiGianXacThuc" Type="DateTime" Precision="3" />
         </EntityType>
         <EntityType Name="LichChieu">
           <Key>
@@ -704,6 +711,7 @@
           <NavigationProperty Name="ThanhToan" Relationship="Self.FK_Ve_ThanhToan" FromRole="Ve" ToRole="ThanhToan" />
           <Property Name="NgayDat" Type="DateTime" Precision="3" />
           <Property Name="TrangThaiGhe" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="QRCodePath" Type="String" MaxLength="500" FixedLength="true" Unicode="true" />
         </EntityType>
         <Association Name="FK_DiemThuong_KhachHang">
           <End Role="KhachHang" Type="Self.KhachHang" Multiplicity="1" />
@@ -1168,6 +1176,9 @@
           <EntitySetMapping Name="KhachHangs">
             <EntityTypeMapping TypeName="CinemaV3Model.KhachHang">
               <MappingFragment StoreEntitySet="KhachHang">
+                <ScalarProperty Name="ThoiGianXacThuc" ColumnName="ThoiGianXacThuc" />
+                <ScalarProperty Name="DaXacThuc" ColumnName="DaXacThuc" />
+                <ScalarProperty Name="MaXacThuc" ColumnName="MaXacThuc" />
                 <ScalarProperty Name="ResetPasswordExpiry" ColumnName="ResetPasswordExpiry" />
                 <ScalarProperty Name="ResetPasswordToken" ColumnName="ResetPasswordToken" />
                 <ScalarProperty Name="TrangThai" ColumnName="TrangThai" />
@@ -1270,6 +1281,7 @@
           <EntitySetMapping Name="Ves">
             <EntityTypeMapping TypeName="CinemaV3Model.Ve">
               <MappingFragment StoreEntitySet="Ve">
+                <ScalarProperty Name="QRCodePath" ColumnName="QRCodePath" />
                 <ScalarProperty Name="TrangThaiGhe" ColumnName="TrangThaiGhe" />
                 <ScalarProperty Name="NgayDat" ColumnName="NgayDat" />
                 <ScalarProperty Name="ID_Ve" ColumnName="ID_Ve" />

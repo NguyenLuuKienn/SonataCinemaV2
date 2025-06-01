@@ -1,0 +1,663 @@
+﻿@{
+    ViewBag.Title = "Xác thực Email";
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+
+
+
+<div class="verification-wrapper">
+    <div class="verification-container">
+        <div class="verification-card">
+            <div class="verification-header">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Xác thực Email</h3>
+            </div>
+            
+            <div class="verification-body">
+                <div class="welcome-text">
+                    <p class="lead">Để đảm bảo bảo mật tài khoản của bạn</p>
+                    <div class="email-display">
+                        <i class="fas fa-envelope"></i>
+                        Email: <strong>@ViewBag.Email</strong>
+                    </div>
+                </div>
+
+                <!-- Form gửi mã xác thực -->
+                <div id="email-section" class="section-transition">
+                    <form id="send-verification-form">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="custom-form-group">
+                            <label for="email">
+                                <i class="fas fa-check-circle"></i> 
+                                Xác nhận địa chỉ email của bạn:
+                            </label>
+                            <input type="email" class="custom-form-control" id="email" 
+                                   value="@ViewBag.Email" readonly>
+                        </div>
+                        
+                        <button type="submit" class="custom-btn btn-send">
+                            <i class="fas fa-paper-plane"></i> 
+                            Gửi mã xác thực
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Form nhập mã xác thực -->
+                <div id="verification-section" class="section-transition section-hidden" style="display: none;">
+                    <form id="verify-code-form">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="custom-form-group">
+                            <label for="verification-code">
+                                <i class="fas fa-key"></i> 
+                                Nhập mã xác thực (6 số):
+                            </label>
+                            <input type="text" class="custom-form-control verification-code-input" 
+                                   id="verification-code" maxlength="6" pattern="[0-9]{6}" 
+                                   placeholder="000000" autocomplete="off">
+                            <div class="small-text">
+                                Kiểm tra hộp thư <strong>Spam/Junk</strong> nếu không thấy email
+                            </div>
+                        </div>
+
+                        <button type="submit" class="custom-btn btn-verify">
+                            <i class="fas fa-check-double"></i> 
+                            Xác thực ngay
+                        </button>
+                        
+                        <button type="button" id="resend-code" class="custom-btn btn-resend">
+                            <i class="fas fa-sync-alt"></i> 
+                            Gửi lại mã xác thực
+                        </button>
+
+                        <div class="custom-alert alert-info-custom">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                Mã có hiệu lực trong: 
+                                <span id="countdown" class="countdown-display">15:00</span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="@Url.Action("Index", "Home")" class="custom-btn btn-back">
+                        <i class="fas fa-arrow-left"></i> 
+                        Quay lại trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    let countdownInterval;
+
+    // Function để thêm loading state
+    function setButtonLoading(button, isLoading) {
+        if (isLoading) {
+            button.addClass('loading-btn').prop('disabled', true);
+            button.find('i').hide();
+        } else {
+            button.removeClass('loading-btn').prop('disabled', false);
+            button.find('i').show();
+        }
+    }
+
+    // Function để chuyển đổi section với animation
+    function switchSection(hideSection, showSection) {
+        hideSection.addClass('section-hidden');
+        setTimeout(function() {
+            hideSection.hide();
+            showSection.show().removeClass('section-hidden').addClass('section-show');
+        }, 300);
+    }
+
+    // Gửi mã xác thực
+    $('#send-verification-form').on('submit', function(e) {
+        e.preventDefault();
+
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var token = form.find('input[name="__RequestVerificationToken"]').val();
+
+        setButtonLoading(submitBtn, true);
+
+        $.ajax({
+            url: '@Url.Action("GuiMaXacThuc", "Account")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                setButtonLoading(submitBtn, false);
+                console.log('Send verification response:', response);
+                
+                if (response.success) {
+                    switchSection($('#email-section'), $('#verification-section'));
+                    $('#verification-code').focus();
+                    startCountdown();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: response.message,
+                        timer: 3000,
+                        showConfirmButton: false,
+                        background: '#fff',
+                        customClass: {
+                            popup: 'animated bounceInDown'
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: response.message,
+                        background: '#fff',
+                        customClass: {
+                            popup: 'animated shakeX'
+                        }
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                setButtonLoading(submitBtn, false);
+                console.error('Send verification error:', error);
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi kết nối!',
+                    text: 'Không thể gửi mã xác thực. Vui lòng thử lại.',
+                    background: '#fff'
+                });
+            }
+        });
+    });
+
+    // Xác thực mã
+    $('#verify-code-form').on('submit', function(e) {
+        e.preventDefault();
+
+        const code = $('#verification-code').val();
+        if (!code || code.length !== 6) {
+            $('#verification-code').addClass('shake');
+            setTimeout(function() {
+                $('#verification-code').removeClass('shake');
+            }, 600);
+            
+            Swal.fire({
+                icon: 'warning',
+                title: 'Cảnh báo!',
+                text: 'Vui lòng nhập đúng mã 6 số.',
+                background: '#fff'
+            });
+            return;
+        }
+
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var token = form.find('input[name="__RequestVerificationToken"]').val();
+
+        setButtonLoading(submitBtn, true);
+
+        $.ajax({
+            url: '@Url.Action("XacThucMa", "Account")',
+            type: 'POST',
+            data: { 
+                code: code,
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                setButtonLoading(submitBtn, false);
+                console.log('Verify response:', response);
+                
+                if (response.success) {
+                    clearInterval(countdownInterval);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Xác thực thành công!',
+                        text: response.message,
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: '#fff',
+                        customClass: {
+                            popup: 'animated bounceIn'
+                        }
+                    }).then(function() {
+                        window.location.href = response.redirectUrl || '/';
+                    });
+                } else {
+                    $('#verification-code').val('').focus();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: response.message,
+                        background: '#fff'
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                setButtonLoading(submitBtn, false);
+                console.error('Verify error:', error);
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'Không thể xác thực. Vui lòng thử lại.',
+                    background: '#fff'
+                });
+            }
+        });
+    });
+
+    // Gửi lại mã
+    $('#resend-code').on('click', function() {
+        var button = $(this);
+        var token = $('#verification-section').find('input[name="__RequestVerificationToken"]').val();
+        
+        setButtonLoading(button, true);
+        
+        $.ajax({
+            url: '@Url.Action("GuiMaXacThuc", "Account")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                setButtonLoading(button, false);
+                
+                if (response.success) {
+                    clearInterval(countdownInterval);
+                    startCountdown();
+                    $('#verification-code').val('').focus();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: 'Đã gửi lại mã xác thực!',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: '#fff'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: response.message,
+                        background: '#fff'
+                    });
+                }
+            },
+            error: function() {
+                setButtonLoading(button, false);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'Không thể gửi lại mã. Vui lòng thử lại.',
+                    background: '#fff'
+                });
+            }
+        });
+    });
+
+    // Countdown timer với animation
+    function startCountdown() {
+        let timeLeft = 15 * 60; // 15 minutes
+        
+        const countdownElement = $('#countdown');
+        const alertElement = countdownElement.closest('.custom-alert');
+
+        countdownInterval = setInterval(function() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+
+            countdownElement.text(
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0')
+            );
+
+            // Thay đổi màu khi sắp hết hạn
+            if (timeLeft <= 60) {
+                alertElement.removeClass('alert-info-custom').addClass('alert-danger-custom');
+                countdownElement.addClass('text-warning');
+            } else if (timeLeft <= 300) { // 5 minutes
+                countdownElement.addClass('text-warning');
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                alertElement.removeClass('alert-info-custom').addClass('alert-danger-custom');
+                countdownElement.text('Đã hết hạn').addClass('text-danger');
+                $('#verify-code-form button[type="submit"]').prop('disabled', true);
+            }
+
+            timeLeft--;
+        }, 1000);
+    }
+
+    // Auto format và focus verification code
+    $('#verification-code').on('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        // Auto submit khi đủ 6 số
+        if (this.value.length === 6) {
+            setTimeout(function() {
+                $('#verify-code-form').submit();
+            }, 500);
+        }
+    });
+
+    
+});
+</script>
+<style>
+    /* Background và Container */
+    .verification-wrapper {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 0;
+    }
+
+    .verification-container {
+        max-width: 500px;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Card Design */
+    .verification-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+        .verification-card:hover {
+            transform: translateY(-5px);
+        }
+
+    /* Header */
+    .verification-header {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+        padding: 30px 20px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .verification-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        .verification-header h3 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .verification-header i {
+            font-size: 40px;
+            margin-bottom: 10px;
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+
+
+
+    /* Body */
+    .verification-body {
+        padding: 40px 30px;
+    }
+
+    .welcome-text {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+        .welcome-text .lead {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+    .email-display {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 15px;
+        border-radius: 12px;
+        border-left: 4px solid #ff6b6b;
+        margin-bottom: 30px;
+    }
+
+        .email-display strong {
+            color: #ff6b6b;
+            font-weight: 600;
+        }
+
+    /* Form Styles */
+    .custom-form-group {
+        margin-bottom: 25px;
+    }
+
+        .custom-form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+            font-size: 14px;
+        }
+
+    .custom-form-control {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e1e8ed;
+        border-radius: 12px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+
+        .custom-form-control:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+            transform: translateY(-2px);
+        }
+
+    .verification-code-input {
+        font-size: 32px !important;
+        letter-spacing: 12px !important;
+        text-align: center;
+        font-weight: bold;
+        color: #333;
+        background: white !important;
+        border: 2px dashed #ff6b6b !important;
+    }
+
+        .verification-code-input:focus {
+            border-style: solid !important;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+
+    /* Buttons */
+    .custom-btn {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .btn-send {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+        margin-bottom: 20px;
+    }
+
+    .btn-verify {
+        background: linear-gradient(135deg, #00d2d3 0%, #54a0ff 100%);
+        color: white;
+        margin-bottom: 15px;
+    }
+
+    .btn-resend {
+        background: transparent;
+        color: #ff6b6b;
+        border: 2px solid #ff6b6b;
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+        max-width: 200px;
+        margin: 0 auto;
+        display: block;
+    }
+
+    .custom-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .custom-btn:active {
+        transform: translateY(-1px);
+    }
+
+    .custom-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .custom-btn:hover::before {
+        left: 100%;
+    }
+
+    /* Alert Styles */
+    .custom-alert {
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border: none;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+
+        .custom-alert i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+    .alert-info-custom {
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        color: white;
+    }
+
+    .alert-danger-custom {
+        background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+        color: white;
+    }
+
+    /* Countdown */
+    .countdown-display {
+        font-size: 24px;
+        font-weight: bold;
+        font-family: 'Courier New', monospace;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    /* Small text */
+    .small-text {
+        font-size: 13px;
+        color: #6c757d;
+        text-align: center;
+        margin-top: 10px;
+        font-style: italic;
+    }
+
+    /* Section Transitions */
+    .section-transition {
+        transition: all 0.5s ease;
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .section-hidden {
+        opacity: 0;
+        transform: translateX(-20px);
+        pointer-events: none;
+    }
+
+    .section-show {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+
+    /* Loading Animation */
+    .loading-btn {
+        position: relative;
+        pointer-events: none;
+    }
+
+        .loading-btn::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s ease infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+
+
+    /* Animation cho khi trang load */
+    .verification-card {
+        animation: slideUp 0.6s ease-out;
+    }
+</style>

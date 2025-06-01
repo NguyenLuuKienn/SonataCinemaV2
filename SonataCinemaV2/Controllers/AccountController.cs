@@ -84,51 +84,103 @@ namespace SonataCinemaV2.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DangNhap(UserLogin model, string ReturnUrl, bool RememberMe = false)
         {
+            // Khởi tạo session đếm số lần đăng nhập sai nếu chưa có
+            if (Session["LoginAttempts"] == null)
+            {
+                Session["LoginAttempts"] = 0;
+            }
+
+            int loginAttempts = (int)Session["LoginAttempts"];
+            bool requiresCaptcha = loginAttempts >= 5;
+
             if (ModelState.IsValid)
             {
-                // kiểm tra captcha google
-                var response = Request["g-recaptcha-response"];
-                if (string.IsNullOrEmpty(response))
+                // CHỈ KIỂM TRA CAPTCHA SAU 5 LẦN ĐĂNG NHẬP SAI
+                if (requiresCaptcha)
                 {
-                    ModelState.AddModelError("ReCaptcha", "Vui lòng xác nhận captcha");
-                    if (Request.IsAjaxRequest())
+                    var response = Request["g-recaptcha-response"];
+                    if (string.IsNullOrEmpty(response))
                     {
-                        return PartialView("_LoginPartial", model);
+                        ModelState.AddModelError("ReCaptcha", "Vui lòng xác nhận captcha");
+                        if (Request.IsAjaxRequest())
+                        {
+                            return Json(new { 
+                                success = false, 
+                                requiresCaptcha = true,
+                                html = RenderPartialViewToString("_LoginPartial", model)
+                            });
+                        }
+                        return View(model);
                     }
-                    return View(model);
-                }
-                bool isValidCaptcha = ReCaptchaHelper.VerifyReCaptcha(response);
-                if (!isValidCaptcha)
-                {
-                    ModelState.AddModelError("ReCaptcha", "Xác thực captcha không thành công");
-                    if (Request.IsAjaxRequest())
+                    
+                    bool isValidCaptcha = ReCaptchaHelper.VerifyReCaptcha(response);
+                    if (!isValidCaptcha)
                     {
-                        return PartialView("_LoginPartial", model);
+                        ModelState.AddModelError("ReCaptcha", "Xác thực captcha không thành công");
+                        if (Request.IsAjaxRequest())
+                        {
+                            return Json(new { 
+                                success = false, 
+                                requiresCaptcha = true,
+                                html = RenderPartialViewToString("_LoginPartial", model)
+                            });
+                        }
+                        return View(model);
                     }
-                    return View(model);
                 }
+
                 // Kiểm tra tài khoản khách hàng
                 var userKH = db.KhachHangs.SingleOrDefault(k => k.Email == model.Email);
                 if (userKH != null)
                 {
-                    if(userKH.TrangThai == "Khoá")
+                    if (userKH.TrangThai == "Khoá")
                     {
+                        // TĂNG SỐ LẦN ĐĂNG NHẬP SAI
+                        Session["LoginAttempts"] = loginAttempts + 1;
+                        
                         ModelState.AddModelError("", "Tài khoản này đã bị khóa. Vui lòng liên hệ admin để được hỗ trợ.");
                         if (Request.IsAjaxRequest())
                         {
-                            return PartialView("_LoginPartial", model);
+                            return Json(new { 
+                                success = false, 
+                                requiresCaptcha = (loginAttempts + 1) >= 5,
+                                html = RenderPartialViewToString("_LoginPartial", model)
+                            });
                         }
                         return View(model);
-                    }    
-                    if(userKH.TrangThai == "Hoạt Động")
+                    }
+
+                    if (userKH.DaXacThuc == false)
+                    {
+                        // Lưu thông tin để xác thực
+                        Session["PendingVerificationUserId"] = userKH.ID_KhachHang;
+                        Session["PendingVerificationEmail"] = userKH.Email;
+                        Session["PendingVerificationName"] = userKH.TenKhachHang;
+                        
+                        if (Request.IsAjaxRequest())
+                        {
+                            return Json(new { 
+                                success = false, 
+                                requireVerification = true,
+                                message = "Tài khoản chưa được xác thực email.",
+                                redirectUrl = Url.Action("XacThucEmail", "Account")
+                            });
+                        }
+                        return RedirectToAction("XacThucEmail");
+                    }
+
+                    if (userKH.TrangThai == "Hoạt Động")
                     {
                         try
                         {
                             bool isValidPassword = BCrypt.Net.BCrypt.Verify(model.Password, userKH.MatKhau);
                             if (isValidPassword)
                             {
+                                // ĐĂNG NHẬP THÀNH CÔNG - RESET SỐ LẦN ĐĂNG NHẬP SAI
+                                Session["LoginAttempts"] = 0;
+
                                 FormsAuthentication.SetAuthCookie(userKH.Email, RememberMe);
-                                if(RememberMe)
+                                if (RememberMe)
                                 {
                                     HttpCookie emailCookie = new HttpCookie("UserEmail")
                                     {
@@ -136,7 +188,7 @@ namespace SonataCinemaV2.Controllers
                                         Expires = DateTime.Now.AddDays(30)
                                     };
                                     Response.Cookies.Add(emailCookie);
-                                }    
+                                }
                                 else
                                 {
                                     if (Request.Cookies["UserEmail"] != null)
@@ -146,8 +198,9 @@ namespace SonataCinemaV2.Controllers
                                             Expires = DateTime.Now.AddDays(-1)
                                         };
                                         Response.Cookies.Add(emailCookie);
-                                    }    
-                                }    
+                                    }
+                                }
+
                                 Session["Admin"] = false;
                                 Session["Staff"] = false;
                                 Session["Customer"] = true;
@@ -160,11 +213,19 @@ namespace SonataCinemaV2.Controllers
                                     redirectUrl = Url.Action("Index", "Home")
                                 });
                             }
+                            else
+                            {
+                                // MẬT KHẨU SAI - TĂNG SỐ LẦN ĐĂNG NHẬP SAI
+                                Session["LoginAttempts"] = loginAttempts + 1;
+                            }
                         }
                         catch (BCrypt.Net.SaltParseException)
                         {
                             if (userKH.MatKhau == model.Password)
                             {
+                                // ĐĂNG NHẬP THÀNH CÔNG - RESET SỐ LẦN ĐĂNG NHẬP SAI
+                                Session["LoginAttempts"] = 0;
+
                                 userKH.MatKhau = BCrypt.Net.BCrypt.HashPassword(model.Password);
                                 db.SaveChanges();
                                 FormsAuthentication.SetAuthCookie(userKH.Email, false);
@@ -176,6 +237,11 @@ namespace SonataCinemaV2.Controllers
                                     success = true,
                                     redirectUrl = Url.Action("Index", "Home")
                                 });
+                            }
+                            else
+                            {
+                                // MẬT KHẨU SAI - TĂNG SỐ LẦN ĐĂNG NHẬP SAI
+                                Session["LoginAttempts"] = loginAttempts + 1;
                             }
                         }
                     }    
@@ -189,18 +255,29 @@ namespace SonataCinemaV2.Controllers
                 {
                     if (userNV.TrangThai == "Khoá")
                     {
+                        // TĂNG SỐ LẦN ĐĂNG NHẬP SAI
+                        Session["LoginAttempts"] = loginAttempts + 1;
+
                         ModelState.AddModelError("", "Tài khoản này đã bị khóa. Vui lòng liên hệ admin để được hỗ trợ.");
                         if (Request.IsAjaxRequest())
                         {
-                            return PartialView("_LoginPartial", model);
+                            return Json(new { 
+                                success = false, 
+                                requiresCaptcha = (loginAttempts + 1) >= 5,
+                                html = RenderPartialViewToString("_LoginPartial", model)
+                            });
                         }
                         return View(model);
                     }
+
                     try
                     {
                         bool isValidPassword = BCrypt.Net.BCrypt.Verify(model.Password, userNV.MatKhau);
                         if (isValidPassword)
                         {
+                            // ĐĂNG NHẬP THÀNH CÔNG - RESET SỐ LẦN ĐĂNG NHẬP SAI
+                            Session["LoginAttempts"] = 0;
+
                             FormsAuthentication.SetAuthCookie(userNV.Email, RememberMe);
                             if (RememberMe)
                             {
@@ -222,6 +299,7 @@ namespace SonataCinemaV2.Controllers
                                     Response.Cookies.Add(emailCookie);
                                 }
                             }
+
                             if (userNV.QuyenHan == "Admin")
                             {
                                 Session["Admin"] = true;
@@ -247,12 +325,20 @@ namespace SonataCinemaV2.Controllers
                                 success = true,
                                 redirectUrl = Url.Action("Index", "Home")
                             });
-                        }  
-                    }
-                    catch(BCrypt.Net.SaltParseException)
-                    {
-                        if(userNV.MatKhau == model.Password)
+                        }
+                        else
                         {
+                            // MẬT KHẨU SAI - TĂNG SỐ LẦN ĐĂNG NHẬP SAI
+                            Session["LoginAttempts"] = loginAttempts + 1;
+                        }
+                    }
+                    catch (BCrypt.Net.SaltParseException)
+                    {
+                        if (userNV.MatKhau == model.Password)
+                        {
+                            // ĐĂNG NHẬP THÀNH CÔNG - RESET SỐ LẦN ĐĂNG NHẬP SAI
+                            Session["LoginAttempts"] = 0;
+
                             userNV.MatKhau = BCrypt.Net.BCrypt.HashPassword(model.Password);
                             db.SaveChanges();
                             FormsAuthentication.SetAuthCookie(userNV.Email, false);
@@ -265,7 +351,6 @@ namespace SonataCinemaV2.Controllers
                             {
                                 Session["Admin"] = false;
                                 Session["Staff"] = true;
-                                System.Diagnostics.Debug.WriteLine("Staff session set successfully");
                             }
 
                             Session["UserName"] = userNV.TenNhanVien;
@@ -282,10 +367,21 @@ namespace SonataCinemaV2.Controllers
                                 success = true,
                                 redirectUrl = Url.Action("Index", "Home")
                             });
-                        }    
+                        }
+                        else
+                        {
+                            // MẬT KHẨU SAI - TĂNG SỐ LẦN ĐĂNG NHẬP SAI
+                            Session["LoginAttempts"] = loginAttempts + 1;
+                        }
                     }
                     
                 }
+                // NỀU KHÔNG TÌM THẤY TÀI KHOẢN HOẶC SAI THÔNG TIN - TĂNG SỐ LẦN ĐĂNG NHẬP SAI
+                if (userKH == null && userNV == null)
+                {
+                    Session["LoginAttempts"] = loginAttempts + 1;
+                }
+
                 ModelState.AddModelError("", "Sai email hoặc mật khẩu.");
             }
 
@@ -293,7 +389,12 @@ namespace SonataCinemaV2.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return PartialView("_LoginPartial", model);
+                    // Truyền thông tin có cần captcha hay không
+                    return Json(new { 
+                        success = false, 
+                        requiresCaptcha = ((int)Session["LoginAttempts"]) >= 5,
+                        html = RenderPartialViewToString("_LoginPartial", model)
+                    });
                 }
                 return Json(new { success = true, redirectUrl = Url.Action("Index", "Home") });
             }
@@ -491,6 +592,159 @@ namespace SonataCinemaV2.Controllers
         public ActionResult ResetPasswordConfirmation()
         {
             return View();
+        }
+
+        // Hiển thị trang xác thực email
+        public ActionResult XacThucEmail()
+        {
+            var email = Session["PendingVerificationEmail"] as string;
+            var userId = Session["PendingVerificationUserId"] as int?;
+
+            if (string.IsNullOrEmpty(email) || userId == null)
+            {
+                TempData["ErrorMessage"] = "Phiên xác thực đã hết hạn. Vui lòng đăng nhập lại.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.Email = email;
+            return View();
+        }
+
+        // Gửi mã xác thực
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> GuiMaXacThuc()
+        {
+            try
+            {
+                var userId = Session["PendingVerificationUserId"] as int?;
+                var email = Session["PendingVerificationEmail"] as string;
+                var name = Session["PendingVerificationName"] as string;
+
+                if (userId == null || string.IsNullOrEmpty(email))
+                {
+                    return Json(new { success = false, message = "Phiên xác thực đã hết hạn." });
+                }
+
+                var khachHang = db.KhachHangs.Find(userId.Value);
+                if (khachHang == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy tài khoản." });
+                }
+
+                if (khachHang.DaXacThuc == true)
+                {
+                    return Json(new { success = false, message = "Tài khoản đã được xác thực." });
+                }
+
+                // Tạo mã xác thực mới
+                string verificationCode = EmailHelper.GenerateVerificationCode();
+
+                // Cập nhật database
+                khachHang.MaXacThuc = verificationCode;
+                khachHang.ThoiGianXacThuc = DateTime.Now.AddMinutes(15);
+
+                db.Entry(khachHang).State = EntityState.Modified;
+                await db.SaveChangesAsync();
+
+                // Gửi email
+                await EmailHelper.SendVerificationEmail(email, name, verificationCode);
+
+                System.Diagnostics.Debug.WriteLine($"Verification code sent: {verificationCode} to {email}");
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Mã xác thực đã được gửi đến email của bạn!"
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Send verification error: {ex.Message}");
+                return Json(new
+                {
+                    success = false,
+                    message = "Không thể gửi mã xác thực. Vui lòng thử lại."
+                });
+            }
+        }
+
+        // Xác thực mã
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> XacThucMa(string code)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(code) || code.Length != 6)
+                {
+                    return Json(new { success = false, message = "Vui lòng nhập mã 6 số!" });
+                }
+
+                var userId = Session["PendingVerificationUserId"] as int?;
+
+                if (userId == null)
+                {
+                    return Json(new { success = false, message = "Phiên xác thực đã hết hạn." });
+                }
+
+                var khachHang = db.KhachHangs.Find(userId.Value);
+                if (khachHang == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy tài khoản." });
+                }
+
+                // Kiểm tra mã xác thực
+                if (string.IsNullOrEmpty(khachHang.MaXacThuc) || khachHang.MaXacThuc != code)
+                {
+                    return Json(new { success = false, message = "Mã xác thực không đúng!" });
+                }
+
+                // Kiểm tra thời gian hết hạn
+                if (khachHang.ThoiGianXacThuc == null || DateTime.Now > khachHang.ThoiGianXacThuc)
+                {
+                    return Json(new { success = false, message = "Mã xác thực đã hết hạn!" });
+                }
+
+                // Cập nhật trạng thái xác thực
+                khachHang.DaXacThuc = true;
+                khachHang.MaXacThuc = null;
+                khachHang.ThoiGianXacThuc = null;
+
+                db.Entry(khachHang).State = EntityState.Modified;
+                await db.SaveChangesAsync();
+
+                // Đăng nhập người dùng luôn
+                FormsAuthentication.SetAuthCookie(khachHang.Email, false);
+                Session["Admin"] = false;
+                Session["Staff"] = false;
+                Session["Customer"] = true;
+                Session["UserName"] = khachHang.TenKhachHang;
+                Session["MaKhachHang"] = khachHang.ID_KhachHang;
+
+                // Xóa session xác thực
+                Session.Remove("PendingVerificationUserId");
+                Session.Remove("PendingVerificationEmail");
+                Session.Remove("PendingVerificationName");
+
+                System.Diagnostics.Debug.WriteLine($"Email verification successful for user: {khachHang.Email}");
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Xác thực thành công! Chào mừng bạn đến với Sonata Cinema!",
+                    redirectUrl = Url.Action("Index", "Home")
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Verification error: {ex.Message}");
+                return Json(new
+                {
+                    success = false,
+                    message = "Đã xảy ra lỗi trong quá trình xác thực."
+                });
+            }
         }
 
         public ActionResult DangXuat()

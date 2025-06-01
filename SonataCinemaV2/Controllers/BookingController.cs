@@ -399,12 +399,12 @@ namespace SonataCinema.Controllers
                         db.ThanhToans.Add(newThanhToan);
                         await db.SaveChangesAsync();
 
-                        // 4. Tạo vé
+                        var ticketIds = new List<int>();
                         foreach (var ghe in model.ChonGhe)
                         {
                             var existingVe = db.Ves.FirstOrDefault(v =>
                                 v.ID_LichChieu == model.IDLichChieu &&
-                                v.ChoNgoi == ghe.TenGhe &&  v.TrangThai != "Đã huỷ");
+                                v.ChoNgoi == ghe.TenGhe && v.TrangThai != "Đã huỷ");
 
                             if (existingVe != null)
                             {
@@ -422,7 +422,30 @@ namespace SonataCinema.Controllers
                                 TrangThai = "Thành Công"
                             };
                             db.Ves.Add(newVe);
+                            await db.SaveChangesAsync(); // Save to get the ticket ID
+                            
+                            ticketIds.Add(newVe.ID_Ve);
 
+                            // Generate QR code for each ticket
+                            var qrData = QRCodeHelper.GenerateTicketQRData(
+                                newVe.ID_Ve,
+                                khachHang.TenKhachHang,
+                                lichChieu.Phim.TenPhim,
+                                $"{lichChieu.NgayChieu:dd/MM/yyyy} {lichChieu.GioChieu:hh\\:mm}",
+                                ghe.TenGhe
+                            );
+
+                            var qrFileName = $"ticket_{newVe.ID_Ve}_{DateTime.Now:yyyyMMddHHmmss}.png";
+                            var qrCodePath = QRCodeHelper.GenerateQRCode(qrData, qrFileName);
+
+                            if (!string.IsNullOrEmpty(qrCodePath))
+                            {
+                                // Update ticket with QR code path
+                                newVe.QRCodePath = qrCodePath; // Add this field to your Ve model
+                                db.Entry(newVe).State = EntityState.Modified;
+                            }
+
+                            // Remove held seat
                             var gheTrangThai = await db.Ghe_TrangThai.FirstOrDefaultAsync(gt =>
                                 gt.ID_LichChieu == model.IDLichChieu &&
                                 gt.ID_Ghe == ghe.IDGhe);
@@ -477,7 +500,7 @@ namespace SonataCinema.Controllers
                             tongTienThanhToan
                         );
 
-                        // 8. Lưu thông tin cho trang success
+                        // 8. Save session data including QR codes
                         Session["BookingSuccess_MovieName"] = lichChieu.Phim.TenPhim;
                         Session["BookingSuccess_ShowDate"] = lichChieu.NgayChieu.ToString("dd/MM/yyyy");
                         Session["BookingSuccess_ShowTime"] = lichChieu.GioChieu.ToString(@"hh\:mm");
@@ -485,20 +508,12 @@ namespace SonataCinema.Controllers
                         Session["BookingSuccess_RoomName"] = lichChieu.PhongChieu.TenPhong;
                         Session["BookingSuccess_Combos"] = comboInfo;
                         Session["BookingSuccess_TotalAmount"] = tongTienThanhToan.ToString("#,##0 VNĐ");
-                        Session["BookingSuccess_TicketPrice"] = tongTienVe.ToString("#,##0 VNĐ");
-                        Session["BookingSuccess_ComboPrice"] = tongTienCombo.ToString("#,##0 VNĐ");
+                        Session["BookingSuccess_TicketIds"] = ticketIds; // Add ticket IDs for QR display
 
                         transaction.Commit();
 
                         TempData["Success"] = "Đặt vé thành công!";
                         return RedirectToAction("BookingSuccess");
-                    }
-                    catch (DbUpdateException dbEx)
-                    {
-                        transaction.Rollback();
-                        System.Diagnostics.Debug.WriteLine($"DbUpdateException: {dbEx.Message}");
-                        TempData["Error"] = "Lỗi cập nhật dữ liệu: " + dbEx.InnerException?.Message ?? dbEx.Message;
-                        return RedirectToAction("BookingTicket");
                     }
                     catch (Exception ex)
                     {
@@ -563,11 +578,34 @@ namespace SonataCinema.Controllers
             ViewBag.TotalAmount = Session["BookingSuccess_TotalAmount"];
             ViewBag.RoomName = Session["BookingSuccess_RoomName"];
             ViewBag.Combos = Session["BookingSuccess_Combos"];
+            
+            // Get QR codes for tickets - Fixed approach
+            var ticketIds = Session["BookingSuccess_TicketIds"] as List<int>;
+            if (ticketIds != null && ticketIds.Any())
+            {
+                try
+                {
+                    // Use raw SQL query to avoid EF issues
+                    var tickets = db.Database.SqlQuery<TicketInfo>(
+                        "SELECT ID_Ve, ChoNgoi, QRCodePath FROM Ve WHERE ID_Ve IN ({0})",
+                        string.Join(",", ticketIds)
+                    ).ToList();
+                    
+                    ViewBag.Tickets = tickets;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error loading tickets: {ex.Message}");
+                    ViewBag.Tickets = null;
+                }
+            }
 
             if (ViewBag.MovieName == null)
             {
                 return RedirectToAction("BookingTicket");
             }
+
+            // Clear session data
             Session.Remove("BookingSuccess_MovieName");
             Session.Remove("BookingSuccess_ShowDate");
             Session.Remove("BookingSuccess_ShowTime");
@@ -575,8 +613,17 @@ namespace SonataCinema.Controllers
             Session.Remove("BookingSuccess_TotalAmount");
             Session.Remove("BookingSuccess_RoomName");
             Session.Remove("BookingSuccess_Combos");
+            Session.Remove("BookingSuccess_TicketIds");
 
             return View();
+        }
+
+        // Add this class to your Models or ViewModels folder
+        public class TicketInfo
+        {
+            public int ID_Ve { get; set; }
+            public string ChoNgoi { get; set; }
+            public string QRCodePath { get; set; }
         }
     }
 }
